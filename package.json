@@ -1,0 +1,62 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "enterprise-confluence",
+  "title": "Enterprise Confluence",
+  "description": "Search and manage Enterprise Confluence documents with Raycast extension",
+  "icon": "logo.png",
+  "author": "tofrankie",
+  "platforms": [
+    "macOS",
+    "Windows"
+  ],
+  "categories": [
+    "Productivity"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "search-confluence",
+      "title": "Search Confluence",
+      "description": "Search documents in Enterprise Confluence",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.103.2",
+    "@raycast/utils": "^1.17.0",
+    "@tanstack/react-query": "^5.90.2"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.0.4",
+    "@types/node": "22.13.10",
+    "@types/react": "19.0.10",
+    "eslint": "^9.22.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "ray publish"
+  },
+  "preferences": [
+    {
+      "name": "confluenceDomain",
+      "title": "Confluence Domain",
+      "description": "Your Confluence Data Center domain (e.g., confluence.yourcompany.com)",
+      "type": "textfield",
+      "required": true,
+      "placeholder": "confluence.yourcompany.com"
+    },
+    {
+      "name": "personalAccessToken",
+      "title": "Personal Access Token",
+      "description": "Your Confluence Personal Access Token for API authentication. Get it from: Profile → Personal Access Tokens → Create token",
+      "type": "password",
+      "required": true,
+      "placeholder": "Enter your Personal Access Token"
+    }
+  ]
+}
