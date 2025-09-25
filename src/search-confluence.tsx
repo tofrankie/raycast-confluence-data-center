@@ -1,4 +1,4 @@
-import { ActionPanel, Action, Icon, List, showToast, Toast, getPreferenceValues } from "@raycast/api";
+import { ActionPanel, Action, Icon, List, showToast, Toast, getPreferenceValues, Image } from "@raycast/api";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ConfluenceAPI } from "./confluence-api";
@@ -98,7 +98,7 @@ function SearchContent() {
   const getContentIcon = (type: string) => {
     switch (type) {
       case "page":
-        return Icon.Document;
+        return { source: "icon-page.svg", tintColor: "#57B6D5" };
       case "blogpost":
         return Icon.Document;
       case "comment":
@@ -164,15 +164,27 @@ function SearchContent() {
         <List.Item icon={Icon.MagnifyingGlass} title="No results found" subtitle="Try different search terms" />
       ) : (
         results.map((item) => {
-          const webUrl = new ConfluenceAPI().getContentUrl(item.id);
-          console.log("🚀 ~ webUrl:", webUrl);
+          const instance = new ConfluenceAPI();
+          const webUrl = instance.getContentUrl(item.id);
+          const baseUrl = instance.getBaseUrl();
+          const authorAvatar = `${baseUrl}${item.version.by.profilePicture.path}`;
+          const authorName = item.version.by.displayName;
+          const icon = getContentIcon(item.type);
+
           return (
             <List.Item
               key={item.id}
-              icon={getContentIcon(item.type)}
+              icon={icon}
               title={item.title}
               subtitle={item.space.name}
-              accessories={[{ text: getContentTypeLabel(item.type) }, { text: formatDate(item.version.when) }]}
+              accessories={[
+                {
+                  icon: { source: authorAvatar, mask: Image.Mask.Circle },
+                  tooltip: authorName,
+                },
+                { text: getContentTypeLabel(item.type) },
+                { text: formatDate(item.version.when) },
+              ]}
               detail={
                 <List.Item.Detail
                   markdown={`# ${item.title}
