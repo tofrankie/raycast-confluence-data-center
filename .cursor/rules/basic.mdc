@@ -13,7 +13,7 @@ Raycast 开发文档：https://developers.raycast.com/
 
 以 Bearer token 的方式用于 API 调用。
 
-详细文档：https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html?utm_source=chatgpt.com。
+详细文档：https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html。
 
 示例：
 
