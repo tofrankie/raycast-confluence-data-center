@@ -22,8 +22,8 @@ export async function searchContent(query: string, limit: number = 5) {
 
 export function getContentIcon(type: ConfluenceContentType) {
   const iconMap = {
-    page: { source: "icon-page.svg", tintColor: "#505258" },
-    blogpost: { source: "icon-blogpost.svg", tintColor: "#505258" },
+    page: { source: "remade/icon-page.svg", tintColor: "#505258" },
+    blogpost: { source: "remade/icon-blogpost.svg", tintColor: "#505258" },
     attachment: { source: "icon-attachment.svg", tintColor: "#505258" },
   };
 
