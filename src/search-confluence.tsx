@@ -16,8 +16,8 @@ function SearchContent() {
   const avatarList = useMemo(() => {
     return results
       .map((item) => ({
-        url: getAuthorAvatarUrl(item.version.by.profilePicture.path) || "",
-        filename: item.version.by.userKey,
+        url: getAuthorAvatarUrl(item.history.createdBy.profilePicture.path) || "",
+        filename: item.history.createdBy.userKey,
       }))
       .filter((avatar) => avatar.url);
   }, [results]);
@@ -43,25 +43,27 @@ function SearchContent() {
         <List.Item icon={Icon.MagnifyingGlass} title="No results found" subtitle="Try different keywords" />
       ) : (
         results.map((item) => {
-          const webUrl = getContentUrl(item.id) || "";
-          const authorName = item.version.by.displayName;
           const icon = getContentIcon(item.type as ConfluenceContentType);
-          const lastModifiedDate = new Date(item.version.when);
+          const webUrl = getContentUrl(item.id) || "";
+          const creator = item.history.createdBy.displayName;
+          const updater = item.history.lastUpdated?.by.displayName || creator;
+          const updatedAt = new Date(item.history.lastUpdated?.when || item.history.createdDate);
+          const createdAt = new Date(item.history.createdDate);
 
-          const authorAvatar = avatarDir
-            ? `${avatarDir}/${item.version.by.userKey}.png`
-            : getAuthorAvatarUrl(item.version.by.profilePicture.path);
+          const creatorAvatar = avatarDir
+            ? `${avatarDir}/${item.history.createdBy.userKey}.png`
+            : getAuthorAvatarUrl(item.history.createdBy.profilePicture.path);
 
           const accessories = [
             {
-              date: lastModifiedDate,
-              tooltip: `Last modified: ${lastModifiedDate.toLocaleString()}`,
+              date: updatedAt,
+              tooltip: `Created at: ${createdAt.toLocaleString()} by ${creator}\nUpdated at: ${updatedAt.toLocaleString()} by ${updater}`,
             },
-            ...(authorAvatar
+            ...(creatorAvatar
               ? [
                   {
-                    icon: { source: authorAvatar, mask: Image.Mask.Circle },
-                    tooltip: `Last updated by: ${authorName}`,
+                    icon: { source: creatorAvatar, mask: Image.Mask.Circle },
+                    tooltip: `Created by: ${creator}`,
                   },
                 ]
               : []),
@@ -72,7 +74,7 @@ function SearchContent() {
               key={item.id}
               icon={icon}
               title={item.title}
-              subtitle={item.space.name}
+              subtitle={{ value: item.space.name, tooltip: `Space: ${item.space.name}` }}
               accessories={accessories}
               actions={
                 <ActionPanel>

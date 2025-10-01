@@ -1,4 +1,4 @@
-export type ConfluenceContentType = "page" | "blogpost" | "attachment";
+export type ConfluenceContentType = "page" | "blogpost" | "attachment" | "comment";
 
 export type AvatarType = "confluence" | "jira";
 
@@ -41,31 +41,19 @@ export interface ConfluenceSearchContentResult {
       homepage: string;
     };
   };
-  body: {
-    storage: {
-      value: string;
-      representation: string;
-      _expandable: {
-        content: string;
-      };
-    };
-    view: {
-      value: string;
-      representation: string;
-      _expandable: {
-        webresource: string;
-        content: string;
-      };
-    };
-    _expandable: {
-      editor: string;
-      export_view: string;
-      styled_view: string;
-      anonymous_export_view: string;
-    };
+  position: number;
+  extensions: {
+    position: string;
   };
-  version: {
-    by: {
+  _links: {
+    webui: string;
+    edit: string;
+    tinyui: string;
+    self: string;
+  };
+  history: {
+    latest: boolean;
+    createdBy: {
       type: string;
       username: string;
       userKey: string;
@@ -78,27 +66,42 @@ export interface ConfluenceSearchContentResult {
         status: string;
       };
     };
-    when: string;
-    message: string;
-    number: number;
-    minorEdit: boolean;
-    hidden: boolean;
+    createdDate: string;
+    lastUpdated?: {
+      by: {
+        type: string;
+        username: string;
+        userKey: string;
+        profilePicture: Icon;
+        displayName: string;
+        _links: {
+          self: string;
+        };
+        _expandable: {
+          status: string;
+        };
+      };
+      when: string;
+      message: string;
+      number: number;
+      minorEdit: boolean;
+      hidden: boolean;
+      _links: {
+        self: string;
+      };
+      _expandable: {
+        content: string;
+      };
+    };
     _links: {
       self: string;
     };
     _expandable: {
-      content: string;
+      lastUpdated: string;
+      previousVersion: string;
+      contributors: string;
+      nextVersion: string;
     };
-  };
-  position: number;
-  extensions: {
-    position: string;
-  };
-  _links: {
-    webui: string;
-    edit: string;
-    tinyui: string;
-    self: string;
   };
   _expandable: {
     container: string;

@@ -9,7 +9,7 @@ export async function searchContent(query: string, limit: number = 5) {
   const params = {
     cql: `text ~ "${query}"`,
     limit: limit.toString(),
-    expand: "space,version,body.storage,body.view",
+    expand: "space,history.createdBy,history.lastUpdated",
   };
 
   const data = await confluenceRequest<ConfluenceSearchContentResponse>(API.SEARCH_CONTENT, params);
@@ -22,12 +22,13 @@ export async function searchContent(query: string, limit: number = 5) {
 
 export function getContentIcon(type: ConfluenceContentType) {
   const iconMap = {
-    page: { source: "remade/icon-page.svg", tintColor: "#505258" },
-    blogpost: { source: "remade/icon-blogpost.svg", tintColor: "#505258" },
-    attachment: { source: "icon-attachment.svg", tintColor: "#505258" },
+    page: { source: "remade/icon-page.svg", tintColor: "#aaa" },
+    blogpost: { source: "remade/icon-blogpost.svg", tintColor: "#aaa" },
+    attachment: { source: "icon-attachment.svg", tintColor: "#aaa" },
+    comment: { source: "remade/icon-comment.svg", tintColor: "#aaa" },
   };
 
-  return iconMap[type] || { source: "icon-document.svg", tintColor: "#505258" };
+  return iconMap[type] || { source: "icon-document.svg", tintColor: "#aaa" };
 }
 
 export function getContentTypeLabel(type: ConfluenceContentType) {
@@ -35,6 +36,7 @@ export function getContentTypeLabel(type: ConfluenceContentType) {
     page: "Page",
     blogpost: "Blog Post",
     attachment: "Attachment",
+    comment: "Comment",
   };
 
   return typeMap[type] || type;

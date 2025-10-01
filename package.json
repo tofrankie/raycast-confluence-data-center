@@ -61,7 +61,7 @@
           "title": "Cache Confluence User Avatars",
           "description": "Cache Confluence user avatars to local storage. Enable if your Confluence requires authentication to access user avatars, disable if avatars can be accessed directly without authentication.",
           "type": "checkbox",
-          "required": false,
+          "required": true,
           "default": false,
           "label": "Enable avatar caching"
         }
