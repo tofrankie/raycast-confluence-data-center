@@ -85,7 +85,7 @@ src/
 │   └── use-avatar.ts          # 头像下载 Hook
 ├── constants/
 │   └── index.ts               # 常量配置更新
-└── search-confluence.tsx      # 主组件更新
+└── search-content.tsx         # 主组件更新
 ```
 
 ## 实现细节

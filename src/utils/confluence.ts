@@ -2,19 +2,54 @@ import path from "node:path";
 import { writeFile } from "node:fs/promises";
 import { environment } from "@raycast/api";
 import { confluenceRequest } from "./request";
-import { API } from "../constants";
-import type { ConfluenceSearchContentResult, ConfluenceSearchContentResponse, ConfluenceContentType } from "../types";
+import { CONFLUENCE_API } from "../constants";
+import type { ConfluenceSearchContentResponse, ConfluenceContentType } from "../types";
 
 export async function searchContent(query: string, limit: number = 5) {
   const params = {
     cql: `text ~ "${query}"`,
     limit: limit.toString(),
-    expand: "space,history.createdBy,history.lastUpdated",
+    expand: "space,history.createdBy,history.lastUpdated,metadata.currentuser.favourited",
   };
 
-  const data = await confluenceRequest<ConfluenceSearchContentResponse>(API.SEARCH_CONTENT, params);
+  const data = await confluenceRequest<ConfluenceSearchContentResponse>(CONFLUENCE_API.SEARCH_CONTENT, params);
 
   // TODO:
+  writeToSupportPathFile(JSON.stringify(data, null, 2), "search-content-response.json");
+
+  return data.results;
+}
+
+export async function searchContentWithFilters(query: string, filters: string[] = [], limit: number = 5) {
+  // 导入 CQL 构建工具
+  const { buildSearchQuery, processSpecialFilters, optimizeCQLQuery, testQueryCombinations } = await import(
+    "./cql-builder"
+  );
+
+  // 开发时运行测试（可以移除）
+  if (process.env.NODE_ENV === "development") {
+    testQueryCombinations();
+  }
+
+  // 构建 CQL 查询
+  let cqlQuery = buildSearchQuery(query, filters);
+
+  // 处理特殊过滤选项
+  cqlQuery = processSpecialFilters(cqlQuery, filters);
+
+  // 优化查询
+  cqlQuery = optimizeCQLQuery(cqlQuery);
+
+  const params = {
+    cql: cqlQuery,
+    limit: limit.toString(),
+    expand: "space,history.createdBy,history.lastUpdated,metadata.currentuser.favourited",
+  };
+  console.log("🚀 ~ searchContentWithFilters ~ params:", params);
+
+  const data = await confluenceRequest<ConfluenceSearchContentResponse>(CONFLUENCE_API.SEARCH_CONTENT, params);
+
+  // TODO: 调试
   writeToSupportPathFile(JSON.stringify(data, null, 2), "search-content-response.json");
 
   return data.results;
@@ -24,11 +59,12 @@ export function getContentIcon(type: ConfluenceContentType) {
   const iconMap = {
     page: { source: "remade/icon-page.svg", tintColor: "#aaa" },
     blogpost: { source: "remade/icon-blogpost.svg", tintColor: "#aaa" },
-    attachment: { source: "icon-attachment.svg", tintColor: "#aaa" },
+    attachment: { source: "remade/icon-attachment.svg", tintColor: "#aaa" },
     comment: { source: "remade/icon-comment.svg", tintColor: "#aaa" },
-  };
+    user: { source: "remade/icon-user.svg", tintColor: "#aaa" },
+  } as const;
 
-  return iconMap[type] || { source: "icon-document.svg", tintColor: "#aaa" };
+  return iconMap[type as keyof typeof iconMap] || { source: "remade/icon-unknown.svg", tintColor: "#aaa" };
 }
 
 export function getContentTypeLabel(type: ConfluenceContentType) {
@@ -37,18 +73,10 @@ export function getContentTypeLabel(type: ConfluenceContentType) {
     blogpost: "Blog Post",
     attachment: "Attachment",
     comment: "Comment",
-  };
+    user: "User",
+  } as const;
 
-  return typeMap[type] || type;
-}
-
-export function getContentPreview(body: ConfluenceSearchContentResult["body"]) {
-  if (!body) return "";
-
-  const content = body.storage?.value || body.view?.value || "";
-  // Remove HTML tags and get first 100 characters
-  const textContent = content.replace(/<[^>]*>/g, "").trim();
-  return textContent.length > 100 ? textContent.substring(0, 100) + "..." : textContent;
+  return typeMap[type as keyof typeof typeMap] || type;
 }
 
 export async function writeToSupportPathFile(content: string, filename: string) {
@@ -56,4 +84,14 @@ export async function writeToSupportPathFile(content: string, filename: string) 
   await writeFile(filePath, content, "utf8");
   // TODO:
   console.log("🚀 ~ File written to:", filePath);
+}
+
+export async function addToFavorites(contentId: string): Promise<void> {
+  const endpoint = `${CONFLUENCE_API.CONTENT_FAVOURITE}${contentId}`;
+  await confluenceRequest<void>(endpoint, undefined, "PUT");
+}
+
+export async function removeFromFavorites(contentId: string): Promise<void> {
+  const endpoint = `${CONFLUENCE_API.CONTENT_FAVOURITE}${contentId}`;
+  await confluenceRequest<void>(endpoint, undefined, "DELETE");
 }

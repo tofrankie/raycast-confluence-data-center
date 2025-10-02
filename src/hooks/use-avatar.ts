@@ -1,4 +1,3 @@
-import { access } from "node:fs/promises";
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { downloadAvatar, getAvatarPath } from "../utils/avatar";
@@ -10,15 +9,6 @@ import type { AvatarType } from "../types";
 export interface AvatarItem {
   url: string;
   filename: string;
-}
-
-async function fileExists(filePath: string) {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 export function useAvatar(avatarList: AvatarItem[], type: AvatarType) {

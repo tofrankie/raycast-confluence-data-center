@@ -1,4 +1,4 @@
-export type ConfluenceContentType = "page" | "blogpost" | "attachment" | "comment";
+export type ConfluenceContentType = "page" | "blogpost" | "attachment" | "comment" | "user" | "space";
 
 export type AvatarType = "confluence" | "jira";
 
@@ -67,7 +67,7 @@ export interface ConfluenceSearchContentResult {
       };
     };
     createdDate: string;
-    lastUpdated?: {
+    lastUpdated: {
       by: {
         type: string;
         username: string;
@@ -101,6 +101,25 @@ export interface ConfluenceSearchContentResult {
       previousVersion: string;
       contributors: string;
       nextVersion: string;
+    };
+  };
+  metadata: {
+    currentuser: {
+      favourited?: {
+        isFavourite: boolean;
+        favouritedDate: number;
+      };
+      _expandable: {
+        lastmodified: string;
+        viewed: string;
+        lastcontributed: string;
+      };
+    };
+    _expandable: {
+      properties: string;
+      frontend: string;
+      editorHtml: string;
+      labels: string;
     };
   };
   _expandable: {

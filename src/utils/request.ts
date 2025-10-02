@@ -1,6 +1,10 @@
 import { getPreferenceValues } from "@raycast/api";
 
-export async function confluenceRequest<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+export async function confluenceRequest<T>(
+  endpoint: string,
+  params?: Record<string, string>,
+  method: string = "GET",
+): Promise<T> {
   const { confluenceDomain, confluencePersonalAccessToken } = getPreferenceValues<Preferences.SearchConfluence>();
 
   if (!confluenceDomain || !confluencePersonalAccessToken) {
@@ -18,12 +22,17 @@ export async function confluenceRequest<T>(endpoint: string, params?: Record<str
     }
 
     const response = await fetch(url.toString(), {
-      method: "GET",
+      method,
       headers: getAuthHeaders(confluencePersonalAccessToken),
     });
 
     if (!response.ok) {
       handleHttpError(response);
+    }
+
+    // 对于 PUT/DELETE 请求，可能没有响应体
+    if (response.status === 204 || response.headers.get("content-length") === "0") {
+      return undefined as T;
     }
 
     const result = (await response.json()) as T;

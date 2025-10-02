@@ -1,16 +1,22 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "enterprise-confluence",
-  "title": "Enterprise Confluence",
-  "description": "Search and manage Enterprise Confluence documents with Raycast extension",
+  "name": "confluence-data-center",
+  "title": "Confluence Data Center",
+  "description": "Search Confluence content with advanced filters and CQL syntax support",
   "icon": "logo.png",
   "author": "tofrankie",
   "platforms": [
-    "macOS",
-    "Windows"
+    "macOS"
   ],
   "categories": [
     "Productivity"
+  ],
+  "keywords": [
+    "atlassian",
+    "confluence",
+    "jira",
+    "confluence data center",
+    "jira data center"
   ],
   "license": "MIT",
   "scripts": {
@@ -35,15 +41,16 @@
   },
   "commands": [
     {
-      "name": "search-confluence",
-      "title": "Search Confluence",
-      "description": "Search documents in Enterprise Confluence",
+      "name": "confluence-search-content",
+      "title": "Search Content",
+      "subtitle": "Confluence",
+      "description": "Search Confluence content with filters (created by me, favorites, mentions, etc.) and CQL syntax support",
       "mode": "view",
       "preferences": [
         {
           "name": "confluenceDomain",
           "title": "Confluence Domain",
-          "description": "Your Confluence Data Center domain (e.g., wiki.yourcompany.com)",
+          "description": "Your Confluence Data Center domain without https:// (e.g., wiki.yourcompany.com)",
           "type": "textfield",
           "required": true,
           "placeholder": "wiki.yourcompany.com"
@@ -51,7 +58,7 @@
         {
           "name": "confluencePersonalAccessToken",
           "title": "Confluence Personal Access Token",
-          "description": "Your Confluence Personal Access Token for API authentication. Get it from: Profile → Personal Access Tokens → Create token",
+          "description": "Your Confluence Personal Access Token for API authentication. Create it from: Profile → Personal Access Tokens → Create token",
           "type": "password",
           "required": true,
           "placeholder": "Enter your Confluence Personal Access Token"
@@ -59,7 +66,7 @@
         {
           "name": "cacheConfluenceUserAvatar",
           "title": "Cache Confluence User Avatars",
-          "description": "Cache Confluence user avatars to local storage. Enable if your Confluence requires authentication to access user avatars, disable if avatars can be accessed directly without authentication.",
+          "description": "Cache user avatars locally. Enable if your Confluence requires authentication to access avatars.",
           "type": "checkbox",
           "required": true,
           "default": false,
