@@ -1,23 +1,33 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { searchContent, searchContentWithFilters, addToFavorites, removeFromFavorites } from "../utils";
-import type { ConfluenceSearchContentResult } from "../types";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
+import { searchContentWithFilters, addToFavorites, removeFromFavorites } from "../utils";
+import type { ConfluenceSearchContentResult, ConfluenceSearchContentResponse } from "../types";
 
-export const useConfluenceSearch = (query: string, limit: number = 20) => {
-  return useQuery<ConfluenceSearchContentResult[], Error>({
-    queryKey: ["confluence-search", query],
-    queryFn: () => searchContent(query, limit),
-    enabled: query.length >= 2,
-    staleTime: 30 * 1000, // 30 seconds
-    retry: 2,
-  });
-};
+export const useConfluenceSearchContent = (
+  query: string,
+  filters: string[] = [],
+  searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
+) => {
+  return useInfiniteQuery<ConfluenceSearchContentResponse, Error>({
+    queryKey: ["confluence-search", query, filters, searchPageSize],
+    queryFn: async ({ pageParam }) => {
+      const start = pageParam as number;
+      const response = await searchContentWithFilters(query, filters, searchPageSize, start);
+      return response;
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      // 优先使用 _links.next 判断是否还有更多数据，这是最可靠的方式
+      const hasNextLink = !!lastPage._links?.next;
+      // 备用判断：使用 size 字段
+      const hasMoreBySize = lastPage.size === searchPageSize;
+      const hasMore = hasNextLink || hasMoreBySize;
 
-export const useConfluenceSearchWithFilters = (query: string, filters: string[] = [], limit: number = 20) => {
-  return useQuery<ConfluenceSearchContentResult[], Error>({
-    queryKey: ["confluence-search-with-filters", query, filters],
-    queryFn: () => searchContentWithFilters(query, filters, limit),
+      const nextPageParam = hasMore ? allPages.length * searchPageSize : undefined;
+      return nextPageParam;
+    },
     enabled: query.length >= 2,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 60 * 1000, // 1min
     retry: 0,
   });
 };

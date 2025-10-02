@@ -146,4 +146,5 @@ export interface ConfluenceConfig {
   token: string;
   baseUrl: string;
   cacheAvatar: boolean;
+  searchPageSize: number;
 }

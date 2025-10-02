@@ -178,7 +178,7 @@ function useAvatar(avatarList: AvatarItem[], type: AvatarType): void;
 
 ```typescript
 // 在搜索组件中
-const { cacheConfluenceUserAvatar } = getPreferenceValues<Preferences.SearchConfluence>();
+const { cacheConfluenceUserAvatar } = getPreferenceValues<Preferences.ConfluenceSearchContent>();
 
 if (cacheConfluenceUserAvatar) {
   // 构建头像列表并缓存

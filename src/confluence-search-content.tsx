@@ -1,8 +1,14 @@
 import { ActionPanel, Action, Icon, List, Image } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { QueryProvider } from "./query-client";
-import { useAvatar, useConfluenceSearchWithFilters, useConfluenceUrls, useToggleFavorite } from "./hooks";
+import {
+  useAvatar,
+  useConfluenceSearchContent,
+  useConfluenceUrls,
+  useToggleFavorite,
+  useConfluenceConfig,
+} from "./hooks";
 import {
   getContentIcon,
   writeToSupportPathFile,
@@ -14,15 +20,61 @@ import { AVATAR_TYPES, CONFLUENCE_CONTENT_TYPE } from "./constants";
 import { SearchFilters } from "./components/search-filters";
 import { CQLWrapper } from "./components/cql-wrapper";
 import { useSearchFilters } from "./hooks/use-search-filters";
-import type { ConfluenceContentType } from "./types";
+import type { ConfluenceContentType, ConfluenceSearchContentResult } from "./types";
+
+export default function ConfluenceSearchContent() {
+  return (
+    <QueryProvider>
+      <SearchContent />
+    </QueryProvider>
+  );
+}
 
 function SearchContent() {
   const [searchText, setSearchText] = useState("");
   const { filters, setFilters } = useSearchFilters();
   const { getContentUrl, getAuthorAvatarUrl, getContentEditUrl } = useConfluenceUrls();
   const toggleFavorite = useToggleFavorite();
+  const { searchPageSize } = useConfluenceConfig();
 
-  const { data: results = [], isLoading, error, isError } = useConfluenceSearchWithFilters(searchText, filters, 20);
+  // 分页状态管理
+  const [currentPage, setCurrentPage] = useState(0);
+  const [, setAllResults] = useState<ConfluenceSearchContentResult[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+
+  // 使用分页查询
+  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, isError } = useConfluenceSearchContent(
+    searchText,
+    filters,
+    searchPageSize,
+  );
+
+  // 展平所有页面的结果
+  const results = useMemo(() => data?.pages.flatMap((page) => page.results) ?? [], [data]);
+
+  // 重置分页状态当搜索条件改变时
+  useEffect(() => {
+    setCurrentPage(0);
+    setAllResults([]);
+    setHasMore(true);
+  }, [searchText, filters]);
+
+  // 更新分页状态和数据
+  useEffect(() => {
+    if (data?.pages) {
+      const latestPage = data.pages[data.pages.length - 1];
+      if (latestPage) {
+        // 更新 hasMore 状态
+        const hasNextLink = !!latestPage._links?.next;
+        const hasMoreBySize = latestPage.size === searchPageSize;
+        setHasMore(hasNextLink || hasMoreBySize);
+
+        // 更新所有结果
+        const newResults = data.pages.flatMap((page) => page.results);
+        setAllResults(newResults);
+      }
+    }
+  }, [data, searchPageSize]);
 
   // 生成当前的 CQL 查询
   const currentCQL = useMemo(() => {
@@ -60,7 +112,16 @@ function SearchContent() {
     }
   }, [toggleFavorite.isError, toggleFavorite.error]);
 
-  // TODO:
+  // Raycast 分页处理函数
+  const handleLoadMore = useCallback(() => {
+    console.log("🔄 handleLoadMore called", { hasMore, isFetchingNextPage, currentPage });
+    if (hasMore && !isFetchingNextPage) {
+      console.log("📄 Fetching next page...");
+      fetchNextPage();
+    }
+  }, [hasMore, isFetchingNextPage, fetchNextPage]);
+
+  // TODO: 调试
   useEffect(() => {
     if (results.length > 0) {
       writeToSupportPathFile(JSON.stringify(results[0], null, 2), "temp.json");
@@ -73,6 +134,11 @@ function SearchContent() {
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search Content..."
       searchBarAccessory={<SearchFilters filters={filters} onFiltersChange={setFilters} />}
+      pagination={{
+        onLoadMore: handleLoadMore,
+        hasMore: hasMore,
+        pageSize: searchPageSize,
+      }}
       throttle
     >
       <CQLWrapper query={searchText}>
@@ -179,13 +245,5 @@ function SearchContent() {
         )}
       </CQLWrapper>
     </List>
-  );
-}
-
-export default function SearchConfluence() {
-  return (
-    <QueryProvider>
-      <SearchContent />
-    </QueryProvider>
   );
 }

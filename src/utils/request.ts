@@ -5,7 +5,8 @@ export async function confluenceRequest<T>(
   params?: Record<string, string>,
   method: string = "GET",
 ): Promise<T> {
-  const { confluenceDomain, confluencePersonalAccessToken } = getPreferenceValues<Preferences.SearchConfluence>();
+  const { confluenceDomain, confluencePersonalAccessToken } =
+    getPreferenceValues<Preferences.ConfluenceSearchContent>();
 
   if (!confluenceDomain || !confluencePersonalAccessToken) {
     throw new Error("Please configure Confluence domain and Personal Access Token in preferences");

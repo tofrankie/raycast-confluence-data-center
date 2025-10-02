@@ -20,3 +20,5 @@ export const AVATAR_TYPES = {
 export const CONFLUENCE_AVATAR_DIR = "/tmp/raycast-confluence-data-center/confluence/avatars";
 
 export const JIRA_AVATAR_DIR = "/tmp/raycast-confluence-data-center/jira/avatars";
+
+export const DEFAULT_SEARCH_PAGE_SIZE = 20;

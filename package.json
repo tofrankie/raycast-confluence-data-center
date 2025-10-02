@@ -39,6 +39,17 @@
     "prettier": "^3.5.3",
     "typescript": "^5.8.2"
   },
+  "preferences": [
+    {
+      "name": "searchPageSize",
+      "title": "Results Per Page",
+      "description": "Number of search results to display per page (default: 20). Increase if pagination doesn't trigger properly.",
+      "type": "textfield",
+      "required": false,
+      "default": "20",
+      "placeholder": "20"
+    }
+  ],
   "commands": [
     {
       "name": "confluence-search-content",

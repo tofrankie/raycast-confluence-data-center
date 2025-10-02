@@ -2,25 +2,15 @@ import path from "node:path";
 import { writeFile } from "node:fs/promises";
 import { environment } from "@raycast/api";
 import { confluenceRequest } from "./request";
-import { CONFLUENCE_API } from "../constants";
+import { CONFLUENCE_API, DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
 import type { ConfluenceSearchContentResponse, ConfluenceContentType } from "../types";
 
-export async function searchContent(query: string, limit: number = 5) {
-  const params = {
-    cql: `text ~ "${query}"`,
-    limit: limit.toString(),
-    expand: "space,history.createdBy,history.lastUpdated,metadata.currentuser.favourited",
-  };
-
-  const data = await confluenceRequest<ConfluenceSearchContentResponse>(CONFLUENCE_API.SEARCH_CONTENT, params);
-
-  // TODO:
-  writeToSupportPathFile(JSON.stringify(data, null, 2), "search-content-response.json");
-
-  return data.results;
-}
-
-export async function searchContentWithFilters(query: string, filters: string[] = [], limit: number = 5) {
+export async function searchContentWithFilters(
+  query: string,
+  filters: string[] = [],
+  limit: number = DEFAULT_SEARCH_PAGE_SIZE,
+  start: number = 0,
+) {
   // 导入 CQL 构建工具
   const { buildSearchQuery, processSpecialFilters, optimizeCQLQuery, testQueryCombinations } = await import(
     "./cql-builder"
@@ -42,17 +32,17 @@ export async function searchContentWithFilters(query: string, filters: string[] 
 
   const params = {
     cql: cqlQuery,
+    start: start.toString(),
     limit: limit.toString(),
     expand: "space,history.createdBy,history.lastUpdated,metadata.currentuser.favourited",
   };
-  console.log("🚀 ~ searchContentWithFilters ~ params:", params);
 
   const data = await confluenceRequest<ConfluenceSearchContentResponse>(CONFLUENCE_API.SEARCH_CONTENT, params);
 
   // TODO: 调试
   writeToSupportPathFile(JSON.stringify(data, null, 2), "search-content-response.json");
 
-  return data.results;
+  return data;
 }
 
 export function getContentIcon(type: ConfluenceContentType) {
