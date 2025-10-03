@@ -1,6 +1,16 @@
-export type ConfluenceContentType = "page" | "blogpost" | "attachment" | "comment" | "user" | "space";
+import { CONFLUENCE_CONTENT_TYPE, AVATAR_TYPES } from "../constants";
 
-export type AvatarType = "confluence" | "jira";
+export type ConfluenceContentType = (typeof CONFLUENCE_CONTENT_TYPE)[keyof typeof CONFLUENCE_CONTENT_TYPE];
+
+export type AvatarType = (typeof AVATAR_TYPES)[keyof typeof AVATAR_TYPES];
+
+export interface ContentTypeConfig {
+  type: ConfluenceContentType;
+  label: string;
+  icon: { source: string; tintColor: string };
+  canEdit?: boolean;
+  canFavorite?: boolean;
+}
 
 export interface ConfluenceSearchContentResponse {
   results: ConfluenceSearchContentResult[];
@@ -9,7 +19,7 @@ export interface ConfluenceSearchContentResponse {
   size: number;
   cqlQuery: string;
   searchDuration: number;
-  totalSize: number;
+  totalSize: number; // TODO: totalCount?
   _links: {
     self: string;
     next: string;
@@ -147,4 +157,22 @@ export interface ConfluenceConfig {
   baseUrl: string;
   cacheAvatar: boolean;
   searchPageSize: number;
+}
+
+export interface SearchFilter {
+  id: string;
+  label: string;
+  cql: string;
+  icon?: string;
+  transform?: (query: string) => string;
+}
+
+export interface CQLQuery {
+  raw: string;
+  isCQL: boolean;
+  parsed?: {
+    fields: string[];
+    operators: string[];
+    values: string[];
+  };
 }

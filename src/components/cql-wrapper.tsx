@@ -1,5 +1,5 @@
 import { List, Icon, ActionPanel, Action } from "@raycast/api";
-import { CQLParser } from "../utils/cql-parser";
+import { isCQLSyntax, validateCQL } from "../utils";
 
 interface CQLWrapperProps {
   query: string;
@@ -7,8 +7,8 @@ interface CQLWrapperProps {
 }
 
 export function CQLWrapper({ query, children }: CQLWrapperProps) {
-  const isCQL = CQLParser.isCQLSyntax(query);
-  const validation = CQLParser.validateCQL(query);
+  const isCQL = isCQLSyntax(query);
+  const validation = validateCQL(query);
 
   // 如果不是 CQL 语法或查询太短，直接显示子组件
   if (!isCQL || query.length < 3) {

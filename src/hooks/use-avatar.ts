@@ -1,7 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { downloadAvatar, getAvatarPath } from "../utils/avatar";
-import { CONFLUENCE_AVATAR_DIR, JIRA_AVATAR_DIR, AVATAR_TYPES } from "../constants";
 import { getAuthHeaders } from "../utils/request";
 import { useConfluenceConfig } from "./use-confluence-config";
 import type { AvatarType } from "../types";
@@ -11,13 +10,11 @@ export interface AvatarItem {
   filename: string;
 }
 
-export function useAvatar(avatarList: AvatarItem[], type: AvatarType) {
+export function useAvatar(avatarList: AvatarItem[], avatarType: AvatarType) {
   const config = useConfluenceConfig();
 
-  const avatarDir = type === AVATAR_TYPES.CONFLUENCE ? CONFLUENCE_AVATAR_DIR : JIRA_AVATAR_DIR;
-
   if (!config?.cacheAvatar) {
-    return null;
+    return;
   }
 
   const avatarsToDownload = useMemo(() => {
@@ -29,9 +26,9 @@ export function useAvatar(avatarList: AvatarItem[], type: AvatarType) {
 
   useQueries({
     queries: avatarsToDownload.map((avatar) => ({
-      queryKey: ["avatar", type, avatar.url],
+      queryKey: ["confluence-avatar", { type: avatarType, url: avatar.url }],
       queryFn: async () => {
-        const localPath = getAvatarPath(avatar.filename, type);
+        const localPath = getAvatarPath(avatar.filename, avatarType);
         const headers = getAuthHeaders(config.token);
 
         return downloadAvatar({
@@ -44,6 +41,4 @@ export function useAvatar(avatarList: AvatarItem[], type: AvatarType) {
       gcTime: Infinity,
     })),
   });
-
-  return avatarDir;
 }

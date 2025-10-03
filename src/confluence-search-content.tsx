@@ -1,6 +1,6 @@
 import { ActionPanel, Action, Icon, List, Image } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { QueryProvider } from "./query-client";
 import {
   useAvatar,
@@ -9,57 +9,53 @@ import {
   useToggleFavorite,
   useConfluenceConfig,
 } from "./hooks";
-import {
-  getContentIcon,
-  writeToSupportPathFile,
-  buildSearchQuery,
-  processSpecialFilters,
-  optimizeCQLQuery,
-} from "./utils";
-import { AVATAR_TYPES, CONFLUENCE_CONTENT_TYPE } from "./constants";
+import { getContentIcon, getContentTypeLabel, writeToSupportPathFile, buildCQL, initializeRegistries } from "./utils";
+import { AVATAR_TYPES, CONFLUENCE_CONTENT_TYPE, CONFLUENCE_AVATAR_DIR } from "./constants";
 import { SearchFilters } from "./components/search-filters";
 import { CQLWrapper } from "./components/cql-wrapper";
 import { useSearchFilters } from "./hooks/use-search-filters";
 import type { ConfluenceContentType, ConfluenceSearchContentResult } from "./types";
 
-export default function ConfluenceSearchContent() {
+export default function ConfluenceSearchContentProvider() {
+  // 初始化注册器
+  useEffect(() => {
+    initializeRegistries();
+  }, []);
+
   return (
     <QueryProvider>
-      <SearchContent />
+      <ConfluenceSearchContent />
     </QueryProvider>
   );
 }
 
-function SearchContent() {
+function ConfluenceSearchContent() {
   const [searchText, setSearchText] = useState("");
   const { filters, setFilters } = useSearchFilters();
-  const { getContentUrl, getAuthorAvatarUrl, getContentEditUrl } = useConfluenceUrls();
+  const { getAuthorAvatarUrl, getContentEditUrl, getContentUrl } = useConfluenceUrls();
   const toggleFavorite = useToggleFavorite();
   const { searchPageSize } = useConfluenceConfig();
 
-  // 分页状态管理
-  const [currentPage, setCurrentPage] = useState(0);
   const [, setAllResults] = useState<ConfluenceSearchContentResult[]>([]);
   const [hasMore, setHasMore] = useState(true);
 
-  // 使用分页查询
+  const currentCQL = useMemo(() => {
+    if (!searchText || searchText.length < 2) return "";
+    return buildCQL(searchText, filters);
+  }, [searchText, filters]);
+
   const { data, fetchNextPage, isFetchingNextPage, isLoading, error, isError } = useConfluenceSearchContent(
-    searchText,
-    filters,
+    currentCQL,
     searchPageSize,
   );
 
-  // 展平所有页面的结果
   const results = useMemo(() => data?.pages.flatMap((page) => page.results) ?? [], [data]);
 
-  // 重置分页状态当搜索条件改变时
   useEffect(() => {
-    setCurrentPage(0);
     setAllResults([]);
     setHasMore(true);
   }, [searchText, filters]);
 
-  // 更新分页状态和数据
   useEffect(() => {
     if (data?.pages) {
       const latestPage = data.pages[data.pages.length - 1];
@@ -76,29 +72,28 @@ function SearchContent() {
     }
   }, [data, searchPageSize]);
 
-  // 生成当前的 CQL 查询
-  const currentCQL = useMemo(() => {
-    if (!searchText || searchText.length < 2) {
-      return "";
-    }
-
-    let cqlQuery = buildSearchQuery(searchText, filters);
-    cqlQuery = processSpecialFilters(cqlQuery, filters);
-    cqlQuery = optimizeCQLQuery(cqlQuery);
-
-    return cqlQuery;
-  }, [searchText, filters]);
+  const avatarDir = useRef(CONFLUENCE_AVATAR_DIR);
 
   const avatarList = useMemo(() => {
-    return results
-      .map((item) => ({
-        url: getAuthorAvatarUrl(item.history.createdBy.profilePicture.path) || "",
-        filename: item.history.createdBy.userKey,
-      }))
-      .filter((avatar) => avatar.url);
-  }, [results]);
+    const userMap = new Map<string, { url: string; filename: string }>();
 
-  const avatarDir = useAvatar(avatarList, AVATAR_TYPES.CONFLUENCE);
+    results.forEach((item) => {
+      const userKey = item.history.createdBy.userKey;
+      if (!userMap.has(userKey)) {
+        const avatarUrl = getAuthorAvatarUrl(item.history.createdBy.profilePicture.path);
+        if (avatarUrl) {
+          userMap.set(userKey, {
+            url: avatarUrl,
+            filename: userKey,
+          });
+        }
+      }
+    });
+
+    return Array.from(userMap.values());
+  }, [results, getAuthorAvatarUrl]);
+
+  useAvatar(avatarList, AVATAR_TYPES.CONFLUENCE);
 
   useEffect(() => {
     if (isError && error) {
@@ -114,9 +109,7 @@ function SearchContent() {
 
   // Raycast 分页处理函数
   const handleLoadMore = useCallback(() => {
-    console.log("🔄 handleLoadMore called", { hasMore, isFetchingNextPage, currentPage });
     if (hasMore && !isFetchingNextPage) {
-      console.log("📄 Fetching next page...");
       fetchNextPage();
     }
   }, [hasMore, isFetchingNextPage, fetchNextPage]);
@@ -167,6 +160,7 @@ function SearchContent() {
         ) : (
           results.map((item) => {
             const icon = getContentIcon(item.type as ConfluenceContentType);
+            const contentTypeLabel = getContentTypeLabel(item.type as ConfluenceContentType);
             const contentUrl = getContentUrl(item) || "";
             const editUrl = getContentEditUrl(item) || "";
             const creator = item.history.createdBy.displayName;
@@ -180,8 +174,8 @@ function SearchContent() {
               ? new Date(item.metadata.currentuser.favourited.favouritedDate).toISOString()
               : null;
 
-            const creatorAvatar = avatarDir
-              ? `${avatarDir}/${item.history.createdBy.userKey}.png`
+            const creatorAvatar = avatarDir.current
+              ? `${avatarDir.current}/${item.history.createdBy.userKey}.png`
               : getAuthorAvatarUrl(item.history.createdBy.profilePicture.path);
 
             const accessories = [
@@ -212,7 +206,7 @@ function SearchContent() {
             return (
               <List.Item
                 key={item.id}
-                icon={icon}
+                icon={{ ...icon, tooltip: contentTypeLabel }}
                 title={item.title}
                 subtitle={{ value: item.space.name, tooltip: `Space: ${item.space.name}` }}
                 accessories={accessories}

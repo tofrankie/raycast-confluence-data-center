@@ -3,35 +3,12 @@ import { writeFile } from "node:fs/promises";
 import { environment } from "@raycast/api";
 import { confluenceRequest } from "./request";
 import { CONFLUENCE_API, DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
+import { contentTypeRegistry } from "./index";
 import type { ConfluenceSearchContentResponse, ConfluenceContentType } from "../types";
 
-export async function searchContentWithFilters(
-  query: string,
-  filters: string[] = [],
-  limit: number = DEFAULT_SEARCH_PAGE_SIZE,
-  start: number = 0,
-) {
-  // 导入 CQL 构建工具
-  const { buildSearchQuery, processSpecialFilters, optimizeCQLQuery, testQueryCombinations } = await import(
-    "./cql-builder"
-  );
-
-  // 开发时运行测试（可以移除）
-  if (process.env.NODE_ENV === "development") {
-    testQueryCombinations();
-  }
-
-  // 构建 CQL 查询
-  let cqlQuery = buildSearchQuery(query, filters);
-
-  // 处理特殊过滤选项
-  cqlQuery = processSpecialFilters(cqlQuery, filters);
-
-  // 优化查询
-  cqlQuery = optimizeCQLQuery(cqlQuery);
-
+export async function searchContent(cql: string, limit: number = DEFAULT_SEARCH_PAGE_SIZE, start: number = 0) {
   const params = {
-    cql: cqlQuery,
+    cql: cql,
     start: start.toString(),
     limit: limit.toString(),
     expand: "space,history.createdBy,history.lastUpdated,metadata.currentuser.favourited",
@@ -46,27 +23,13 @@ export async function searchContentWithFilters(
 }
 
 export function getContentIcon(type: ConfluenceContentType) {
-  const iconMap = {
-    page: { source: "remade/icon-page.svg", tintColor: "#aaa" },
-    blogpost: { source: "remade/icon-blogpost.svg", tintColor: "#aaa" },
-    attachment: { source: "remade/icon-attachment.svg", tintColor: "#aaa" },
-    comment: { source: "remade/icon-comment.svg", tintColor: "#aaa" },
-    user: { source: "remade/icon-user.svg", tintColor: "#aaa" },
-  } as const;
-
-  return iconMap[type as keyof typeof iconMap] || { source: "remade/icon-unknown.svg", tintColor: "#aaa" };
+  const config = contentTypeRegistry.get(type);
+  return config?.icon || { source: "remade/icon-unknown.svg", tintColor: "#aaa" };
 }
 
 export function getContentTypeLabel(type: ConfluenceContentType) {
-  const typeMap = {
-    page: "Page",
-    blogpost: "Blog Post",
-    attachment: "Attachment",
-    comment: "Comment",
-    user: "User",
-  } as const;
-
-  return typeMap[type as keyof typeof typeMap] || type;
+  const config = contentTypeRegistry.get(type);
+  return config?.label || type;
 }
 
 export async function writeToSupportPathFile(content: string, filename: string) {

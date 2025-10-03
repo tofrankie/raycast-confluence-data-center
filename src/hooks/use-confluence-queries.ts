@@ -1,18 +1,14 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
-import { searchContentWithFilters, addToFavorites, removeFromFavorites } from "../utils";
-import type { ConfluenceSearchContentResult, ConfluenceSearchContentResponse } from "../types";
+import { useInfiniteQuery, useMutation, useQueryClient, InfiniteData } from "@tanstack/react-query";
+import { DEFAULT_SEARCH_PAGE_SIZE, COMMAND_NAMES } from "../constants";
+import { searchContent, addToFavorites, removeFromFavorites } from "../utils";
+import type { ConfluenceSearchContentResponse } from "../types";
 
-export const useConfluenceSearchContent = (
-  query: string,
-  filters: string[] = [],
-  searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
-) => {
+export const useConfluenceSearchContent = (cql: string, searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE) => {
   return useInfiniteQuery<ConfluenceSearchContentResponse, Error>({
-    queryKey: ["confluence-search", query, filters, searchPageSize],
+    queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT, { cql, pageSize: searchPageSize }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchContentWithFilters(query, filters, searchPageSize, start);
+      const response = await searchContent(cql, searchPageSize, start);
       return response;
     },
     initialPageParam: 0,
@@ -26,7 +22,7 @@ export const useConfluenceSearchContent = (
       const nextPageParam = hasMore ? allPages.length * searchPageSize : undefined;
       return nextPageParam;
     },
-    enabled: query.length >= 2,
+    enabled: cql.length >= 2,
     staleTime: 60 * 1000, // 1min
     retry: 0,
   });
@@ -45,35 +41,40 @@ export const useToggleFavorite = () => {
     },
     onMutate: async ({ contentId, isFavorited }) => {
       // 取消所有正在进行的查询，避免冲突
-      await queryClient.cancelQueries({ queryKey: ["confluence-search"] });
+      await queryClient.cancelQueries({ queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT] });
 
       // 获取当前查询的缓存数据
-      const previousData = queryClient.getQueriesData({ queryKey: ["confluence-search"] });
+      const previousData = queryClient.getQueriesData({ queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT] });
 
       // 乐观更新所有相关的查询缓存
       queryClient.setQueriesData(
-        { queryKey: ["confluence-search"] },
-        (old: ConfluenceSearchContentResult[] | undefined) => {
+        { queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT] },
+        (old: InfiniteData<ConfluenceSearchContentResponse> | undefined) => {
           if (!old) return old;
 
-          return old.map((item) => {
-            if (item.id === contentId) {
-              return {
-                ...item,
-                metadata: {
-                  ...item.metadata,
-                  currentuser: {
-                    ...item.metadata.currentuser,
-                    favourited: {
-                      isFavourite: !isFavorited,
-                      favouritedDate: !isFavorited ? Date.now() : 0,
-                    },
-                  },
-                },
-              };
-            }
-            return item;
-          });
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              results: page.results.map((item) =>
+                item.id === contentId
+                  ? {
+                      ...item,
+                      metadata: {
+                        ...item.metadata,
+                        currentuser: {
+                          ...item.metadata.currentuser,
+                          favourited: {
+                            isFavourite: !isFavorited,
+                            favouritedDate: !isFavorited ? Date.now() : 0,
+                          },
+                        },
+                      },
+                    }
+                  : item,
+              ),
+            })),
+          };
         },
       );
 
@@ -90,7 +91,7 @@ export const useToggleFavorite = () => {
     },
     onSettled: () => {
       // 无论成功还是失败，都重新获取数据以确保一致性
-      queryClient.invalidateQueries({ queryKey: ["confluence-search"] });
+      queryClient.invalidateQueries({ queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT] });
     },
   });
 };

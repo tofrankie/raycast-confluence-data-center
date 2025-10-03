@@ -3,8 +3,8 @@ import { dirname, join } from "node:path";
 import { CONFLUENCE_AVATAR_DIR, JIRA_AVATAR_DIR, AVATAR_TYPES } from "../constants";
 import type { AvatarType } from "../types";
 
-export function getAvatarPath(filename: string, type: AvatarType) {
-  const baseDir = type === AVATAR_TYPES.CONFLUENCE ? CONFLUENCE_AVATAR_DIR : JIRA_AVATAR_DIR;
+export function getAvatarPath(filename: string, avatarType: AvatarType) {
+  const baseDir = avatarType === AVATAR_TYPES.CONFLUENCE ? CONFLUENCE_AVATAR_DIR : JIRA_AVATAR_DIR;
   return join(baseDir, filename);
 }
 

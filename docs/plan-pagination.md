@@ -147,7 +147,7 @@ interface ConfluenceSearchContentResponse {
 
 - **使用 `useInfiniteQuery`**: 专门为分页数据设计的 React Query hook
 - **专用缓存配置**: 在 `useInfiniteQuery` 中单独设置 1 分钟缓存时间，区别于普通查询的 30 秒
-- **缓存键设计**: `["confluence-search", query, filters, searchPageSize]`
+- **缓存键设计**: `["confluence-search-content", query, filters, searchPageSize]`
 - **增量数据管理**: 每页数据独立缓存，支持增量加载
 - **智能缓存复用**: 相同查询条件的分页数据可以复用
 - **内存优化**: 结合 Raycast 内存监控，自动清理过期缓存
@@ -189,7 +189,7 @@ interface ConfluenceSearchContentResponse {
 ```typescript
 // 使用 useInfiniteQuery 管理分页数据
 const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } = useInfiniteQuery({
-  queryKey: ["confluence-search", query, filters, searchPageSize],
+  queryKey: ["confluence-search-content", query, filters, searchPageSize],
   queryFn: async ({ pageParam = 0 }) => {
     const response = await searchContentWithFilters(query, filters, searchPageSize, pageParam);
     return {
@@ -235,7 +235,7 @@ const handleLoadMore = async () => {
 
 #### 7.2 缓存复用优化
 
-- **查询键设计**: `["confluence-search", query, filters, searchPageSize]`
+- **查询键设计**: `["confluence-search-content", query, filters, searchPageSize]`
 - **页面级缓存**: 每页数据独立缓存，支持部分失效
 - **智能预取**: 基于用户行为预测下一页数据
 - **内存管理**: 结合 Raycast 限制，自动清理过期页面

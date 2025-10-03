@@ -181,7 +181,7 @@ export function SearchFilters({
 
 ```typescript
 // src/confluence-search-content.tsx (重构)
-export function SearchContent() {
+export function ConfluenceSearchContent() {
   const [searchText, setSearchText] = useState("");
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
@@ -217,7 +217,7 @@ export function SearchContent() {
 // src/hooks/use-confluence-queries.ts (扩展)
 export const useConfluenceSearch = (query: string, filters: string[], limit: number = 20) => {
   return useQuery<ConfluenceSearchContentResult[], Error>({
-    queryKey: ["confluence-search", query, filters],
+    queryKey: ["confluence-search-content", query, filters],
     queryFn: () => searchContentWithFilters(query, filters, limit),
     enabled: query.length >= 2,
     staleTime: 30 * 1000,
