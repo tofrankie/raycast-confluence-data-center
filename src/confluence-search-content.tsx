@@ -7,7 +7,7 @@ import {
   useConfluenceSearchContent,
   useConfluenceUrls,
   useToggleFavorite,
-  useConfluenceConfig,
+  useConfluencePreferences,
 } from "./hooks";
 import { getContentIcon, getContentTypeLabel, writeToSupportPathFile, buildCQL, initializeRegistries } from "./utils";
 import { AVATAR_TYPES, CONFLUENCE_CONTENT_TYPE, CONFLUENCE_AVATAR_DIR } from "./constants";
@@ -32,17 +32,22 @@ export default function ConfluenceSearchContentProvider() {
 function ConfluenceSearchContent() {
   const [searchText, setSearchText] = useState("");
   const { filters, setFilters } = useSearchFilters();
-  const { getAuthorAvatarUrl, getContentEditUrl, getContentUrl } = useConfluenceUrls();
+  const { getAuthorAvatarUrl, getContentEditUrl, getContentUrl, baseUrl } = useConfluenceUrls();
   const toggleFavorite = useToggleFavorite();
-  const { searchPageSize } = useConfluenceConfig();
+  const { searchPageSize, displayRecentlyViewed } = useConfluencePreferences();
 
   const [, setAllResults] = useState<ConfluenceSearchContentResult[]>([]);
   const [hasMore, setHasMore] = useState(true);
 
   const currentCQL = useMemo(() => {
-    if (!searchText || searchText.length < 2) return "";
+    if (!searchText && displayRecentlyViewed) {
+      return `id in recentlyViewedContent(${searchPageSize}, 0)`;
+    }
+    if (!searchText || searchText.length < 2) {
+      return "";
+    }
     return buildCQL(searchText, filters);
-  }, [searchText, filters]);
+  }, [searchText, filters, displayRecentlyViewed, searchPageSize]);
 
   const { data, fetchNextPage, isFetchingNextPage, isLoading, error, isError } = useConfluenceSearchContent(
     currentCQL,
@@ -138,22 +143,16 @@ function ConfluenceSearchContent() {
         {results.length === 0 && !isLoading && searchText.length >= 2 ? (
           <List.EmptyView
             icon={Icon.MagnifyingGlass}
-            title="No results"
+            title="No Results"
             description="Try adjusting your search filters or check your CQL syntax"
             actions={
               <ActionPanel>
                 <Action.OpenInBrowser
-                  icon={Icon.Globe}
+                  icon={Icon.Book}
                   title="Open CQL Documentation"
                   url="https://developer.atlassian.com/server/confluence/rest/v1010/intro/#advanced-searching-using-cql"
                 />
-                {currentCQL && (
-                  <Action.CopyToClipboard
-                    title="Copy CQL Query"
-                    content={currentCQL}
-                    shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                  />
-                )}
+                {currentCQL && <Action.CopyToClipboard title="Copy CQL" content={currentCQL} />}
               </ActionPanel>
             }
           />
@@ -163,6 +162,8 @@ function ConfluenceSearchContent() {
             const contentTypeLabel = getContentTypeLabel(item.type as ConfluenceContentType);
             const contentUrl = getContentUrl(item) || "";
             const editUrl = getContentEditUrl(item) || "";
+            const spaceUrl = baseUrl ? `${baseUrl}${item.space._links.webui}` : "";
+            const spaceName = item.space?.name || "";
             const creator = item.history.createdBy.displayName;
             const updater = item.history.lastUpdated.by.displayName;
             const updatedAt = new Date(item.history.lastUpdated.when);
@@ -191,7 +192,7 @@ function ConfluenceSearchContent() {
                 date: updatedAt,
                 tooltip: isSingleVersion
                   ? `Created at ${createdAt.toLocaleString()} by ${creator}`
-                  : `Created at ${createdAt.toLocaleString()} by ${creator}\nUpdated at ${updatedAt.toLocaleString()} by ${updater}`,
+                  : `Updated at ${updatedAt.toLocaleString()} by ${updater}\nCreated at ${createdAt.toLocaleString()} by ${creator}`,
               },
               ...(creatorAvatar
                 ? [
@@ -213,24 +214,30 @@ function ConfluenceSearchContent() {
                 actions={
                   <ActionPanel>
                     <Action.OpenInBrowser title="Open in Browser" url={contentUrl} />
-                    <Action.CopyToClipboard title="Copy Link" content={contentUrl} />
                     {item.type !== CONFLUENCE_CONTENT_TYPE.ATTACHMENT && (
                       <Action.OpenInBrowser icon={Icon.Pencil} title="Edit in Browser" url={editUrl} />
                     )}
-                    {currentCQL && (
-                      <Action.CopyToClipboard
-                        icon={Icon.Code}
-                        title="Copy CQL Query"
-                        content={currentCQL}
-                        shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                    <Action.CopyToClipboard
+                      title="Copy Link"
+                      content={contentUrl}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                    />
+                    {item.type !== CONFLUENCE_CONTENT_TYPE.ATTACHMENT && (
+                      <Action
+                        icon={isFavourited ? Icon.StarDisabled : Icon.Star}
+                        title={isFavourited ? "Remove from Favorites" : "Add to Favorites"}
+                        onAction={() => toggleFavorite.mutate({ contentId: item.id, isFavorited: isFavourited })}
+                        shortcut={{ modifiers: ["cmd"], key: "f" }}
                       />
                     )}
-                    <Action
-                      icon={isFavourited ? Icon.StarDisabled : Icon.Star}
-                      title={isFavourited ? "Remove from Favorites" : "Add to Favorites"}
-                      onAction={() => toggleFavorite.mutate({ contentId: item.id, isFavorited: isFavourited })}
-                      shortcut={{ modifiers: ["cmd"], key: "f" }}
-                    />
+                    {spaceUrl && (
+                      <Action.OpenInBrowser
+                        icon={Icon.House}
+                        title={`Open Space Homepage${spaceName ? ` (${spaceName})` : ""}`}
+                        url={spaceUrl}
+                      />
+                    )}
+                    {currentCQL && <Action.CopyToClipboard title="Copy CQL" content={currentCQL} />}
                   </ActionPanel>
                 }
               />

@@ -2,7 +2,7 @@ import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { downloadAvatar, getAvatarPath } from "../utils/avatar";
 import { getAuthHeaders } from "../utils/request";
-import { useConfluenceConfig } from "./use-confluence-config";
+import { useConfluencePreferences } from "./use-confluence-preferences";
 import type { AvatarType } from "../types";
 
 export interface AvatarItem {
@@ -11,9 +11,9 @@ export interface AvatarItem {
 }
 
 export function useAvatar(avatarList: AvatarItem[], avatarType: AvatarType) {
-  const config = useConfluenceConfig();
+  const preferences = useConfluencePreferences();
 
-  if (!config?.cacheAvatar) {
+  if (!preferences.cacheAvatar) {
     return;
   }
 
@@ -29,7 +29,7 @@ export function useAvatar(avatarList: AvatarItem[], avatarType: AvatarType) {
       queryKey: ["confluence-avatar", { type: avatarType, url: avatar.url }],
       queryFn: async () => {
         const localPath = getAvatarPath(avatar.filename, avatarType);
-        const headers = getAuthHeaders(config.token);
+        const headers = getAuthHeaders(preferences.token);
 
         return downloadAvatar({
           url: avatar.url,

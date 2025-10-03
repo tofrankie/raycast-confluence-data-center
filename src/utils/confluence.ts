@@ -9,12 +9,12 @@ import type { ConfluenceSearchContentResponse, ConfluenceContentType } from "../
 export async function searchContent(cql: string, limit: number = DEFAULT_SEARCH_PAGE_SIZE, start: number = 0) {
   const params = {
     cql: cql,
-    start: start.toString(),
-    limit: limit.toString(),
+    start: start,
+    limit: limit,
     expand: "space,history.createdBy,history.lastUpdated,metadata.currentuser.favourited",
   };
 
-  const data = await confluenceRequest<ConfluenceSearchContentResponse>(CONFLUENCE_API.SEARCH_CONTENT, params);
+  const data = await confluenceRequest<ConfluenceSearchContentResponse>("GET", CONFLUENCE_API.SEARCH_CONTENT, params);
 
   // TODO: 调试
   writeToSupportPathFile(JSON.stringify(data, null, 2), "search-content-response.json");
@@ -41,10 +41,10 @@ export async function writeToSupportPathFile(content: string, filename: string) 
 
 export async function addToFavorites(contentId: string): Promise<void> {
   const endpoint = `${CONFLUENCE_API.CONTENT_FAVOURITE}${contentId}`;
-  await confluenceRequest<void>(endpoint, undefined, "PUT");
+  await confluenceRequest<void>("PUT", endpoint);
 }
 
 export async function removeFromFavorites(contentId: string): Promise<void> {
   const endpoint = `${CONFLUENCE_API.CONTENT_FAVOURITE}${contentId}`;
-  await confluenceRequest<void>(endpoint, undefined, "DELETE");
+  await confluenceRequest<void>("DELETE", endpoint);
 }

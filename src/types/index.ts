@@ -1,4 +1,5 @@
 import { CONFLUENCE_CONTENT_TYPE, AVATAR_TYPES } from "../constants";
+import type { List } from "@raycast/api";
 
 export type ConfluenceContentType = (typeof CONFLUENCE_CONTENT_TYPE)[keyof typeof CONFLUENCE_CONTENT_TYPE];
 
@@ -157,14 +158,15 @@ export interface ConfluenceConfig {
   baseUrl: string;
   cacheAvatar: boolean;
   searchPageSize: number;
+  displayRecentlyViewed: boolean;
 }
 
 export interface SearchFilter {
   id: string;
   label: string;
   cql: string;
-  icon?: string;
-  transform?: (query: string) => string;
+  icon?: List.Dropdown.Item.Props["icon"];
+  transform?: (query: string, context?: { searchPageSize?: number }) => string;
 }
 
 export interface CQLQuery {

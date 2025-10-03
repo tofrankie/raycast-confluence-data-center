@@ -1,9 +1,11 @@
 import { getPreferenceValues } from "@raycast/api";
 
+type Method = "GET" | "POST" | "PUT" | "DELETE";
+
 export async function confluenceRequest<T>(
+  method: Method,
   endpoint: string,
-  params?: Record<string, string>,
-  method: string = "GET",
+  params?: Record<string, unknown>,
 ): Promise<T> {
   const { confluenceDomain, confluencePersonalAccessToken } =
     getPreferenceValues<Preferences.ConfluenceSearchContent>();
@@ -18,7 +20,7 @@ export async function confluenceRequest<T>(
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.set(key, value);
+        url.searchParams.set(key, String(value));
       });
     }
 
@@ -31,7 +33,7 @@ export async function confluenceRequest<T>(
       handleHttpError(response);
     }
 
-    // 对于 PUT/DELETE 请求，可能没有响应体
+    // For PUT/DELETE requests, there may be no response body
     if (response.status === 204 || response.headers.get("content-length") === "0") {
       return undefined as T;
     }

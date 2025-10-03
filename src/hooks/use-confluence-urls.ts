@@ -1,40 +1,37 @@
 import { useCallback } from "react";
 import type { ConfluenceSearchContentResult } from "../types";
-import { useConfluenceConfig } from "./use-confluence-config";
+import { useConfluencePreferences } from "./use-confluence-preferences";
 
 export const useConfluenceUrls = () => {
-  const config = useConfluenceConfig();
+  const { baseUrl } = useConfluencePreferences();
 
   const getContentUrl = useCallback(
     (contentResult: ConfluenceSearchContentResult) => {
-      if (!config) return null;
       // Note: This link format is not valid for attachment type.
-      // `${config.baseUrl}/pages/viewpage.action?pageId=${contentResult.id}`
-      return `${config.baseUrl}${contentResult._links.webui}`;
+      // `${baseUrl}/pages/viewpage.action?pageId=${contentResult.id}`
+      return `${baseUrl}${contentResult._links.webui}`;
     },
-    [config],
+    [baseUrl],
   );
 
   const getContentEditUrl = useCallback(
     (contentResult: ConfluenceSearchContentResult) => {
-      if (!config) return null;
-      return `${config.baseUrl}/pages/editpage.action?pageId=${contentResult.id}`;
+      return `${baseUrl}/pages/editpage.action?pageId=${contentResult.id}`;
     },
-    [config],
+    [baseUrl],
   );
 
   const getAuthorAvatarUrl = useCallback(
     (profilePicturePath: string) => {
-      if (!config) return null;
-      return `${config.baseUrl}${profilePicturePath}`;
+      return `${baseUrl}${profilePicturePath}`;
     },
-    [config],
+    [baseUrl],
   );
 
   return {
     getContentUrl,
     getContentEditUrl,
     getAuthorAvatarUrl,
-    baseUrl: config?.baseUrl || null,
+    baseUrl,
   };
 };

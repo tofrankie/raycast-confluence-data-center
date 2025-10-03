@@ -75,13 +75,22 @@
           "placeholder": "Enter your Confluence Personal Access Token"
         },
         {
-          "name": "cacheConfluenceUserAvatar",
+          "name": "confluenceCacheUserAvatar",
           "title": "Cache Confluence User Avatars",
           "description": "Cache user avatars locally. Enable if your Confluence requires authentication to access avatars.",
           "type": "checkbox",
           "required": true,
           "default": false,
           "label": "Enable avatar caching"
+        },
+        {
+          "name": "confluenceDisplayRecentlyViewed",
+          "title": "Display Recently Viewed on Open",
+          "description": "When enabled, show recently viewed content by default when opening the command.",
+          "type": "checkbox",
+          "required": true,
+          "default": true,
+          "label": "Show recently viewed by default"
         }
       ]
     }

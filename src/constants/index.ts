@@ -1,3 +1,4 @@
+import { Icon } from "@raycast/api";
 import { SearchFilter } from "../types";
 import type { ConfluenceContentType } from "../types";
 
@@ -53,37 +54,37 @@ export const SEARCH_FILTERS: SearchFilter[] = [
     id: "creator",
     label: "Created by Me",
     cql: "creator = currentUser()",
-    icon: "icon-user.svg",
+    icon: Icon.Person,
   },
   {
     id: "contributor",
     label: "Contributed by Me",
     cql: "contributor = currentUser()",
-    icon: "icon-pencil.svg",
+    icon: Icon.Pencil,
   },
   {
     id: "mention",
     label: "Mentions Me",
     cql: "mention = currentUser()",
-    icon: "icon-at.svg",
+    icon: Icon.AtSymbol,
   },
   {
     id: "favourite",
     label: "My Favorites",
     cql: "favourite = currentUser()",
-    icon: "icon-star.svg",
+    icon: Icon.Star,
   },
   {
     id: "watcher",
     label: "Watched by Me",
     cql: "watcher = currentUser()",
-    icon: "icon-eye.svg",
+    icon: Icon.Eye,
   },
   {
     id: "title-only",
     label: "Title Only",
     cql: "",
-    icon: "icon-text.svg",
+    icon: Icon.Text,
     transform: (query: string) => query.replace(/text ~ "/g, 'title ~ "'),
   },
 ];
