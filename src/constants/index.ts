@@ -1,4 +1,4 @@
-import { Icon } from "@raycast/api";
+import { Icon, List } from "@raycast/api";
 import { SearchFilter } from "../types";
 import type { ConfluenceContentType } from "../types";
 
@@ -21,15 +21,15 @@ export const CONFLUENCE_CONTENT_TYPE = {
 } as const;
 
 export const CONTENT_ICONS = {
-  [CONFLUENCE_CONTENT_TYPE.PAGE]: { source: "remade/icon-page.svg", tintColor: "#aaa" },
-  [CONFLUENCE_CONTENT_TYPE.BLOGPOST]: { source: "remade/icon-blogpost.svg", tintColor: "#aaa" },
-  [CONFLUENCE_CONTENT_TYPE.ATTACHMENT]: { source: "remade/icon-attachment.svg", tintColor: "#aaa" },
-  [CONFLUENCE_CONTENT_TYPE.COMMENT]: { source: "remade/icon-comment.svg", tintColor: "#aaa" },
-  [CONFLUENCE_CONTENT_TYPE.USER]: { source: "remade/icon-user.svg", tintColor: "#aaa" },
-  [CONFLUENCE_CONTENT_TYPE.SPACE]: { source: "remade/icon-space.svg", tintColor: "#aaa" },
-} as const satisfies Record<ConfluenceContentType, { source: string; tintColor: string }>;
+  [CONFLUENCE_CONTENT_TYPE.PAGE]: "icon-page.svg",
+  [CONFLUENCE_CONTENT_TYPE.BLOGPOST]: "icon-blogpost.svg",
+  [CONFLUENCE_CONTENT_TYPE.ATTACHMENT]: "icon-attachment.svg",
+  [CONFLUENCE_CONTENT_TYPE.COMMENT]: "icon-comment.svg",
+  [CONFLUENCE_CONTENT_TYPE.USER]: "icon-user.svg",
+  [CONFLUENCE_CONTENT_TYPE.SPACE]: "icon-space.svg",
+} as const satisfies Record<ConfluenceContentType, List.Item.Props["icon"]>;
 
-export const CONTENT_LABELS = {
+export const CONTENT_TYPE_LABELS = {
   [CONFLUENCE_CONTENT_TYPE.PAGE]: "Page",
   [CONFLUENCE_CONTENT_TYPE.BLOGPOST]: "Blog Post",
   [CONFLUENCE_CONTENT_TYPE.ATTACHMENT]: "Attachment",

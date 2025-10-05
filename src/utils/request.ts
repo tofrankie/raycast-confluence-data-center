@@ -48,7 +48,7 @@ export async function confluenceRequest<T>(
   }
 }
 
-export function getBaseUrl(domain: string): string {
+export function getBaseUrl(domain: string) {
   return `https://${domain}`;
 }
 

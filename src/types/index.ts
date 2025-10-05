@@ -1,17 +1,9 @@
-import { CONFLUENCE_CONTENT_TYPE, AVATAR_TYPES } from "../constants";
 import type { List } from "@raycast/api";
+import { CONFLUENCE_CONTENT_TYPE, AVATAR_TYPES } from "../constants";
 
 export type ConfluenceContentType = (typeof CONFLUENCE_CONTENT_TYPE)[keyof typeof CONFLUENCE_CONTENT_TYPE];
 
 export type AvatarType = (typeof AVATAR_TYPES)[keyof typeof AVATAR_TYPES];
-
-export interface ContentTypeConfig {
-  type: ConfluenceContentType;
-  label: string;
-  icon: { source: string; tintColor: string };
-  canEdit?: boolean;
-  canFavorite?: boolean;
-}
 
 export interface ConfluenceSearchContentResponse {
   results: ConfluenceSearchContentResult[];
@@ -152,7 +144,11 @@ export interface Icon {
   isDefault: boolean;
 }
 
-export interface ConfluenceConfig {
+export interface ConfluencePreferences {
+  confluenceDomain: string;
+  confluencePersonalAccessToken: string;
+  confluenceCacheUserAvatar: boolean;
+  confluenceDisplayRecentlyViewed: boolean;
   domain: string;
   token: string;
   baseUrl: string;
@@ -178,3 +174,42 @@ export interface CQLQuery {
     values: string[];
   };
 }
+
+export interface ProcessedContentFields {
+  // 基础信息
+  id: string;
+  title: string;
+  spaceName: string;
+
+  // 图标和类型
+  icon: List.Item.Props["icon"];
+
+  // 时间信息
+  updatedAt: Date;
+  createdAt: Date;
+  isSingleVersion: boolean;
+
+  // 用户信息
+  creator: string;
+  updater: string;
+  creatorAvatar: string | null;
+
+  // 收藏状态
+  isFavourited: boolean;
+  favouritedAt: string | null;
+
+  // URL 信息
+  url: string;
+  editUrl: string;
+  spaceUrl: string;
+
+  // 类型信息
+  type: string;
+  canEdit: boolean;
+  canFavorite: boolean;
+
+  // 渲染信息
+  accessories: List.Item.Props["accessories"];
+}
+
+export type ProcessedContentItem = ConfluenceSearchContentResult & ProcessedContentFields;

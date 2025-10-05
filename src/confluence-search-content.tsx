@@ -1,45 +1,29 @@
-import { ActionPanel, Action, Icon, List, Image } from "@raycast/api";
+import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { QueryProvider } from "./query-client";
-import {
-  useAvatar,
-  useConfluenceSearchContent,
-  useConfluenceUrls,
-  useToggleFavorite,
-  useConfluencePreferences,
-} from "./hooks";
-import { getContentIcon, getContentTypeLabel, writeToSupportPathFile, buildCQL, initializeRegistries } from "./utils";
-import { AVATAR_TYPES, CONFLUENCE_CONTENT_TYPE, CONFLUENCE_AVATAR_DIR } from "./constants";
-import { SearchFilters } from "./components/search-filters";
-import { CQLWrapper } from "./components/cql-wrapper";
-import { useSearchFilters } from "./hooks/use-search-filters";
-import type { ConfluenceContentType, ConfluenceSearchContentResult } from "./types";
+import { useState, useEffect, useMemo } from "react";
+import QueryProvider from "./query-provider";
+import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
+import { useSearchFilters, useConfluenceSearchContent, useToggleFavorite, useAvatar } from "./hooks";
+import { writeToSupportPathFile, buildCQL } from "./utils";
+import { SearchFilters, CQLWrapper } from "./components";
+import { AVATAR_TYPES } from "./constants";
 
 export default function ConfluenceSearchContentProvider() {
-  // 初始化注册器
-  useEffect(() => {
-    initializeRegistries();
-  }, []);
-
   return (
-    <QueryProvider>
-      <ConfluenceSearchContent />
-    </QueryProvider>
+    <ConfluencePreferencesProvider>
+      <QueryProvider>
+        <ConfluenceSearchContent />
+      </QueryProvider>
+    </ConfluencePreferencesProvider>
   );
 }
 
 function ConfluenceSearchContent() {
   const [searchText, setSearchText] = useState("");
   const { filters, setFilters } = useSearchFilters();
-  const { getAuthorAvatarUrl, getContentEditUrl, getContentUrl, baseUrl } = useConfluenceUrls();
-  const toggleFavorite = useToggleFavorite();
-  const { searchPageSize, displayRecentlyViewed } = useConfluencePreferences();
+  const { searchPageSize, displayRecentlyViewed, baseUrl } = useConfluencePreferencesContext();
 
-  const [, setAllResults] = useState<ConfluenceSearchContentResult[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-
-  const currentCQL = useMemo(() => {
+  const cql = useMemo(() => {
     if (!searchText && displayRecentlyViewed) {
       return `id in recentlyViewedContent(${searchPageSize}, 0)`;
     }
@@ -49,75 +33,59 @@ function ConfluenceSearchContent() {
     return buildCQL(searchText, filters);
   }, [searchText, filters, displayRecentlyViewed, searchPageSize]);
 
-  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, isError } = useConfluenceSearchContent(
-    currentCQL,
+  const { data, fetchNextPage, isFetchingNextPage, isLoading, error } = useConfluenceSearchContent(
+    cql,
     searchPageSize,
+    baseUrl,
   );
 
-  const results = useMemo(() => data?.pages.flatMap((page) => page.results) ?? [], [data]);
+  const results = useMemo(() => data?.items ?? [], [data?.items]);
 
-  useEffect(() => {
-    setAllResults([]);
-    setHasMore(true);
-  }, [searchText, filters]);
-
-  useEffect(() => {
-    if (data?.pages) {
-      const latestPage = data.pages[data.pages.length - 1];
-      if (latestPage) {
-        // 更新 hasMore 状态
-        const hasNextLink = !!latestPage._links?.next;
-        const hasMoreBySize = latestPage.size === searchPageSize;
-        setHasMore(hasNextLink || hasMoreBySize);
-
-        // 更新所有结果
-        const newResults = data.pages.flatMap((page) => page.results);
-        setAllResults(newResults);
-      }
+  const hasMore = useMemo(() => {
+    // 对于最近查看的内容，不进行分页
+    if (!searchText && displayRecentlyViewed) {
+      return false;
     }
-  }, [data, searchPageSize]);
+    return data?.hasMore ?? false;
+  }, [data?.hasMore, searchText, displayRecentlyViewed]);
 
-  const avatarDir = useRef(CONFLUENCE_AVATAR_DIR);
+  const toggleFavorite = useToggleFavorite();
+
+  const handleToggleFavorite = (contentId: string, isFavorited: boolean) => {
+    toggleFavorite.mutate({ contentId, isFavorited });
+  };
+
+  useEffect(() => {
+    if (toggleFavorite.error) {
+      showFailureToast(toggleFavorite.error, { title: "Failed to Update Favorite Status" });
+    }
+  }, [toggleFavorite.error]);
 
   const avatarList = useMemo(() => {
     const userMap = new Map<string, { url: string; filename: string }>();
 
     results.forEach((item) => {
       const userKey = item.history.createdBy.userKey;
-      if (!userMap.has(userKey)) {
-        const avatarUrl = getAuthorAvatarUrl(item.history.createdBy.profilePicture.path);
-        if (avatarUrl) {
-          userMap.set(userKey, {
-            url: avatarUrl,
-            filename: userKey,
-          });
-        }
-      }
+      if (userMap.has(userKey)) return;
+
+      const avatarUrl = item.creatorAvatar;
+      if (!avatarUrl) return;
+      userMap.set(userKey, {
+        url: avatarUrl,
+        filename: userKey,
+      });
     });
 
-    return Array.from(userMap.values());
-  }, [results, getAuthorAvatarUrl]);
+    return [...userMap.values()];
+  }, [results]);
 
   useAvatar(avatarList, AVATAR_TYPES.CONFLUENCE);
 
   useEffect(() => {
-    if (isError && error) {
+    if (error) {
       showFailureToast(error, { title: "Search Failed" });
     }
-  }, [isError, error]);
-
-  useEffect(() => {
-    if (toggleFavorite.isError && toggleFavorite.error) {
-      showFailureToast(toggleFavorite.error, { title: "Failed to Update Favorite Status" });
-    }
-  }, [toggleFavorite.isError, toggleFavorite.error]);
-
-  // Raycast 分页处理函数
-  const handleLoadMore = useCallback(() => {
-    if (hasMore && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [hasMore, isFetchingNextPage, fetchNextPage]);
+  }, [error]);
 
   // TODO: 调试
   useEffect(() => {
@@ -126,21 +94,29 @@ function ConfluenceSearchContent() {
     }
   }, [results]);
 
+  const handleLoadMore = () => {
+    if (hasMore && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  const isEmpty = !isLoading && searchText.length >= 2 && results.length === 0;
+
   return (
     <List
+      throttle
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search Content..."
       searchBarAccessory={<SearchFilters filters={filters} onFiltersChange={setFilters} />}
       pagination={{
         onLoadMore: handleLoadMore,
-        hasMore: hasMore,
+        hasMore,
         pageSize: searchPageSize,
       }}
-      throttle
     >
       <CQLWrapper query={searchText}>
-        {results.length === 0 && !isLoading && searchText.length >= 2 ? (
+        {isEmpty ? (
           <List.EmptyView
             icon={Icon.MagnifyingGlass}
             title="No Results"
@@ -152,92 +128,46 @@ function ConfluenceSearchContent() {
                   title="Open CQL Documentation"
                   url="https://developer.atlassian.com/server/confluence/rest/v1010/intro/#advanced-searching-using-cql"
                 />
-                {currentCQL && <Action.CopyToClipboard title="Copy CQL" content={currentCQL} />}
+                {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
               </ActionPanel>
             }
           />
         ) : (
           results.map((item) => {
-            const icon = getContentIcon(item.type as ConfluenceContentType);
-            const contentTypeLabel = getContentTypeLabel(item.type as ConfluenceContentType);
-            const contentUrl = getContentUrl(item) || "";
-            const editUrl = getContentEditUrl(item) || "";
-            const spaceUrl = baseUrl ? `${baseUrl}${item.space._links.webui}` : "";
-            const spaceName = item.space?.name || "";
-            const creator = item.history.createdBy.displayName;
-            const updater = item.history.lastUpdated.by.displayName;
-            const updatedAt = new Date(item.history.lastUpdated.when);
-            const createdAt = new Date(item.history.createdDate);
-
-            const isSingleVersion = item.history.lastUpdated?.when === item.history.createdDate;
-            const isFavourited = item.metadata.currentuser.favourited?.isFavourite ?? false;
-            const favouritedAt = item.metadata.currentuser.favourited?.favouritedDate
-              ? new Date(item.metadata.currentuser.favourited.favouritedDate).toISOString()
-              : null;
-
-            const creatorAvatar = avatarDir.current
-              ? `${avatarDir.current}/${item.history.createdBy.userKey}.png`
-              : getAuthorAvatarUrl(item.history.createdBy.profilePicture.path);
-
-            const accessories = [
-              ...(isFavourited
-                ? [
-                    {
-                      icon: Icon.Star,
-                      tooltip: `Favourited at ${favouritedAt ? new Date(favouritedAt).toLocaleString() : ""}`,
-                    },
-                  ]
-                : []),
-              {
-                date: updatedAt,
-                tooltip: isSingleVersion
-                  ? `Created at ${createdAt.toLocaleString()} by ${creator}`
-                  : `Updated at ${updatedAt.toLocaleString()} by ${updater}\nCreated at ${createdAt.toLocaleString()} by ${creator}`,
-              },
-              ...(creatorAvatar
-                ? [
-                    {
-                      icon: { source: creatorAvatar, mask: Image.Mask.Circle },
-                      tooltip: `Created by ${creator}`,
-                    },
-                  ]
-                : []),
-            ];
-
             return (
               <List.Item
                 key={item.id}
-                icon={{ ...icon, tooltip: contentTypeLabel }}
+                icon={item.icon}
                 title={item.title}
-                subtitle={{ value: item.space.name, tooltip: `Space: ${item.space.name}` }}
-                accessories={accessories}
+                subtitle={{ value: item.spaceName, tooltip: `Space: ${item.spaceName}` }}
+                accessories={item.accessories}
                 actions={
                   <ActionPanel>
-                    <Action.OpenInBrowser title="Open in Browser" url={contentUrl} />
-                    {item.type !== CONFLUENCE_CONTENT_TYPE.ATTACHMENT && (
-                      <Action.OpenInBrowser icon={Icon.Pencil} title="Edit in Browser" url={editUrl} />
+                    <Action.OpenInBrowser title="Open in Browser" url={item.url} />
+                    {item.canEdit && (
+                      <Action.OpenInBrowser icon={Icon.Pencil} title="Edit in Browser" url={item.editUrl} />
                     )}
                     <Action.CopyToClipboard
                       title="Copy Link"
-                      content={contentUrl}
+                      content={item.url}
                       shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
                     />
-                    {item.type !== CONFLUENCE_CONTENT_TYPE.ATTACHMENT && (
+                    {item.canFavorite && (
                       <Action
-                        icon={isFavourited ? Icon.StarDisabled : Icon.Star}
-                        title={isFavourited ? "Remove from Favorites" : "Add to Favorites"}
-                        onAction={() => toggleFavorite.mutate({ contentId: item.id, isFavorited: isFavourited })}
+                        icon={item.isFavourited ? Icon.StarDisabled : Icon.Star}
+                        title={item.isFavourited ? "Remove from Favorites" : "Add to Favorites"}
+                        onAction={() => handleToggleFavorite(item.id, item.isFavourited)}
                         shortcut={{ modifiers: ["cmd"], key: "f" }}
                       />
                     )}
-                    {spaceUrl && (
+                    {item.spaceUrl && (
                       <Action.OpenInBrowser
                         icon={Icon.House}
-                        title={`Open Space Homepage${spaceName ? ` (${spaceName})` : ""}`}
-                        url={spaceUrl}
+                        title={`Open Space Homepage${item.spaceName ? ` (${item.spaceName})` : ""}`}
+                        url={item.spaceUrl}
                       />
                     )}
-                    {currentCQL && <Action.CopyToClipboard title="Copy CQL" content={currentCQL} />}
+                    {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
                   </ActionPanel>
                 }
               />

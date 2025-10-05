@@ -1,28 +1,45 @@
-import { useInfiniteQuery, useMutation, useQueryClient, InfiniteData } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DEFAULT_SEARCH_PAGE_SIZE, COMMAND_NAMES } from "../constants";
 import { searchContent, addToFavorites, removeFromFavorites } from "../utils";
-import type { ConfluenceSearchContentResponse } from "../types";
+import { processContentItems } from "../utils/process-content";
+import type { InfiniteData } from "@tanstack/react-query";
+import type { ConfluenceSearchContentResponse, ProcessedContentItem } from "../types";
 
-export const useConfluenceSearchContent = (cql: string, searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE) => {
-  return useInfiniteQuery<ConfluenceSearchContentResponse, Error>({
+export const useConfluenceSearchContent = (
+  cql: string,
+  searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
+  baseUrl: string,
+) => {
+  return useInfiniteQuery<
+    ConfluenceSearchContentResponse,
+    Error,
+    {
+      items: ProcessedContentItem[];
+      hasMore: boolean;
+    }
+  >({
+    enabled: cql.length >= 2,
     queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT, { cql, pageSize: searchPageSize }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
       const response = await searchContent(cql, searchPageSize, start);
       return response;
     },
+    select: (data) => {
+      const items = data.pages.flatMap((page) => processContentItems(page.results, baseUrl));
+      const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
+
+      return {
+        items,
+        hasMore,
+      };
+    },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
-      // 优先使用 _links.next 判断是否还有更多数据，这是最可靠的方式
       const hasNextLink = !!lastPage._links?.next;
-      // 备用判断：使用 size 字段
-      const hasMoreBySize = lastPage.size === searchPageSize;
-      const hasMore = hasNextLink || hasMoreBySize;
-
-      const nextPageParam = hasMore ? allPages.length * searchPageSize : undefined;
+      const nextPageParam = hasNextLink ? allPages.length * searchPageSize : undefined;
       return nextPageParam;
     },
-    enabled: cql.length >= 2,
     staleTime: 60 * 1000, // 1min
     retry: 0,
   });

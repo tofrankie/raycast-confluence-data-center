@@ -1,9 +1,6 @@
 import { CQLQuery } from "../types";
 import { CQL_PATTERNS } from "../constants";
 
-/**
- * 检测输入是否为 CQL 语法
- */
 export function isCQLSyntax(query: string): boolean {
   if (!query || query.trim().length < 2) {
     return false;
@@ -15,9 +12,6 @@ export function isCQLSyntax(query: string): boolean {
   return CQL_PATTERNS.some((pattern) => pattern.test(trimmedQuery));
 }
 
-/**
- * 解析 CQL 查询
- */
 export function parseCQL(query: string): CQLQuery {
   const isCQL = isCQLSyntax(query);
 
@@ -28,7 +22,6 @@ export function parseCQL(query: string): CQLQuery {
     };
   }
 
-  // 简单的 CQL 解析 - 提取字段、操作符和值
   const parsed = extractCQLElements(query);
 
   return {
@@ -38,9 +31,6 @@ export function parseCQL(query: string): CQLQuery {
   };
 }
 
-/**
- * 提取 CQL 查询中的元素
- */
 function extractCQLElements(query: string) {
   const fields: string[] = [];
   const operators: string[] = [];
@@ -63,9 +53,6 @@ function extractCQLElements(query: string) {
   };
 }
 
-/**
- * 验证 CQL 语法是否正确
- */
 export function validateCQL(query: string): { isValid: boolean; error?: string } {
   if (!isCQLSyntax(query)) {
     return { isValid: true }; // 不是 CQL 语法，视为有效
