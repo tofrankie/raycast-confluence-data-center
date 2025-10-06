@@ -1,9 +1,15 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DEFAULT_SEARCH_PAGE_SIZE, COMMAND_NAMES } from "../constants";
-import { searchContent, addToFavorites, removeFromFavorites } from "../utils";
+import { searchContent, searchUsers, addToFavorites, removeFromFavorites } from "../utils";
 import { processContentItems } from "../utils/process-content";
+import { processUserItems } from "../utils/process-user";
 import type { InfiniteData } from "@tanstack/react-query";
-import type { ConfluenceSearchContentResponse, ProcessedContentItem } from "../types";
+import type {
+  ConfluenceSearchContentResponse,
+  ConfluenceSearchResponse,
+  ProcessedContentItem,
+  ProcessedUserItem,
+} from "../types";
 
 export const useConfluenceSearchContent = (
   cql: string,
@@ -110,5 +116,53 @@ export const useToggleFavorite = () => {
       // 无论成功还是失败，都重新获取数据以确保一致性
       queryClient.invalidateQueries({ queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT] });
     },
+  });
+};
+
+export const useConfluenceSearchUser = (
+  cql: string,
+  searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
+  baseUrl: string,
+) => {
+  return useInfiniteQuery<
+    ConfluenceSearchResponse,
+    Error,
+    {
+      items: ProcessedUserItem[];
+      hasMore: boolean;
+    }
+  >({
+    enabled: cql.length >= 2,
+    queryKey: ["confluence-search-user", { cql, pageSize: searchPageSize }],
+    queryFn: async ({ pageParam }) => {
+      const start = pageParam as number;
+      const response = await searchUsers(cql, searchPageSize, start);
+      return response;
+    },
+    select: (data) => {
+      const allResults = data.pages.flatMap((page) => page.results.filter((result) => result.user));
+
+      // Note: The API may return duplicate user, so we filter by userKey to ensure uniqueness
+      const uniqueResults = allResults.filter(
+        (result, index, self) => index === self.findIndex((r) => r.user?.userKey === result.user?.userKey),
+      );
+
+      const processedUsers = processUserItems(uniqueResults, baseUrl);
+
+      const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
+
+      return {
+        items: processedUsers,
+        hasMore,
+      };
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const hasNextLink = !!lastPage._links?.next;
+      const nextPageParam = hasNextLink ? allPages.length * searchPageSize : undefined;
+      return nextPageParam;
+    },
+    staleTime: 60 * 1000, // 1min
+    retry: 0,
   });
 };

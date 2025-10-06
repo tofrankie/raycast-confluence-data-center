@@ -11,6 +11,13 @@ export type LabelType = ConfluenceEntityType | ConfluenceContentType;
 
 export type AvatarType = (typeof AVATAR_TYPES)[keyof typeof AVATAR_TYPES];
 
+export interface ConfluenceSearchLinks {
+  self?: string;
+  next?: string;
+  base: string;
+  context: string;
+}
+
 export interface ConfluenceSearchContentResponse {
   results: ConfluenceSearchContentResult[];
   start: number;
@@ -19,12 +26,18 @@ export interface ConfluenceSearchContentResponse {
   cqlQuery: string;
   searchDuration: number;
   totalSize: number; // TODO: totalCount?
-  _links: {
-    self: string;
-    next: string;
-    base: string;
-    context: string;
-  };
+  _links: ConfluenceSearchLinks;
+}
+
+export interface ConfluenceSearchResponse {
+  results: ConfluenceSearchResult[];
+  start: number;
+  limit: number;
+  size: number;
+  totalSize: number;
+  cqlQuery: string;
+  searchDuration: number;
+  _links: ConfluenceSearchLinks;
 }
 
 export interface ConfluenceSearchContentResult {
@@ -233,6 +246,7 @@ export interface ProcessedContentFields {
   canFavorite: boolean;
 
   // 渲染信息
+  subtitle: List.Item.Props["subtitle"];
   accessories: List.Item.Props["accessories"];
 }
 
@@ -263,4 +277,25 @@ export interface ConfluenceSpace {
   };
 }
 
-export type ProcessedContentItem = ConfluenceSearchResult & ProcessedContentFields;
+export interface ProcessedUserFields {
+  // 基础信息
+  title: string;
+  username: string;
+  userKey: string;
+  displayName: string;
+
+  // 图标和头像
+  icon: List.Item.Props["icon"];
+  avatarUrl: string | null;
+  avatar: string | null;
+
+  // URL 信息
+  url: string;
+
+  // 渲染信息
+  subtitle: List.Item.Props["subtitle"];
+  accessories: List.Item.Props["accessories"];
+}
+
+export type ProcessedContentItem = ConfluenceSearchContentResult & ProcessedContentFields;
+export type ProcessedUserItem = ConfluenceUser & ProcessedUserFields;

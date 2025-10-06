@@ -41,11 +41,36 @@
   },
   "preferences": [
     {
+      "name": "confluenceDomain",
+      "title": "Confluence Domain",
+      "description": "Your Confluence Data Center domain without https:// (e.g., wiki.yourcompany.com)",
+      "type": "textfield",
+      "required": true,
+      "placeholder": "wiki.yourcompany.com"
+    },
+    {
+      "name": "confluencePersonalAccessToken",
+      "title": "Confluence Personal Access Token",
+      "description": "Your Confluence Personal Access Token for API authentication. Create it from: Profile → Personal Access Tokens → Create token",
+      "type": "password",
+      "required": true,
+      "placeholder": "Enter your Confluence Personal Access Token"
+    },
+    {
+      "name": "confluenceCacheUserAvatar",
+      "title": "Cache Confluence User Avatars",
+      "description": "Cache user avatars locally. Enable if your Confluence requires authentication to access avatars.",
+      "type": "checkbox",
+      "required": true,
+      "default": false,
+      "label": "Enable avatar caching"
+    },
+    {
       "name": "searchPageSize",
       "title": "Results Per Page",
       "description": "Number of search results to display per page (default: 20). Increase if pagination doesn't trigger properly.",
       "type": "textfield",
-      "required": false,
+      "required": true,
       "default": "20",
       "placeholder": "20"
     }
@@ -55,34 +80,9 @@
       "name": "confluence-search-content",
       "title": "Search Content",
       "subtitle": "Confluence",
-      "description": "Search Confluence content with filters (created by me, favorites, mentions, etc.) and CQL syntax support",
+      "description": "Search Confluence content with advanced filters and CQL syntax support",
       "mode": "view",
       "preferences": [
-        {
-          "name": "confluenceDomain",
-          "title": "Confluence Domain",
-          "description": "Your Confluence Data Center domain without https:// (e.g., wiki.yourcompany.com)",
-          "type": "textfield",
-          "required": true,
-          "placeholder": "wiki.yourcompany.com"
-        },
-        {
-          "name": "confluencePersonalAccessToken",
-          "title": "Confluence Personal Access Token",
-          "description": "Your Confluence Personal Access Token for API authentication. Create it from: Profile → Personal Access Tokens → Create token",
-          "type": "password",
-          "required": true,
-          "placeholder": "Enter your Confluence Personal Access Token"
-        },
-        {
-          "name": "confluenceCacheUserAvatar",
-          "title": "Cache Confluence User Avatars",
-          "description": "Cache user avatars locally. Enable if your Confluence requires authentication to access avatars.",
-          "type": "checkbox",
-          "required": true,
-          "default": false,
-          "label": "Enable avatar caching"
-        },
         {
           "name": "confluenceDisplayRecentlyViewed",
           "title": "Display Recently Viewed on Open",
@@ -93,6 +93,13 @@
           "label": "Show recently viewed by default"
         }
       ]
+    },
+    {
+      "name": "confluence-search-user",
+      "title": "Search User",
+      "subtitle": "Confluence",
+      "description": "Search Confluence user by name",
+      "mode": "view"
     }
   ]
 }

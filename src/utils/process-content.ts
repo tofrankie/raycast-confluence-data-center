@@ -52,7 +52,8 @@ function processContentItem(item: ConfluenceSearchContentResult, baseUrl: string
   const canEdit = EDITABLE_TYPES.includes(type);
   const canFavorite = EDITABLE_TYPES.includes(type);
 
-  // 渲染信息 - accessories
+  // 渲染信息
+  const subtitle = { value: spaceName, tooltip: `Space ${spaceName}` };
   const accessories = [
     ...(isFavourited
       ? [
@@ -112,6 +113,7 @@ function processContentItem(item: ConfluenceSearchContentResult, baseUrl: string
     canFavorite,
 
     // 渲染信息
+    subtitle,
     accessories,
   };
 }

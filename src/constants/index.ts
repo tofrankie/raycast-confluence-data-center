@@ -4,6 +4,7 @@ import type { IconType, LabelType } from "../types";
 
 export const COMMAND_NAMES = {
   CONFLUENCE_SEARCH_CONTENT: "confluence-search-content",
+  CONFLUENCE_SEARCH_USER: "confluence-search-user",
 } as const;
 
 export const CONFLUENCE_API = {
@@ -36,7 +37,7 @@ export const TYPE_ICONS = {
   [CONFLUENCE_ENTITY_TYPE.CONTENT]: "icon-content.svg",
   [CONFLUENCE_ENTITY_TYPE.SPACE]: "icon-space.svg",
   [CONFLUENCE_ENTITY_TYPE.USER]: "icon-user.svg",
-  [CONFLUENCE_ENTITY_TYPE.GROUP]: "icon-user-group.svg", // TODO:
+  [CONFLUENCE_ENTITY_TYPE.GROUP]: "icon-group.svg",
   [CONFLUENCE_CONTENT_TYPE.PAGE]: "icon-page.svg",
   [CONFLUENCE_CONTENT_TYPE.BLOGPOST]: "icon-blogpost.svg",
   [CONFLUENCE_CONTENT_TYPE.ATTACHMENT]: "icon-attachment.svg",

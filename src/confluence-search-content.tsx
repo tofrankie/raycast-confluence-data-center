@@ -140,7 +140,7 @@ function ConfluenceSearchContent() {
                 key={item.id}
                 icon={item.icon}
                 title={item.title}
-                subtitle={{ value: item.spaceName, tooltip: `Space: ${item.spaceName}` }}
+                subtitle={item.subtitle}
                 accessories={item.accessories}
                 actions={
                   <ActionPanel>
