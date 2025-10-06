@@ -1,7 +1,13 @@
 import type { List } from "@raycast/api";
-import { CONFLUENCE_CONTENT_TYPE, AVATAR_TYPES } from "../constants";
+import { CONFLUENCE_ENTITY_TYPE, AVATAR_TYPES, CONFLUENCE_CONTENT_TYPE } from "../constants";
+
+export type ConfluenceEntityType = (typeof CONFLUENCE_ENTITY_TYPE)[keyof typeof CONFLUENCE_ENTITY_TYPE];
 
 export type ConfluenceContentType = (typeof CONFLUENCE_CONTENT_TYPE)[keyof typeof CONFLUENCE_CONTENT_TYPE];
+
+export type IconType = ConfluenceEntityType | ConfluenceContentType;
+
+export type LabelType = ConfluenceEntityType | ConfluenceContentType;
 
 export type AvatarType = (typeof AVATAR_TYPES)[keyof typeof AVATAR_TYPES];
 
@@ -137,6 +143,24 @@ export interface ConfluenceSearchContentResult {
   };
 }
 
+export interface ConfluenceSearchResult {
+  content?: ConfluenceSearchContentResult;
+  user?: ConfluenceUser;
+  space?: ConfluenceSpace;
+  title: string;
+  excerpt: string;
+  url: string;
+  resultGlobalContainer?: {
+    title: string;
+    displayUrl: string;
+  };
+  entityType: ConfluenceEntityType;
+  iconCssClass: string;
+  lastModified: string;
+  friendlyLastModified: string;
+  timestamp: number;
+}
+
 export interface Icon {
   path: string;
   width: number;
@@ -162,7 +186,7 @@ export interface SearchFilter {
   label: string;
   cql: string;
   icon?: List.Dropdown.Item.Props["icon"];
-  transform?: (query: string, context?: { searchPageSize?: number }) => string;
+  transform?: (processedCql: string, context?: { userInput: string; filter: SearchFilter }) => string;
 }
 
 export interface CQLQuery {
@@ -212,4 +236,31 @@ export interface ProcessedContentFields {
   accessories: List.Item.Props["accessories"];
 }
 
-export type ProcessedContentItem = ConfluenceSearchContentResult & ProcessedContentFields;
+export interface ConfluenceUser {
+  type: string;
+  username: string;
+  userKey: string;
+  profilePicture: Icon;
+  displayName: string;
+  _links: {
+    self: string;
+  };
+  _expandable: {
+    status: string;
+  };
+}
+
+export interface ConfluenceSpace {
+  key: string;
+  name: string;
+  type: string;
+  metadata: Record<string, unknown>;
+  _links: {
+    self: string;
+  };
+  _expandable: {
+    description: string;
+  };
+}
+
+export type ProcessedContentItem = ConfluenceSearchResult & ProcessedContentFields;

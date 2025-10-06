@@ -1,14 +1,22 @@
 import { Icon, List } from "@raycast/api";
 import { SearchFilter } from "../types";
-import type { ConfluenceContentType } from "../types";
+import type { IconType, LabelType } from "../types";
 
 export const COMMAND_NAMES = {
   CONFLUENCE_SEARCH_CONTENT: "confluence-search-content",
 } as const;
 
 export const CONFLUENCE_API = {
+  SEARCH: "/rest/api/search",
   SEARCH_CONTENT: "/rest/api/content/search",
   CONTENT_FAVOURITE: "/rest/experimental/relation/user/current/favourite/toContent/",
+} as const;
+
+export const CONFLUENCE_ENTITY_TYPE = {
+  CONTENT: "content",
+  SPACE: "space",
+  USER: "user",
+  GROUP: "group",
 } as const;
 
 export const CONFLUENCE_CONTENT_TYPE = {
@@ -16,27 +24,35 @@ export const CONFLUENCE_CONTENT_TYPE = {
   BLOGPOST: "blogpost",
   ATTACHMENT: "attachment",
   COMMENT: "comment",
-  USER: "user",
-  SPACE: "space",
 } as const;
 
-export const CONTENT_ICONS = {
+export const CONFLUENCE_SPACE_TYPE = {
+  PERSONAL: "personal",
+  GLOBAL: "global",
+  FAVOURITE: "favourite",
+} as const;
+
+export const TYPE_ICONS = {
+  [CONFLUENCE_ENTITY_TYPE.CONTENT]: "icon-content.svg",
+  [CONFLUENCE_ENTITY_TYPE.SPACE]: "icon-space.svg",
+  [CONFLUENCE_ENTITY_TYPE.USER]: "icon-user.svg",
+  [CONFLUENCE_ENTITY_TYPE.GROUP]: "icon-user-group.svg", // TODO:
   [CONFLUENCE_CONTENT_TYPE.PAGE]: "icon-page.svg",
   [CONFLUENCE_CONTENT_TYPE.BLOGPOST]: "icon-blogpost.svg",
   [CONFLUENCE_CONTENT_TYPE.ATTACHMENT]: "icon-attachment.svg",
   [CONFLUENCE_CONTENT_TYPE.COMMENT]: "icon-comment.svg",
-  [CONFLUENCE_CONTENT_TYPE.USER]: "icon-user.svg",
-  [CONFLUENCE_CONTENT_TYPE.SPACE]: "icon-space.svg",
-} as const satisfies Record<ConfluenceContentType, List.Item.Props["icon"]>;
+} as const satisfies Record<IconType, List.Item.Props["icon"]>;
 
-export const CONTENT_TYPE_LABELS = {
+export const TYPE_LABELS = {
+  [CONFLUENCE_ENTITY_TYPE.CONTENT]: "Content",
+  [CONFLUENCE_ENTITY_TYPE.SPACE]: "Space",
+  [CONFLUENCE_ENTITY_TYPE.USER]: "User",
+  [CONFLUENCE_ENTITY_TYPE.GROUP]: "Group",
   [CONFLUENCE_CONTENT_TYPE.PAGE]: "Page",
   [CONFLUENCE_CONTENT_TYPE.BLOGPOST]: "Blog Post",
   [CONFLUENCE_CONTENT_TYPE.ATTACHMENT]: "Attachment",
   [CONFLUENCE_CONTENT_TYPE.COMMENT]: "Comment",
-  [CONFLUENCE_CONTENT_TYPE.USER]: "User",
-  [CONFLUENCE_CONTENT_TYPE.SPACE]: "Space",
-} as const satisfies Record<ConfluenceContentType, string>;
+} as const satisfies Record<LabelType, string>;
 
 export const AVATAR_TYPES = {
   CONFLUENCE: "confluence",
@@ -85,15 +101,26 @@ export const SEARCH_FILTERS: SearchFilter[] = [
     label: "Title Only",
     cql: "",
     icon: Icon.Text,
-    transform: (query: string) => query.replace(/text ~ "/g, 'title ~ "'),
+    transform: (processedCql: string) => processedCql.replace(/text ~ "/g, 'title ~ "'),
   },
 ];
 
 export const CQL_PATTERNS = [
-  /^\s*\w+\s*[=~!<>]/, // field operator
-  /currentUser\(\)/, // currentUser function
-  /now\(\)/, // now function
-  /\b(AND|OR|NOT)\b/, // logical operators
-  // 官方支持的字段模式
-  /(ancestor|container|content|created|creator|contributor|favourite|id|label|lastModified|macro|mention|parent|space|text|title|type|watcher)\s*[=~!<>]/, // official fields
+  // field operator
+  /^\s*\w+\s*[=~!<>]/,
+
+  // currentUser function
+  /currentUser\(\)/,
+
+  // now function
+  /now\(\)/,
+
+  // logical operators
+  /\b(AND|OR|NOT)\b/,
+
+  // official fields
+  /(ancestor|container|content|created|creator|contributor|favourite|id|label|lastModified|macro|mention|parent|space|text|title|type|watcher)\s*[=~!<>]/,
+
+  // entityType values
+  /type\s*=\s*["']?(content|page|blogpost|attachment|comment|space|user|group)["']?/i,
 ] as const;

@@ -3,10 +3,11 @@ import { showFailureToast } from "@raycast/utils";
 import { useState, useEffect, useMemo } from "react";
 import QueryProvider from "./query-provider";
 import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
-import { useSearchFilters, useConfluenceSearchContent, useToggleFavorite, useAvatar } from "./hooks";
+import { useConfluenceSearchContent, useToggleFavorite, useAvatar } from "./hooks";
 import { writeToSupportPathFile, buildCQL } from "./utils";
-import { SearchFilters, CQLWrapper } from "./components";
+import { SearchFilter, CQLWrapper } from "./components";
 import { AVATAR_TYPES } from "./constants";
+import type { SearchFilter as SearchFilterType } from "./types";
 
 export default function ConfluenceSearchContentProvider() {
   return (
@@ -20,7 +21,7 @@ export default function ConfluenceSearchContentProvider() {
 
 function ConfluenceSearchContent() {
   const [searchText, setSearchText] = useState("");
-  const { filters, setFilters } = useSearchFilters();
+  const [filter, setFilter] = useState<SearchFilterType | null>(null);
   const { searchPageSize, displayRecentlyViewed, baseUrl } = useConfluencePreferencesContext();
 
   const cql = useMemo(() => {
@@ -30,8 +31,8 @@ function ConfluenceSearchContent() {
     if (!searchText || searchText.length < 2) {
       return "";
     }
-    return buildCQL(searchText, filters);
-  }, [searchText, filters, displayRecentlyViewed, searchPageSize]);
+    return buildCQL(searchText, filter ? [filter] : []);
+  }, [searchText, filter, displayRecentlyViewed, searchPageSize]);
 
   const { data, fetchNextPage, isFetchingNextPage, isLoading, error } = useConfluenceSearchContent(
     cql,
@@ -108,7 +109,7 @@ function ConfluenceSearchContent() {
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search Content..."
-      searchBarAccessory={<SearchFilters filters={filters} onFiltersChange={setFilters} />}
+      searchBarAccessory={<SearchFilter value={filter?.id || ""} onChange={setFilter} />}
       pagination={{
         onLoadMore: handleLoadMore,
         hasMore,

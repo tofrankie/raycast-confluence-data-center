@@ -1,5 +1,5 @@
-import type { ConfluenceContentType, ConfluenceSearchContentResult, ProcessedContentFields } from "../types";
-import { CONFLUENCE_CONTENT_TYPE, CONFLUENCE_AVATAR_DIR, CONTENT_ICONS, CONTENT_TYPE_LABELS } from "../constants";
+import type { ConfluenceSearchContentResult, IconType, ProcessedContentFields } from "../types";
+import { CONFLUENCE_AVATAR_DIR, CONFLUENCE_CONTENT_TYPE, TYPE_ICONS, TYPE_LABELS } from "../constants";
 import { Icon, Image } from "@raycast/api";
 
 export function processContentItems(items: ConfluenceSearchContentResult[], baseUrl: string) {
@@ -16,10 +16,10 @@ function processContentItem(item: ConfluenceSearchContentResult, baseUrl: string
   const spaceName = item.space?.name || "";
 
   // 图标和类型
-  const contentType = item.type as ConfluenceContentType;
+  const iconType = item.type as IconType;
   const icon = {
-    value: CONTENT_ICONS[contentType] ?? "icon-unknown.svg",
-    tooltip: CONTENT_TYPE_LABELS[contentType] ?? "Unknown",
+    value: TYPE_ICONS[iconType] ?? "icon-unknown.svg",
+    tooltip: TYPE_LABELS[iconType] ?? "Unknown",
   };
 
   // URL 字段
@@ -47,9 +47,10 @@ function processContentItem(item: ConfluenceSearchContentResult, baseUrl: string
     : null;
 
   // 类型信息
-  const type = item.type;
-  const canEdit = item.type !== CONFLUENCE_CONTENT_TYPE.ATTACHMENT;
-  const canFavorite = item.type !== CONFLUENCE_CONTENT_TYPE.ATTACHMENT;
+  const EDITABLE_TYPES = [CONFLUENCE_CONTENT_TYPE.PAGE, CONFLUENCE_CONTENT_TYPE.BLOGPOST] as const;
+  const type = item.type as (typeof EDITABLE_TYPES)[number];
+  const canEdit = EDITABLE_TYPES.includes(type);
+  const canFavorite = EDITABLE_TYPES.includes(type);
 
   // 渲染信息 - accessories
   const accessories = [
@@ -65,7 +66,7 @@ function processContentItem(item: ConfluenceSearchContentResult, baseUrl: string
       date: updatedAt,
       tooltip: isSingleVersion
         ? `Created at ${createdAt.toLocaleString()} by ${creator}`
-        : `Updated at ${updatedAt.toLocaleString()} by ${updater}\nCreated at ${createdAt.toLocaleString()} by ${creator}`,
+        : `Created at ${createdAt.toLocaleString()} by ${creator}\nUpdated at ${updatedAt.toLocaleString()} by ${updater}`,
     },
     ...(creatorAvatar
       ? [
