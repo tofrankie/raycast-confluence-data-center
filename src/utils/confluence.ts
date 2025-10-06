@@ -47,6 +47,22 @@ export async function searchUsers(cql: string, limit: number = DEFAULT_SEARCH_PA
   return data;
 }
 
+export async function searchSpaces(cql: string, limit: number = DEFAULT_SEARCH_PAGE_SIZE, start: number = 0) {
+  const params = {
+    cql,
+    start,
+    limit,
+    expand: "space,space.description.plain",
+  };
+
+  const data = await confluenceRequest<ConfluenceSearchResponse>("GET", CONFLUENCE_API.SEARCH, params);
+
+  // TODO: 调试
+  writeToSupportPathFile(JSON.stringify(data, null, 2), "search-space-response.json");
+
+  return data;
+}
+
 export async function writeToSupportPathFile(content: string, filename: string) {
   const filePath = path.join(environment.supportPath, filename);
   await writeFile(filePath, content, "utf8");

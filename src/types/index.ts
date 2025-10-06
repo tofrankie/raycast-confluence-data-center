@@ -1,13 +1,17 @@
 import type { List } from "@raycast/api";
-import { CONFLUENCE_ENTITY_TYPE, AVATAR_TYPES, CONFLUENCE_CONTENT_TYPE } from "../constants";
+import { CONFLUENCE_ENTITY_TYPE, AVATAR_TYPES, CONFLUENCE_CONTENT_TYPE, CONFLUENCE_SPACE_TYPE } from "../constants";
 
 export type ConfluenceEntityType = (typeof CONFLUENCE_ENTITY_TYPE)[keyof typeof CONFLUENCE_ENTITY_TYPE];
 
 export type ConfluenceContentType = (typeof CONFLUENCE_CONTENT_TYPE)[keyof typeof CONFLUENCE_CONTENT_TYPE];
 
+export type ConfluenceSpaceType = (typeof CONFLUENCE_SPACE_TYPE)[keyof typeof CONFLUENCE_SPACE_TYPE];
+
 export type IconType = ConfluenceEntityType | ConfluenceContentType;
 
 export type LabelType = ConfluenceEntityType | ConfluenceContentType;
+
+export type SpaceType = ConfluenceSpaceType;
 
 export type AvatarType = (typeof AVATAR_TYPES)[keyof typeof AVATAR_TYPES];
 
@@ -265,15 +269,29 @@ export interface ConfluenceUser {
 }
 
 export interface ConfluenceSpace {
+  id: number;
   key: string;
   name: string;
+  status: string;
   type: string;
-  metadata: Record<string, unknown>;
+  description?: {
+    plain: {
+      value: string;
+      representation: string;
+    };
+    _expandable: {
+      view: string;
+    };
+  };
   _links: {
     self: string;
+    webui: string;
   };
   _expandable: {
-    description: string;
+    metadata: string;
+    icon: string;
+    retentionPolicy: string;
+    homepage: string;
   };
 }
 
@@ -297,5 +315,25 @@ export interface ProcessedUserFields {
   accessories: List.Item.Props["accessories"];
 }
 
+export interface ProcessedSpaceFields {
+  // 基础信息
+  spaceKey: string;
+  spaceName: string;
+  spaceType: string;
+
+  // 图标和头像
+  icon: List.Item.Props["icon"];
+  avatarUrl: string | null;
+  avatar: string | null;
+
+  // URL 信息
+  url: string;
+
+  // 渲染信息
+  subtitle: List.Item.Props["subtitle"];
+  accessories: List.Item.Props["accessories"];
+}
+
 export type ProcessedContentItem = ConfluenceSearchContentResult & ProcessedContentFields;
 export type ProcessedUserItem = ConfluenceUser & ProcessedUserFields;
+export type ProcessedSpaceItem = ConfluenceSpace & ProcessedSpaceFields;

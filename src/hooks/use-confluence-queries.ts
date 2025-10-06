@@ -1,14 +1,22 @@
+import type { InfiniteData } from "@tanstack/react-query";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DEFAULT_SEARCH_PAGE_SIZE, COMMAND_NAMES } from "../constants";
-import { searchContent, searchUsers, addToFavorites, removeFromFavorites } from "../utils";
-import { processContentItems } from "../utils/process-content";
-import { processUserItems } from "../utils/process-user";
-import type { InfiniteData } from "@tanstack/react-query";
+import {
+  searchContent,
+  searchUsers,
+  searchSpaces,
+  addToFavorites,
+  removeFromFavorites,
+  processUserItems,
+  processSpaceItems,
+  processContentItems,
+} from "../utils";
 import type {
   ConfluenceSearchContentResponse,
   ConfluenceSearchResponse,
   ProcessedContentItem,
   ProcessedUserItem,
+  ProcessedSpaceItem,
 } from "../types";
 
 export const useConfluenceSearchContent = (
@@ -153,6 +161,54 @@ export const useConfluenceSearchUser = (
 
       return {
         items: processedUsers,
+        hasMore,
+      };
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const hasNextLink = !!lastPage._links?.next;
+      const nextPageParam = hasNextLink ? allPages.length * searchPageSize : undefined;
+      return nextPageParam;
+    },
+    staleTime: 60 * 1000, // 1min
+    retry: 0,
+  });
+};
+
+export const useConfluenceSearchSpace = (
+  cql: string,
+  searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
+  baseUrl: string,
+) => {
+  return useInfiniteQuery<
+    ConfluenceSearchResponse,
+    Error,
+    {
+      items: ProcessedSpaceItem[];
+      hasMore: boolean;
+    }
+  >({
+    enabled: cql.length >= 2,
+    queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_SPACE, { cql, pageSize: searchPageSize }],
+    queryFn: async ({ pageParam }) => {
+      const start = pageParam as number;
+      const response = await searchSpaces(cql, searchPageSize, start);
+      return response;
+    },
+    select: (data) => {
+      const allResults = data.pages.flatMap((page) => page.results.filter((result) => result.space));
+
+      // Note: The API may return duplicate space, so we filter by space key to ensure uniqueness
+      const uniqueResults = allResults.filter(
+        (result, index, self) => index === self.findIndex((r) => r.space?.key === result.space?.key),
+      );
+
+      const processedSpaces = processSpaceItems(uniqueResults, baseUrl);
+
+      const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
+
+      return {
+        items: processedSpaces,
         hasMore,
       };
     },

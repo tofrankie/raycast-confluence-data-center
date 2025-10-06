@@ -1,10 +1,11 @@
 import { Icon, List } from "@raycast/api";
 import { SearchFilter } from "../types";
-import type { IconType, LabelType } from "../types";
+import type { ConfluenceSpaceType, IconType, LabelType } from "../types";
 
 export const COMMAND_NAMES = {
   CONFLUENCE_SEARCH_CONTENT: "confluence-search-content",
   CONFLUENCE_SEARCH_USER: "confluence-search-user",
+  CONFLUENCE_SEARCH_SPACE: "confluence-search-space",
 } as const;
 
 export const CONFLUENCE_API = {
@@ -55,6 +56,12 @@ export const TYPE_LABELS = {
   [CONFLUENCE_CONTENT_TYPE.COMMENT]: "Comment",
 } as const satisfies Record<LabelType, string>;
 
+export const SPACE_TYPE_LABELS = {
+  [CONFLUENCE_SPACE_TYPE.PERSONAL]: "Personal Space",
+  [CONFLUENCE_SPACE_TYPE.GLOBAL]: "Global Space",
+  [CONFLUENCE_SPACE_TYPE.FAVOURITE]: "Favourite",
+} as const satisfies Record<ConfluenceSpaceType, string>;
+
 export const AVATAR_TYPES = {
   CONFLUENCE: "confluence",
   JIRA: "jira",
@@ -103,6 +110,33 @@ export const SEARCH_FILTERS: SearchFilter[] = [
     cql: "",
     icon: Icon.Text,
     transform: (processedCql: string) => processedCql.replace(/text ~ "/g, 'title ~ "'),
+  },
+];
+
+export const SPACE_TYPE_FILTERS: SearchFilter[] = [
+  {
+    id: "all",
+    label: "All Space",
+    cql: "",
+    icon: Icon.MagnifyingGlass,
+  },
+  {
+    id: "personal",
+    label: "Personal Space",
+    cql: "space.type = personal",
+    icon: Icon.Person,
+  },
+  {
+    id: "global",
+    label: "Global Space",
+    cql: "space.type = global",
+    icon: Icon.Globe,
+  },
+  {
+    id: "favourite",
+    label: "Favourite Space",
+    cql: "space.type = favourite",
+    icon: Icon.Star,
   },
 ];
 

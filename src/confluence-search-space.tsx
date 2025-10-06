@@ -1,0 +1,124 @@
+import { List, ActionPanel, Action, Icon } from "@raycast/api";
+import { showFailureToast } from "@raycast/utils";
+import { useState, useEffect, useMemo } from "react";
+import QueryProvider from "./query-provider";
+import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
+import { useConfluenceSearchSpace } from "./hooks";
+import { writeToSupportPathFile, buildCQL } from "./utils";
+import { SpaceFilter, CQLWrapper } from "./components";
+import type { SearchFilter as SearchFilterType } from "./types";
+
+export default function ConfluenceSearchSpaceProvider() {
+  return (
+    <ConfluencePreferencesProvider>
+      <QueryProvider>
+        <ConfluenceSearchSpace />
+      </QueryProvider>
+    </ConfluencePreferencesProvider>
+  );
+}
+
+function ConfluenceSearchSpace() {
+  const [searchText, setSearchText] = useState("");
+  const [filter, setFilter] = useState<SearchFilterType | null>(null);
+  const { searchPageSize, baseUrl } = useConfluencePreferencesContext();
+
+  const cql = useMemo(() => {
+    if (!searchText) return "";
+    const extraFilter = {
+      id: "type",
+      label: "Space",
+      cql: `type = space`,
+    };
+    return buildCQL(searchText, filter ? [filter, extraFilter] : []);
+  }, [searchText, filter]);
+
+  const { data, fetchNextPage, isFetchingNextPage, isLoading, error } = useConfluenceSearchSpace(
+    cql,
+    searchPageSize,
+    baseUrl,
+  );
+
+  const results = useMemo(() => data?.items ?? [], [data?.items]);
+  const hasMore = useMemo(() => data?.hasMore ?? false, [data?.hasMore]);
+
+  useEffect(() => {
+    if (error) {
+      showFailureToast(error, { title: "Search Failed" });
+    }
+  }, [error]);
+
+  // TODO: 调试
+  useEffect(() => {
+    if (results.length > 0) {
+      writeToSupportPathFile(JSON.stringify(results[0], null, 2), "temp-space.json");
+    }
+  }, [results]);
+
+  const handleLoadMore = () => {
+    if (hasMore && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  const isEmpty = !isLoading && searchText.length >= 2 && results.length === 0;
+
+  return (
+    <List
+      throttle
+      isLoading={isLoading}
+      onSearchTextChange={setSearchText}
+      searchBarPlaceholder="Search Space..."
+      searchBarAccessory={<SpaceFilter value={filter?.id || ""} onChange={setFilter} />}
+      pagination={{
+        onLoadMore: handleLoadMore,
+        hasMore,
+        pageSize: searchPageSize,
+      }}
+    >
+      <CQLWrapper query={searchText}>
+        {isEmpty ? (
+          <List.EmptyView
+            icon={Icon.MagnifyingGlass}
+            title="No Results"
+            description="Try adjusting your search filters or check your CQL syntax"
+            actions={
+              <ActionPanel>
+                <Action.OpenInBrowser
+                  icon={Icon.Book}
+                  title="Open CQL Documentation"
+                  url="https://developer.atlassian.com/server/confluence/rest/v1010/intro/#advanced-searching-using-cql"
+                />
+                {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
+              </ActionPanel>
+            }
+          />
+        ) : (
+          results.map((space) => {
+            return (
+              <List.Item
+                key={space.key}
+                icon={space.icon}
+                title={space.name}
+                subtitle={space.subtitle}
+                accessories={space.accessories}
+                actions={
+                  <ActionPanel>
+                    <Action.OpenInBrowser title="Open in Browser" url={space.url} />
+                    <Action.CopyToClipboard
+                      title="Copy Link"
+                      content={space.url}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                    />
+                    <Action.CopyToClipboard title="Copy Space Key" content={space.spaceKey} />
+                    {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
+                  </ActionPanel>
+                }
+              />
+            );
+          })
+        )}
+      </CQLWrapper>
+    </List>
+  );
+}
