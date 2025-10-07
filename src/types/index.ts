@@ -243,6 +243,7 @@ export interface ProcessedContentFields {
   creator: string;
   updater: string;
   creatorAvatar: string | null;
+  creatorAvatarUrl: string | null;
 
   // 收藏状态
   isFavourited: boolean;

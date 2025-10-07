@@ -97,6 +97,7 @@ function processContentItem(item: ConfluenceSearchContentResult, baseUrl: string
     creator,
     updater,
     creatorAvatar,
+    creatorAvatarUrl,
 
     // 收藏状态
     isFavourited,

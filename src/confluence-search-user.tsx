@@ -3,7 +3,8 @@ import { showFailureToast } from "@raycast/utils";
 import { useState, useEffect, useMemo } from "react";
 import QueryProvider from "./query-provider";
 import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
-import { useConfluenceSearchUser } from "./hooks";
+import { useConfluenceSearchUser, useAvatar } from "./hooks";
+import { AVATAR_TYPES } from "./constants";
 
 export default function ConfluenceSearchUserProvider() {
   return (
@@ -32,6 +33,26 @@ function ConfluenceSearchUser() {
 
   const results = useMemo(() => data?.items ?? [], [data?.items]);
   const hasMore = useMemo(() => data?.hasMore ?? false, [data?.hasMore]);
+
+  const avatarList = useMemo(() => {
+    const userMap = new Map<string, { url: string; filename: string }>();
+
+    results.forEach((user) => {
+      const userKey = user.userKey;
+      if (userMap.has(userKey)) return;
+
+      const avatarUrl = user.avatarUrl;
+      if (!avatarUrl) return;
+      userMap.set(userKey, {
+        url: avatarUrl,
+        filename: userKey,
+      });
+    });
+
+    return [...userMap.values()];
+  }, [results]);
+
+  useAvatar(avatarList, AVATAR_TYPES.CONFLUENCE);
 
   useEffect(() => {
     if (error) {

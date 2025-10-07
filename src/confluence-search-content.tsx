@@ -69,7 +69,7 @@ function ConfluenceSearchContent() {
       const userKey = item.history.createdBy.userKey;
       if (userMap.has(userKey)) return;
 
-      const avatarUrl = item.creatorAvatar;
+      const avatarUrl = item.creatorAvatarUrl;
       if (!avatarUrl) return;
       userMap.set(userKey, {
         url: avatarUrl,

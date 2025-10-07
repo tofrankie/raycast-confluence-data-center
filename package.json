@@ -3,7 +3,7 @@
   "name": "confluence-data-center",
   "title": "Confluence Data Center",
   "description": "Search Confluence content with advanced filters and CQL syntax support",
-  "icon": "logo.png",
+  "icon": "logo-confluence.png",
   "author": "tofrankie",
   "platforms": [
     "macOS"
@@ -107,6 +107,7 @@
       "subtitle": "Confluence",
       "description": "Search Confluence content with advanced filters and CQL syntax support",
       "mode": "view",
+      "icon": "logo-confluence.png",
       "preferences": [
         {
           "name": "confluenceDisplayRecentlyViewed",
@@ -124,21 +125,24 @@
       "title": "Search User",
       "subtitle": "Confluence",
       "description": "Search Confluence user by name",
-      "mode": "view"
+      "mode": "view",
+      "icon": "logo-confluence.png"
     },
     {
       "name": "confluence-search-space",
       "title": "Search Space",
       "subtitle": "Confluence",
       "description": "Search Confluence spaces with type filters",
-      "mode": "view"
+      "mode": "view",
+      "icon": "logo-confluence.png"
     },
     {
       "name": "jira-search-issue",
       "title": "Search Issue",
       "subtitle": "Jira",
       "description": "Search Jira issues with advanced filters and JQL syntax support",
-      "mode": "view"
+      "mode": "view",
+      "icon": "logo-jira.png"
     }
   ]
 }

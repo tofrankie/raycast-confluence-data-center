@@ -1,11 +1,11 @@
-import { writeFile, mkdir } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import path from "node:path";
+import fs from "node:fs/promises";
 import { CONFLUENCE_AVATAR_DIR, JIRA_AVATAR_DIR, AVATAR_TYPES } from "../constants";
 import type { AvatarType } from "../types";
 
 export function getAvatarPath(filename: string, avatarType: AvatarType) {
   const baseDir = avatarType === AVATAR_TYPES.CONFLUENCE ? CONFLUENCE_AVATAR_DIR : JIRA_AVATAR_DIR;
-  return join(baseDir, filename);
+  return path.join(baseDir, filename);
 }
 
 export interface DownloadOptions {
@@ -24,7 +24,17 @@ export async function downloadAvatar(options: DownloadOptions): Promise<Download
   const { url, outputPath, headers } = options;
 
   try {
-    await mkdir(dirname(outputPath), { recursive: true });
+    const avatarPathInfo = parseAvatarPath(outputPath);
+
+    const avatarExists = await pathExists(avatarPathInfo.finalPath);
+    if (avatarExists) {
+      return {
+        success: true,
+        localPath: avatarPathInfo.finalPath,
+      };
+    }
+
+    await ensureDirExists(avatarPathInfo.dir);
 
     const response = await fetch(url, {
       method: "GET",
@@ -41,14 +51,11 @@ export async function downloadAvatar(options: DownloadOptions): Promise<Download
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // 由于 Confluence 返回的头像链接没有提供扩展名，为了方便缓存展示处理，统一存为 .png 格式
-    const finalPath = outputPath.includes(".") ? outputPath : `${outputPath}.png`;
-
-    await writeFile(finalPath, buffer);
+    await fs.writeFile(avatarPathInfo.finalPath, buffer);
 
     return {
       success: true,
-      localPath: finalPath,
+      localPath: avatarPathInfo.finalPath,
     };
   } catch (error) {
     return {
@@ -81,4 +88,38 @@ export function getCachedAvatarPath(originalUrl: string, avatarType: AvatarType)
     .replace(/[^a-zA-Z0-9]/g, "");
   const filename = `${urlHash}.png`;
   return getAvatarPath(filename, avatarType);
+}
+
+export function parseAvatarPath(outputPath: string) {
+  const dir = path.dirname(outputPath);
+  let ext = path.extname(outputPath);
+  const name = path.basename(outputPath, ext);
+
+  // Since Confluence avatar URLs do not provide a file extension, we save all avatars as .png for consistent caching and display.
+  ext = ".png";
+
+  const finalPath = path.join(dir, `${name}${ext}`);
+
+  return {
+    dir,
+    name,
+    ext,
+    finalPath,
+  };
+}
+
+async function ensureDirExists(dir: string) {
+  const isExists = await pathExists(dir);
+  if (!isExists) {
+    await fs.mkdir(dir, { recursive: true });
+  }
+}
+
+export async function pathExists(path: string) {
+  try {
+    await fs.access(path, fs.constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
 }
