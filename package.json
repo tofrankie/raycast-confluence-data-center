@@ -73,6 +73,31 @@
       "required": true,
       "default": "20",
       "placeholder": "20"
+    },
+    {
+      "name": "jiraDomain",
+      "title": "Jira Domain",
+      "description": "Your Jira Data Center domain without https:// (e.g., jira.yourcompany.com)",
+      "type": "textfield",
+      "required": true,
+      "placeholder": "jira.yourcompany.com"
+    },
+    {
+      "name": "jiraPersonalAccessToken",
+      "title": "Jira Personal Access Token",
+      "description": "Your Jira Personal Access Token for API authentication. Create it from: Profile → Personal Access Tokens → Create token",
+      "type": "password",
+      "required": true,
+      "placeholder": "Enter your Jira Personal Access Token"
+    },
+    {
+      "name": "jiraCacheUserAvatar",
+      "title": "Cache Jira User Avatars",
+      "description": "Cache user avatars locally. Enable if your Jira requires authentication to access avatars.",
+      "type": "checkbox",
+      "required": true,
+      "default": false,
+      "label": "Enable avatar caching"
     }
   ],
   "commands": [
@@ -106,6 +131,13 @@
       "title": "Search Space",
       "subtitle": "Confluence",
       "description": "Search Confluence spaces with type filters",
+      "mode": "view"
+    },
+    {
+      "name": "jira-search-issue",
+      "title": "Search Issue",
+      "subtitle": "Jira",
+      "description": "Search Jira issues with advanced filters and JQL syntax support",
       "mode": "view"
     }
   ]

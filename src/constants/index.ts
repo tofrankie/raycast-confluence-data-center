@@ -6,12 +6,17 @@ export const COMMAND_NAMES = {
   CONFLUENCE_SEARCH_CONTENT: "confluence-search-content",
   CONFLUENCE_SEARCH_USER: "confluence-search-user",
   CONFLUENCE_SEARCH_SPACE: "confluence-search-space",
+  JIRA_SEARCH_ISSUE: "jira-search-issue",
 } as const;
 
 export const CONFLUENCE_API = {
   SEARCH: "/rest/api/search",
   SEARCH_CONTENT: "/rest/api/content/search",
   CONTENT_FAVOURITE: "/rest/experimental/relation/user/current/favourite/toContent/",
+} as const;
+
+export const JIRA_API = {
+  SEARCH: "/rest/api/2/search",
 } as const;
 
 export const CONFLUENCE_ENTITY_TYPE = {
@@ -72,6 +77,35 @@ export const CONFLUENCE_AVATAR_DIR = "/tmp/raycast-confluence-data-center/conflu
 export const JIRA_AVATAR_DIR = "/tmp/raycast-confluence-data-center/jira/avatars";
 
 export const DEFAULT_SEARCH_PAGE_SIZE = 20;
+
+export const JIRA_ISSUE_TYPE_ICONS = {
+  Bug: "icon-bug.svg",
+  Task: "icon-task.svg",
+  Story: "icon-story.svg",
+  Epic: "icon-epic.svg",
+  "Sub-task": "icon-subtask.svg",
+  Improvement: "icon-function.svg",
+  "New Feature": "icon-star.svg",
+  default: "icon-unknown.svg",
+} as const;
+
+export const JIRA_PRIORITY = {
+  BLOCKER: "Blocker",
+  CRITICAL: "Critical",
+  MAJOR: "Major",
+  MINOR: "Minor",
+  TRIVIAL: "Trivial",
+} as const;
+
+// TODO:
+export const JIRA_PRIORITY_ICONS = {
+  [JIRA_PRIORITY.BLOCKER]: "icon-star.svg",
+  [JIRA_PRIORITY.CRITICAL]: "icon-star.svg",
+  [JIRA_PRIORITY.MAJOR]: "icon-star.svg",
+  [JIRA_PRIORITY.MINOR]: "icon-star.svg",
+  [JIRA_PRIORITY.TRIVIAL]: "icon-star.svg",
+  default: "icon-star.svg",
+} as const;
 
 export const SEARCH_FILTERS: SearchFilter[] = [
   {
@@ -137,6 +171,45 @@ export const SPACE_TYPE_FILTERS: SearchFilter[] = [
     label: "Favourite Space",
     cql: "space.type = favourite",
     icon: Icon.Star,
+  },
+];
+
+export const JIRA_SEARCH_FILTERS: SearchFilter[] = [
+  {
+    id: "assignee",
+    label: "Assigned to Me",
+    cql: "assignee = currentUser()",
+    icon: Icon.Person,
+  },
+  {
+    id: "reporter",
+    label: "Reported by Me",
+    cql: "reporter = currentUser()",
+    icon: Icon.Pencil,
+  },
+  {
+    id: "watcher",
+    label: "Watched by Me",
+    cql: "watcher = currentUser()",
+    icon: Icon.Eye,
+  },
+  {
+    id: "recent",
+    label: "Recently Updated",
+    cql: "updated >= -7d",
+    icon: Icon.Clock,
+  },
+  {
+    id: "open",
+    label: "Open Issues",
+    cql: 'status in (Open, "In Progress", Reopened)',
+    icon: Icon.Circle,
+  },
+  {
+    id: "resolved",
+    label: "Resolved Issues",
+    cql: "status in (Resolved, Closed)",
+    icon: Icon.CheckCircle,
   },
 ];
 

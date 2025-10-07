@@ -1,5 +1,11 @@
 import type { List } from "@raycast/api";
-import { CONFLUENCE_ENTITY_TYPE, AVATAR_TYPES, CONFLUENCE_CONTENT_TYPE, CONFLUENCE_SPACE_TYPE } from "../constants";
+import {
+  CONFLUENCE_ENTITY_TYPE,
+  AVATAR_TYPES,
+  CONFLUENCE_CONTENT_TYPE,
+  CONFLUENCE_SPACE_TYPE,
+  JIRA_PRIORITY,
+} from "../constants";
 
 export type ConfluenceEntityType = (typeof CONFLUENCE_ENTITY_TYPE)[keyof typeof CONFLUENCE_ENTITY_TYPE];
 
@@ -14,6 +20,8 @@ export type LabelType = ConfluenceEntityType | ConfluenceContentType;
 export type SpaceType = ConfluenceSpaceType;
 
 export type AvatarType = (typeof AVATAR_TYPES)[keyof typeof AVATAR_TYPES];
+
+export type JiraPriorityType = (typeof JIRA_PRIORITY)[keyof typeof JIRA_PRIORITY];
 
 export interface ConfluenceSearchLinks {
   self?: string;
@@ -348,3 +356,169 @@ export interface ProcessedSpaceFields {
 export type ProcessedContentItem = ConfluenceSearchContentResult & ProcessedContentFields;
 export type ProcessedUserItem = ConfluenceUser & ProcessedUserFields;
 export type ProcessedSpaceItem = ConfluenceSpace & ProcessedSpaceFields;
+
+// Jira API Types
+export interface JiraSearchResponse {
+  expand: string;
+  issues: JiraIssue[];
+  maxResults: number;
+  startAt: number;
+  total: number;
+}
+
+export interface JiraIssue {
+  expand: string;
+  id: string;
+  self: string;
+  key: string;
+  fields: JiraIssueFields;
+}
+
+export interface JiraIssueFields {
+  summary: string;
+  issuetype: JiraIssueType;
+  duedate: string | null;
+  created: string;
+  project: JiraProject;
+  reporter: JiraUser;
+  assignee: JiraUser;
+  priority: JiraPriority;
+  updated: string;
+  timetracking?: JiraTimeTracking;
+  status: JiraStatus;
+  [key: string]: unknown; // TODO:
+}
+
+export interface JiraUser {
+  self: string;
+  name: string;
+  key: string;
+  emailAddress: string;
+  avatarUrls: {
+    "48x48": string;
+    "24x24": string;
+    "16x16": string;
+    "32x32": string;
+  };
+  displayName: string;
+  active: boolean;
+  timeZone: string;
+}
+
+export interface JiraProject {
+  self: string;
+  id: string;
+  key: string;
+  name: string;
+  projectTypeKey: string;
+  avatarUrls: {
+    "48x48": string;
+    "24x24": string;
+    "16x16": string;
+    "32x32": string;
+  };
+  projectCategory?: {
+    self: string;
+    id: string;
+    name: string;
+    description: string;
+  };
+}
+
+export interface JiraTimeTracking {
+  timeSpent: string;
+  timeSpentSeconds: number;
+  originalEstimate?: string;
+  remainingEstimate?: string;
+  originalEstimateSeconds?: number;
+  remainingEstimateSeconds?: number;
+}
+
+export interface JiraStatus {
+  self: string;
+  description: string;
+  iconUrl: string;
+  name: string;
+  id: string;
+  statusCategory: {
+    self: string;
+    id: number;
+    key: string;
+    colorName: string;
+    name: string;
+  };
+}
+
+export interface JiraIssueType {
+  self: string;
+  id: string;
+  description: string;
+  iconUrl: string;
+  name: string;
+  subtask: boolean;
+  avatarId: number;
+}
+
+export interface JiraPriority {
+  self: string;
+  iconUrl: string;
+  name: string;
+  id: string;
+}
+
+export interface JiraPreferences {
+  jiraDomain: string;
+  jiraPersonalAccessToken: string;
+  jiraCacheUserAvatar: boolean;
+  searchPageSize: number;
+  domain: string;
+  token: string;
+  baseUrl: string;
+  cacheAvatar: boolean;
+}
+
+export interface ProcessedJiraIssueFields {
+  // 基础信息
+  id: string;
+  key: string;
+  summary: string;
+  description: string;
+  status: string;
+  priority: string;
+  issueType: string;
+  projectKey: string;
+  projectName: string;
+
+  // 图标和类型
+  icon: List.Item.Props["icon"];
+
+  // 时间信息
+  created: Date;
+  updated: Date;
+  dueDate: Date | null;
+
+  // 用户信息
+  assignee: string | null;
+  reporter: string | null;
+  assigneeAvatar: string | null;
+  reporterAvatar: string | null;
+
+  // 其他信息
+  labels: string[];
+  components: string[];
+  fixVersions: string[];
+  timeTracking: {
+    originalEstimate: string | null;
+    remainingEstimate: string | null;
+    timeSpent: string | null;
+  };
+
+  // URL 信息
+  url: string;
+
+  // 渲染信息
+  subtitle: List.Item.Props["subtitle"];
+  accessories: List.Item.Props["accessories"];
+}
+
+export type ProcessedJiraIssueItem = JiraIssue & ProcessedJiraIssueFields;

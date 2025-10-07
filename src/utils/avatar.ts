@@ -57,3 +57,28 @@ export async function downloadAvatar(options: DownloadOptions): Promise<Download
     };
   }
 }
+
+export function getAvatarUrl(originalUrl: string, cacheAvatar: boolean, avatarType: AvatarType): string | null {
+  if (!originalUrl) return null;
+
+  if (!cacheAvatar) {
+    return originalUrl;
+  }
+
+  // 生成缓存文件名
+  const urlHash = Buffer.from(originalUrl)
+    .toString("base64")
+    .replace(/[^a-zA-Z0-9]/g, "");
+  const filename = `${urlHash}.png`;
+  const cachedPath = getAvatarPath(filename, avatarType);
+
+  return `file://${cachedPath}`;
+}
+
+export function getCachedAvatarPath(originalUrl: string, avatarType: AvatarType): string {
+  const urlHash = Buffer.from(originalUrl)
+    .toString("base64")
+    .replace(/[^a-zA-Z0-9]/g, "");
+  const filename = `${urlHash}.png`;
+  return getAvatarPath(filename, avatarType);
+}
