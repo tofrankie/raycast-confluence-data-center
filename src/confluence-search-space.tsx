@@ -3,9 +3,10 @@ import { showFailureToast } from "@raycast/utils";
 import { useState, useEffect, useMemo } from "react";
 import QueryProvider from "./query-provider";
 import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
-import { useConfluenceSearchSpace } from "./hooks";
+import { useConfluenceSearchSpace, useAvatar } from "./hooks";
 import { writeToSupportPathFile, buildCQL } from "./utils";
 import { SpaceFilter, CQLWrapper } from "./components";
+import { AVATAR_TYPES } from "./constants";
 import type { SearchFilter as SearchFilterType } from "./types";
 
 export default function ConfluenceSearchSpaceProvider() {
@@ -29,6 +30,7 @@ function ConfluenceSearchSpace() {
       id: "type",
       label: "Space",
       cql: `type = space`,
+      // transform: (processedCql: string) => processedCql.replace("text ~ ", "space.title ~ "),
     };
     return buildCQL(searchText, filter ? [filter, extraFilter] : []);
   }, [searchText, filter]);
@@ -54,6 +56,26 @@ function ConfluenceSearchSpace() {
       writeToSupportPathFile(JSON.stringify(results[0], null, 2), "temp-space.json");
     }
   }, [results]);
+
+  const avatarList = useMemo(() => {
+    const spaceMap = new Map<string, { url: string; filename: string }>();
+
+    results.forEach((space) => {
+      const spaceKey = space.spaceKey;
+      if (spaceMap.has(spaceKey)) return;
+
+      const avatarUrl = space.avatarUrl;
+      if (!avatarUrl) return;
+      spaceMap.set(spaceKey, {
+        url: avatarUrl,
+        filename: `space-${spaceKey}.png`,
+      });
+    });
+
+    return [...spaceMap.values()];
+  }, [results]);
+
+  useAvatar(avatarList, AVATAR_TYPES.CONFLUENCE);
 
   const handleLoadMore = () => {
     if (hasMore && !isFetchingNextPage) {

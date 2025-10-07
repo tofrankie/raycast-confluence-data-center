@@ -30,7 +30,7 @@ function processUserItem(item: ConfluenceSearchResult, baseUrl: string): Process
   const url = `${baseUrl}${item.url}`;
 
   // 渲染信息
-  const subtitle = { value: username, tooltip: `Username ${username}` };
+  const subtitle = { value: username, tooltip: `Username` };
   const accessories = [
     ...(avatar
       ? [

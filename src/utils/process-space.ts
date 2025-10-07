@@ -1,4 +1,5 @@
-import { CONFLUENCE_ENTITY_TYPE, SPACE_TYPE_LABELS, TYPE_ICONS } from "../constants";
+import { Image } from "@raycast/api";
+import { CONFLUENCE_ENTITY_TYPE, CONFLUENCE_AVATAR_DIR, SPACE_TYPE_LABELS, TYPE_ICONS } from "../constants";
 import type { ConfluenceSearchResult, ConfluenceSpaceType, ProcessedSpaceItem } from "../types";
 
 export function processSpaceItems(results: ConfluenceSearchResult[], baseUrl: string): ProcessedSpaceItem[] {
@@ -15,18 +16,20 @@ function processSpaceItem(result: ConfluenceSearchResult, baseUrl: string): Proc
   const spaceName = space.name || "";
   const spaceType = space.type || "";
 
-  // 图标
-  const icon = {
-    value: TYPE_ICONS[CONFLUENCE_ENTITY_TYPE.SPACE],
-    tooltip: "Space",
-  };
-
   // URL 信息
-  const url = result.url ? `${baseUrl}${result.url}` : "";
+  const url = space._links?.webui ? `${baseUrl}${space._links.webui}` : "";
 
   // 头像信息
-  const avatarUrl = null; // 空间通常没有头像，使用默认图标
-  const avatar = null;
+  const avatarUrl = space.icon.path ? `${baseUrl}${space.icon.path}` : "";
+  const avatar = avatarUrl ? `${CONFLUENCE_AVATAR_DIR}/space-${spaceKey}.png` : avatarUrl;
+
+  // 图标
+  const icon = avatar
+    ? {
+        source: avatar,
+        mask: Image.Mask.Circle,
+      }
+    : TYPE_ICONS[CONFLUENCE_ENTITY_TYPE.SPACE];
 
   // 渲染信息
   const description = space.description?.plain?.value || "";
@@ -53,5 +56,5 @@ function processSpaceItem(result: ConfluenceSearchResult, baseUrl: string): Proc
     url,
     subtitle,
     accessories,
-  };
+  } as ProcessedSpaceItem;
 }

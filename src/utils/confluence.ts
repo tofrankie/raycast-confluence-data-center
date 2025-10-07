@@ -52,7 +52,7 @@ export async function searchSpaces(cql: string, limit: number = DEFAULT_SEARCH_P
     cql,
     start,
     limit,
-    expand: "space,space.description.plain",
+    expand: "space,space.description.plain,space.icon",
   };
 
   const data = await confluenceRequest<ConfluenceSearchResponse>("GET", CONFLUENCE_API.SEARCH, params);

@@ -274,6 +274,12 @@ export interface ConfluenceSpace {
   name: string;
   status: string;
   type: string;
+  icon: {
+    path: string;
+    width: number;
+    height: number;
+    isDefault: boolean;
+  };
   description?: {
     plain: {
       value: string;
@@ -281,6 +287,11 @@ export interface ConfluenceSpace {
     };
     _expandable: {
       view: string;
+    };
+  };
+  metadata?: {
+    _expandable: {
+      labels: string;
     };
   };
   _links: {
