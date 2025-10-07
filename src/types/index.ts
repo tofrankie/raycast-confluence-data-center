@@ -5,6 +5,7 @@ import {
   CONFLUENCE_CONTENT_TYPE,
   CONFLUENCE_SPACE_TYPE,
   JIRA_PRIORITY,
+  JIRA_ISSUE_TYPE_NAME,
 } from "../constants";
 
 export type ConfluenceEntityType = (typeof CONFLUENCE_ENTITY_TYPE)[keyof typeof CONFLUENCE_ENTITY_TYPE];
@@ -504,9 +505,6 @@ export interface ProcessedJiraIssueFields {
   reporterAvatar: string | null;
 
   // 其他信息
-  labels: string[];
-  components: string[];
-  fixVersions: string[];
   timeTracking: {
     originalEstimate: string | null;
     remainingEstimate: string | null;
@@ -522,3 +520,5 @@ export interface ProcessedJiraIssueFields {
 }
 
 export type ProcessedJiraIssueItem = JiraIssue & ProcessedJiraIssueFields;
+
+export type JiraIssueTypeName = (typeof JIRA_ISSUE_TYPE_NAME)[keyof typeof JIRA_ISSUE_TYPE_NAME];

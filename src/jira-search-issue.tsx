@@ -57,8 +57,8 @@ function JiraSearchIssueContent() {
     preferences,
     jql,
     true,
-    // preferences.searchPageSize,
-    3,
+    preferences.searchPageSize,
+    // 3,
   );
 
   const issues = data?.issues || [];
@@ -105,7 +105,7 @@ function JiraSearchIssueContent() {
     <List
       isLoading={isLoading}
       onSearchTextChange={handleSearchTextChange}
-      searchBarPlaceholder="Search Jira issues or enter JQL query..."
+      searchBarPlaceholder="Search Jira Issue..."
       searchBarAccessory={
         <List.Dropdown tooltip="Filter Issues" value={selectedFilterId} onChange={handleFilterChange}>
           <List.Dropdown.Item title="All Issues" value="" />
@@ -124,8 +124,8 @@ function JiraSearchIssueContent() {
       {issues.length === 0 && !isLoading ? (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}
-          title="No Issues Found"
-          description="Try adjusting your search terms or filters"
+          title="No Results"
+          description="Try adjusting your search filters or check your JQL syntax"
         />
       ) : (
         issues.map((issue) => (

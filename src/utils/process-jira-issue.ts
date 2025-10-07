@@ -1,5 +1,5 @@
 import { List } from "@raycast/api";
-import { JIRA_ISSUE_TYPE_ICONS, JIRA_PRIORITY } from "../constants";
+import { JIRA_ISSUE_TYPE_ICONS } from "../constants";
 import { getAvatarUrl } from "./avatar";
 import { getJiraIssueUrl } from "./jira";
 import type { JiraIssue, ProcessedJiraIssueItem, JiraPreferences } from "../types";
@@ -10,7 +10,6 @@ export function processJiraIssue(issue: JiraIssue, preferences: JiraPreferences)
 
   // 基础信息
   const summary = fields.summary || "No Summary";
-  const description = fields.description || "";
   const status = fields.status?.name || "Unknown";
   const priority = fields.priority?.name || "Medium";
   const issueType = fields.issuetype?.name || "Task";
@@ -45,10 +44,13 @@ export function processJiraIssue(issue: JiraIssue, preferences: JiraPreferences)
   const url = getJiraIssueUrl(baseUrl, key);
 
   // 图标处理
-  const icon = getIssueTypeIcon(issueType);
+  const icon = {
+    value: JIRA_ISSUE_TYPE_ICONS[issueType as keyof typeof JIRA_ISSUE_TYPE_ICONS] || "icon-unknown.svg",
+    tooltip: `Issue Type: ${issueType}`,
+  };
 
   // 渲染信息
-  const subtitle = buildSubtitle(projectKey, assignee);
+  const subtitle = buildSubtitle(key, assignee, reporter);
   const accessories = buildAccessories({
     status,
     priority,
@@ -64,7 +66,7 @@ export function processJiraIssue(issue: JiraIssue, preferences: JiraPreferences)
     id,
     key,
     summary,
-    description,
+    description: "", // 暂时为空字符串，因为当前 API 响应中没有 description
     status,
     priority,
     issueType,
@@ -97,37 +99,15 @@ export function processJiraIssue(issue: JiraIssue, preferences: JiraPreferences)
   };
 }
 
-function getIssueTypeIcon(issueType: string): List.Item.Props["icon"] {
-  const iconName =
-    JIRA_ISSUE_TYPE_ICONS[issueType as keyof typeof JIRA_ISSUE_TYPE_ICONS] || JIRA_ISSUE_TYPE_ICONS.default;
-  return {
-    source: iconName,
-    tintColor: getIssueTypeColor(issueType),
-  };
-}
-
-function getIssueTypeColor(issueType: string): string {
-  switch (issueType.toLowerCase()) {
-    case "bug":
-      return "#d73a4a";
-    case "story":
-      return "#28a745";
-    case "task":
-      return "#0366d6";
-    case "epic":
-      return "#6f42c1";
-    case "sub-task":
-      return "#6c757d";
-    default:
-      return "#6c757d";
-  }
-}
-
-function buildSubtitle(projectKey: string, assignee: string | null): List.Item.Props["subtitle"] {
+function buildSubtitle(
+  issueKey: string,
+  assignee: string | null,
+  reporter: string | null,
+): List.Item.Props["subtitle"] {
   const parts = [];
 
-  if (projectKey) {
-    parts.push(projectKey);
+  if (issueKey) {
+    parts.push(issueKey);
   }
 
   if (assignee) {
@@ -138,8 +118,11 @@ function buildSubtitle(projectKey: string, assignee: string | null): List.Item.P
 
   // 构建 tooltip
   const tooltipParts = [];
-  if (projectKey) {
-    tooltipParts.push(`Project: ${projectKey}`);
+  if (issueKey) {
+    tooltipParts.push(`Issue Key: ${issueKey}`);
+  }
+  if (reporter) {
+    tooltipParts.push(`Reporter: ${reporter}`);
   }
   if (assignee) {
     tooltipParts.push(`Assignee: ${assignee}`);
@@ -170,19 +153,19 @@ function buildAccessories({
 }: BuildAccessoriesParams): List.Item.Props["accessories"] {
   const accessories: List.Item.Props["accessories"] = [];
 
+  // 优先级
+  if (priority) {
+    accessories.push({
+      tag: priority,
+      tooltip: `Priority: ${priority}`,
+    });
+  }
+
   // 状态
   if (status) {
     accessories.push({
       tag: status,
       tooltip: `Status: ${status}`,
-    });
-  }
-
-  // 优先级
-  if (priority && priority !== JIRA_PRIORITY.MAJOR) {
-    accessories.push({
-      tag: priority,
-      tooltip: `Priority: ${priority}`,
     });
   }
 

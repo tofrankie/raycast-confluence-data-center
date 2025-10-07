@@ -78,15 +78,20 @@ export const JIRA_AVATAR_DIR = "/tmp/raycast-confluence-data-center/jira/avatars
 
 export const DEFAULT_SEARCH_PAGE_SIZE = 20;
 
+export const JIRA_ISSUE_TYPE_NAME = {
+  BUG: "Bug",
+  TASK: "Task",
+  STORY: "Story",
+  EPIC: "Epic",
+  SUB_TASK: "Sub-task",
+} as const;
+
 export const JIRA_ISSUE_TYPE_ICONS = {
-  Bug: "icon-bug.svg",
-  Task: "icon-task.svg",
-  Story: "icon-story.svg",
-  Epic: "icon-epic.svg",
-  "Sub-task": "icon-subtask.svg",
-  Improvement: "icon-function.svg",
-  "New Feature": "icon-star.svg",
-  default: "icon-unknown.svg",
+  [JIRA_ISSUE_TYPE_NAME.BUG]: "icon-bug.svg",
+  [JIRA_ISSUE_TYPE_NAME.TASK]: "icon-task.svg",
+  [JIRA_ISSUE_TYPE_NAME.STORY]: "icon-story.svg",
+  [JIRA_ISSUE_TYPE_NAME.EPIC]: "icon-epic.svg",
+  [JIRA_ISSUE_TYPE_NAME.SUB_TASK]: "icon-subtask.svg",
 } as const;
 
 export const JIRA_PRIORITY = {

@@ -25,8 +25,10 @@ export async function searchJiraIssues(
 
   const data = await jiraRequest<JiraSearchResponse>("GET", JIRA_API.SEARCH, searchParams, preferences);
 
-  // TODO: 调试
-  writeToSupportPathFile(JSON.stringify(data, null, 2), "search-jira-issues-response.json");
+  if (data) {
+    // TODO: 调试
+    writeToSupportPathFile(JSON.stringify(data, null, 2), "search-jira-issues-response.json");
+  }
 
   return data;
 }
