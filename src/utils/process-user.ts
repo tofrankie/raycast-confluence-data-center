@@ -1,6 +1,7 @@
 import { Image } from "@raycast/api";
+import { avatarCache } from "./avatar";
+import { CONFLUENCE_ENTITY_TYPE, DEFAULT_AVATAR, TYPE_ICONS } from "../constants";
 import type { ConfluenceSearchResult, ProcessedUserFields } from "../types";
-import { CONFLUENCE_AVATAR_DIR, CONFLUENCE_ENTITY_TYPE, TYPE_ICONS } from "../constants";
 
 export function processUserItems(items: ConfluenceSearchResult[], baseUrl: string) {
   return items.map((item) => ({
@@ -15,12 +16,15 @@ function processUserItem(item: ConfluenceSearchResult, baseUrl: string): Process
   // 基础信息
   const title = user.displayName;
   const username = user.username;
+  // Anonymous users may not have userKey
   const userKey = user.userKey;
   const displayName = user.displayName;
 
   // 图标和头像
-  const avatarUrl = user.profilePicture.path ? `${baseUrl}${user.profilePicture.path}` : null;
-  const avatar = CONFLUENCE_AVATAR_DIR ? `${CONFLUENCE_AVATAR_DIR}/${userKey}.png` : avatarUrl;
+  const avatarUrl = user.profilePicture.path ? `${baseUrl}${user.profilePicture.path}` : "";
+  const avatarCacheKey = userKey;
+  const avatar = (avatarCacheKey && avatarCache.get(avatarCacheKey)) ?? DEFAULT_AVATAR;
+
   const icon = avatar
     ? {
         source: avatar,
@@ -46,6 +50,7 @@ function processUserItem(item: ConfluenceSearchResult, baseUrl: string): Process
     icon,
     avatarUrl,
     avatar,
+    avatarCacheKey,
 
     // URL 信息
     url,

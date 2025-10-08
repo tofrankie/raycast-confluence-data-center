@@ -1,5 +1,6 @@
 import { Image } from "@raycast/api";
-import { CONFLUENCE_ENTITY_TYPE, CONFLUENCE_AVATAR_DIR, SPACE_TYPE_LABELS, TYPE_ICONS } from "../constants";
+import { avatarCache } from "./avatar";
+import { CONFLUENCE_ENTITY_TYPE, SPACE_TYPE_LABELS, TYPE_ICONS, DEFAULT_AVATAR } from "../constants";
 import type { ConfluenceSearchResult, ConfluenceSpaceType, ProcessedSpaceItem } from "../types";
 
 export function processSpaceItems(results: ConfluenceSearchResult[], baseUrl: string): ProcessedSpaceItem[] {
@@ -21,7 +22,8 @@ function processSpaceItem(result: ConfluenceSearchResult, baseUrl: string): Proc
 
   // 头像信息
   const avatarUrl = space.icon.path ? `${baseUrl}${space.icon.path}` : "";
-  const avatar = avatarUrl ? `${CONFLUENCE_AVATAR_DIR}/space-${spaceKey}.png` : avatarUrl;
+  const avatarCacheKey = spaceKey ? `space-${spaceKey}` : undefined;
+  const avatar = (avatarCacheKey && avatarCache.get(avatarCacheKey)) ?? DEFAULT_AVATAR;
 
   // 图标
   const icon = avatar
@@ -53,6 +55,7 @@ function processSpaceItem(result: ConfluenceSearchResult, baseUrl: string): Proc
     icon,
     avatarUrl,
     avatar,
+    avatarCacheKey,
     url,
     subtitle,
     accessories,

@@ -1,13 +1,13 @@
+import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import { useState, useEffect, useMemo } from "react";
 import QueryProvider from "./query-provider";
-import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
-import { useConfluenceSearchContent, useToggleFavorite, useAvatar } from "./hooks";
-import { writeToSupportPathFile, buildCQL } from "./utils";
-import { SearchFilter, CQLWrapper } from "./components";
 import { AVATAR_TYPES } from "./constants";
-import type { SearchFilter as SearchFilterType } from "./types";
+import { SearchFilter, CQLWrapper } from "./components";
+import { writeToSupportPathFile, buildCQL } from "./utils";
+import { useConfluenceSearchContent, useToggleFavorite, useAvatar } from "./hooks";
+import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
+import type { AvatarList, SearchFilter as SearchFilterType } from "./types";
 
 export default function ConfluenceSearchContentProvider() {
   return (
@@ -63,21 +63,12 @@ function ConfluenceSearchContent() {
   }, [toggleFavorite.error]);
 
   const avatarList = useMemo(() => {
-    const userMap = new Map<string, { url: string; filename: string }>();
-
-    results.forEach((item) => {
-      const userKey = item.history.createdBy.userKey;
-      if (userMap.has(userKey)) return;
-
-      const avatarUrl = item.creatorAvatarUrl;
-      if (!avatarUrl) return;
-      userMap.set(userKey, {
-        url: avatarUrl,
-        filename: userKey,
-      });
-    });
-
-    return [...userMap.values()];
+    return results
+      .filter((item) => !!(item.creatorAvatarCacheKey && item.creatorAvatarUrl))
+      .map((item) => ({
+        url: item.creatorAvatarUrl,
+        key: item.creatorAvatarCacheKey,
+      })) as AvatarList;
   }, [results]);
 
   useAvatar(avatarList, AVATAR_TYPES.CONFLUENCE);

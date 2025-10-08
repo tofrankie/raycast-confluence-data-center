@@ -2,6 +2,8 @@ import { Icon, List } from "@raycast/api";
 import { SearchFilter } from "../types";
 import type { ConfluenceSpaceType, IconType, LabelType } from "../types";
 
+export const DEFAULT_AVATAR = "avatar-default.svg";
+
 export const COMMAND_NAMES = {
   CONFLUENCE_SEARCH_CONTENT: "confluence-search-content",
   CONFLUENCE_SEARCH_USER: "confluence-search-user",

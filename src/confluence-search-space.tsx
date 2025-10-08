@@ -1,13 +1,13 @@
+import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import { useState, useEffect, useMemo } from "react";
 import QueryProvider from "./query-provider";
-import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
-import { useConfluenceSearchSpace, useAvatar } from "./hooks";
-import { writeToSupportPathFile, buildCQL } from "./utils";
-import { SpaceFilter, CQLWrapper } from "./components";
 import { AVATAR_TYPES } from "./constants";
-import type { SearchFilter as SearchFilterType } from "./types";
+import { SpaceFilter, CQLWrapper } from "./components";
+import { writeToSupportPathFile, buildCQL } from "./utils";
+import { useConfluenceSearchSpace, useAvatar } from "./hooks";
+import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
+import type { AvatarList, SearchFilter as SearchFilterType } from "./types";
 
 export default function ConfluenceSearchSpaceProvider() {
   return (
@@ -58,21 +58,12 @@ function ConfluenceSearchSpace() {
   }, [results]);
 
   const avatarList = useMemo(() => {
-    const spaceMap = new Map<string, { url: string; filename: string }>();
-
-    results.forEach((space) => {
-      const spaceKey = space.spaceKey;
-      if (spaceMap.has(spaceKey)) return;
-
-      const avatarUrl = space.avatarUrl;
-      if (!avatarUrl) return;
-      spaceMap.set(spaceKey, {
-        url: avatarUrl,
-        filename: `space-${spaceKey}.png`,
-      });
-    });
-
-    return [...spaceMap.values()];
+    return results
+      .filter((item) => !!(item.avatarCacheKey && item.avatarUrl))
+      .map((item) => ({
+        url: item.avatarUrl,
+        key: item.avatarCacheKey,
+      })) as AvatarList;
   }, [results]);
 
   useAvatar(avatarList, AVATAR_TYPES.CONFLUENCE);

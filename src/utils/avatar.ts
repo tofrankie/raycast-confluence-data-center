@@ -2,77 +2,67 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { CONFLUENCE_AVATAR_DIR, JIRA_AVATAR_DIR, AVATAR_TYPES } from "../constants";
 import type { AvatarType } from "../types";
+import { Cache } from "@raycast/api";
+import { getAuthHeaders } from "./request";
+
+type DownloadAvatarOptions = {
+  type: AvatarType;
+  token: string;
+  url: string;
+  key: string;
+};
+
+export const avatarCache = new Cache();
+
+export async function downloadAvatar(options: DownloadAvatarOptions) {
+  const { type, token, url, key } = options;
+
+  try {
+    const outputDir = getAvatarDir(type);
+    await ensureDirExists(outputDir);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: getAuthHeaders(token),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const contentType = response.headers.get("content-type");
+    const ext = getImageExtension(url, contentType);
+    const finalPath = path.join(outputDir, `${key}${ext}`);
+
+    await fs.writeFile(finalPath, buffer);
+    avatarCache.set(key, finalPath);
+
+    return finalPath;
+  } catch (error) {
+    return error instanceof Error ? error.message : "Unknown error";
+  }
+}
+
+export function getAvatarDir(avatarType: AvatarType) {
+  return avatarType === AVATAR_TYPES.CONFLUENCE ? CONFLUENCE_AVATAR_DIR : JIRA_AVATAR_DIR;
+}
 
 export function getAvatarPath(filename: string, avatarType: AvatarType) {
   const baseDir = avatarType === AVATAR_TYPES.CONFLUENCE ? CONFLUENCE_AVATAR_DIR : JIRA_AVATAR_DIR;
   return path.join(baseDir, filename);
 }
 
-export interface DownloadOptions {
-  url: string;
-  outputPath: string;
-  headers: Record<string, string>;
-}
-
-export interface DownloadResult {
-  success: boolean;
-  localPath?: string;
-  error?: string;
-}
-
-export async function downloadAvatar(options: DownloadOptions): Promise<DownloadResult> {
-  const { url, outputPath, headers } = options;
-
-  try {
-    const avatarPathInfo = parseAvatarPath(outputPath);
-
-    const avatarExists = await pathExists(avatarPathInfo.finalPath);
-    if (avatarExists) {
-      return {
-        success: true,
-        localPath: avatarPathInfo.finalPath,
-      };
-    }
-
-    await ensureDirExists(avatarPathInfo.dir);
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers,
-    });
-
-    if (!response.ok) {
-      return {
-        success: false,
-        error: `HTTP error: ${response.status}`,
-      };
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    await fs.writeFile(avatarPathInfo.finalPath, buffer);
-
-    return {
-      success: true,
-      localPath: avatarPathInfo.finalPath,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
-}
-
-export function getAvatarUrl(originalUrl: string, cacheAvatar: boolean, avatarType: AvatarType): string | null {
+// TODO:
+export function getAvatarUrl(originalUrl: string, cacheAvatar: boolean, avatarType: AvatarType) {
   if (!originalUrl) return null;
 
   if (!cacheAvatar) {
     return originalUrl;
   }
 
-  // 生成缓存文件名
   const urlHash = Buffer.from(originalUrl)
     .toString("base64")
     .replace(/[^a-zA-Z0-9]/g, "");
@@ -82,37 +72,48 @@ export function getAvatarUrl(originalUrl: string, cacheAvatar: boolean, avatarTy
   return `file://${cachedPath}`;
 }
 
-export function getCachedAvatarPath(originalUrl: string, avatarType: AvatarType): string {
-  const urlHash = Buffer.from(originalUrl)
-    .toString("base64")
-    .replace(/[^a-zA-Z0-9]/g, "");
-  const filename = `${urlHash}.png`;
-  return getAvatarPath(filename, avatarType);
+export function getImageExtension(remoteUrl: string, contentType?: string | null) {
+  const url = new URL(remoteUrl);
+  const pathname = url.pathname;
+  const ext = path.extname(pathname);
+
+  if (ext) {
+    return ext;
+  }
+
+  if (contentType) {
+    return getExtensionFromContentType(contentType);
+  }
+
+  return ".png";
 }
 
-export function parseAvatarPath(outputPath: string) {
-  const dir = path.dirname(outputPath);
-  let ext = path.extname(outputPath);
-  const name = path.basename(outputPath, ext);
-
-  // Since Confluence avatar URLs do not provide a file extension, we save all avatars as .png for consistent caching and display.
-  ext = ".png";
-
-  const finalPath = path.join(dir, `${name}${ext}`);
-
-  return {
-    dir,
-    name,
-    ext,
-    finalPath,
+function getExtensionFromContentType(contentType: string) {
+  const mimeType = contentType.split(";")[0].trim().toLowerCase();
+  const mimeToExtMap: Record<string, string> = {
+    "image/jpeg": ".jpg",
+    "image/jpg": ".jpg",
+    "image/png": ".png",
+    "image/gif": ".gif",
+    "image/webp": ".webp",
+    "image/svg+xml": ".svg",
   };
+  return mimeToExtMap[mimeType] || ".png";
 }
+
+const dirExists: Record<string, boolean> = {};
 
 async function ensureDirExists(dir: string) {
+  if (dirExists[dir]) return;
+
   const isExists = await pathExists(dir);
-  if (!isExists) {
-    await fs.mkdir(dir, { recursive: true });
+  if (isExists) {
+    dirExists[dir] = true;
+    return;
   }
+
+  await fs.mkdir(dir, { recursive: true });
+  dirExists[dir] = true;
 }
 
 export async function pathExists(path: string) {

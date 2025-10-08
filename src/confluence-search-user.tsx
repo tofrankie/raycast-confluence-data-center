@@ -1,10 +1,11 @@
+import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import { useState, useEffect, useMemo } from "react";
 import QueryProvider from "./query-provider";
-import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
-import { useConfluenceSearchUser, useAvatar } from "./hooks";
 import { AVATAR_TYPES } from "./constants";
+import { useConfluenceSearchUser, useAvatar } from "./hooks";
+import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
+import { AvatarList } from "./types";
 
 export default function ConfluenceSearchUserProvider() {
   return (
@@ -35,21 +36,12 @@ function ConfluenceSearchUser() {
   const hasMore = useMemo(() => data?.hasMore ?? false, [data?.hasMore]);
 
   const avatarList = useMemo(() => {
-    const userMap = new Map<string, { url: string; filename: string }>();
-
-    results.forEach((user) => {
-      const userKey = user.userKey;
-      if (userMap.has(userKey)) return;
-
-      const avatarUrl = user.avatarUrl;
-      if (!avatarUrl) return;
-      userMap.set(userKey, {
-        url: avatarUrl,
-        filename: userKey,
-      });
-    });
-
-    return [...userMap.values()];
+    return results
+      .filter((item) => !!(item.avatarCacheKey && item.avatarUrl))
+      .map((item) => ({
+        url: item.avatarUrl,
+        key: item.avatarCacheKey,
+      })) as AvatarList;
   }, [results]);
 
   useAvatar(avatarList, AVATAR_TYPES.CONFLUENCE);
@@ -103,7 +95,7 @@ function ConfluenceSearchUser() {
                     content={user.url}
                     shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
                   />
-                  <Action.CopyToClipboard title="Copy User Key" content={user.userKey} />
+                  {!!user.userKey && <Action.CopyToClipboard title="Copy User Key" content={user.userKey} />}
                 </ActionPanel>
               }
             />

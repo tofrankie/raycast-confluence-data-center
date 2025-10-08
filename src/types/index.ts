@@ -22,6 +22,13 @@ export type SpaceType = ConfluenceSpaceType;
 
 export type AvatarType = (typeof AVATAR_TYPES)[keyof typeof AVATAR_TYPES];
 
+export type AvatarItem = {
+  key: string;
+  url: string;
+};
+
+export type AvatarList = AvatarItem[];
+
 export type JiraPriorityType = (typeof JIRA_PRIORITY)[keyof typeof JIRA_PRIORITY];
 
 export interface ConfluenceSearchLinks {
@@ -242,8 +249,10 @@ export interface ProcessedContentFields {
   // 用户信息
   creator: string;
   updater: string;
-  creatorAvatar: string | null;
-  creatorAvatarUrl: string | null;
+  // Anonymous users may not have userKey
+  creatorAvatarCacheKey?: string;
+  creatorAvatarUrl?: string;
+  creatorAvatar: string;
 
   // 收藏状态
   isFavourited: boolean;
@@ -267,7 +276,7 @@ export interface ProcessedContentFields {
 export interface ConfluenceUser {
   type: string;
   username: string;
-  userKey: string;
+  userKey?: string;
   profilePicture: Icon;
   displayName: string;
   _links: {
@@ -320,13 +329,14 @@ export interface ProcessedUserFields {
   // 基础信息
   title: string;
   username: string;
-  userKey: string;
+  userKey?: string;
   displayName: string;
 
   // 图标和头像
   icon: List.Item.Props["icon"];
-  avatarUrl: string | null;
-  avatar: string | null;
+  avatarCacheKey?: string;
+  avatarUrl?: string;
+  avatar: string;
 
   // URL 信息
   url: string;
@@ -344,8 +354,9 @@ export interface ProcessedSpaceFields {
 
   // 图标和头像
   icon: List.Item.Props["icon"];
-  avatarUrl: string | null;
-  avatar: string | null;
+  avatarUrl?: string;
+  avatarCacheKey?: string;
+  avatar: string;
 
   // URL 信息
   url: string;

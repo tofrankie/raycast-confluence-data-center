@@ -1,6 +1,7 @@
-import type { ConfluenceSearchContentResult, IconType, ProcessedContentFields } from "../types";
-import { CONFLUENCE_AVATAR_DIR, CONFLUENCE_CONTENT_TYPE, TYPE_ICONS, TYPE_LABELS } from "../constants";
 import { Icon, Image } from "@raycast/api";
+import { avatarCache } from "./avatar";
+import { CONFLUENCE_CONTENT_TYPE, DEFAULT_AVATAR, TYPE_ICONS, TYPE_LABELS } from "../constants";
+import type { ConfluenceSearchContentResult, IconType, ProcessedContentFields } from "../types";
 
 export function processContentItems(items: ConfluenceSearchContentResult[], baseUrl: string) {
   return items.map((item) => ({
@@ -35,10 +36,13 @@ function processContentItem(item: ConfluenceSearchContentResult, baseUrl: string
   // 用户信息
   const creator = item.history.createdBy.displayName;
   const updater = item.history.lastUpdated.by.displayName;
+  // Anonymous users may not have userKey
+  const creatorUserKey = item.history.createdBy.userKey;
+
+  // 头像信息
   const creatorAvatarUrl = `${baseUrl}${item.history.createdBy.profilePicture.path}`;
-  const creatorAvatar = CONFLUENCE_AVATAR_DIR
-    ? `${CONFLUENCE_AVATAR_DIR}/${item.history.createdBy.userKey}.png`
-    : creatorAvatarUrl;
+  const creatorAvatarCacheKey = creatorUserKey;
+  const creatorAvatar = (creatorAvatarCacheKey && avatarCache.get(creatorAvatarCacheKey)) ?? DEFAULT_AVATAR;
 
   // 收藏状态
   const isFavourited = item.metadata.currentuser.favourited?.isFavourite ?? false;
@@ -98,6 +102,7 @@ function processContentItem(item: ConfluenceSearchContentResult, baseUrl: string
     updater,
     creatorAvatar,
     creatorAvatarUrl,
+    creatorAvatarCacheKey,
 
     // 收藏状态
     isFavourited,
