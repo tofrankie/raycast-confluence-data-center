@@ -123,6 +123,7 @@ export interface ProcessedJiraIssueFields {
     remainingEstimate: string | null;
     timeSpent: string | null;
   };
+  customFieldValue: Record<string, string>;
 
   // URL 信息
   url: string;

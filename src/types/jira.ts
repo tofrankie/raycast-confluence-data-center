@@ -111,3 +111,33 @@ export interface JiraPriority {
   name: string;
   id: string;
 }
+
+export interface JiraField {
+  id: string;
+  name: string;
+  custom: boolean;
+  orderable: boolean;
+  navigable: boolean;
+  searchable: boolean;
+  clauseNames: string[];
+  schema?: {
+    type: string;
+    system?: string;
+    custom?: string;
+    customId?: number;
+    items?: string;
+  };
+}
+
+export interface ProcessedJiraField extends JiraField {
+  subtitle: {
+    value: string;
+    tooltip: string;
+  };
+  accessories: Array<{
+    icon?: any;
+    text?: string;
+    tooltip: string;
+  }>;
+  isAdded: boolean;
+}

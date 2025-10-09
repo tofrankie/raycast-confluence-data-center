@@ -1,6 +1,7 @@
 import { List } from "@raycast/api";
 import { JIRA_ISSUE_TYPE_ICONS } from "../constants";
 import { getJiraIssueUrl } from "./jira";
+import { getSelectedCustomField, formatCustomFieldValue } from "./process-jira-manage-field";
 import type { JiraIssue, ProcessedJiraIssueItem } from "../types";
 
 export function processJiraSearchIssue(issue: JiraIssue, baseUrl: string): ProcessedJiraIssueItem {
@@ -39,8 +40,21 @@ export function processJiraSearchIssue(issue: JiraIssue, baseUrl: string): Proce
     tooltip: `Issue Type: ${issueType}`,
   };
 
+  const selectedCustomFields = getSelectedCustomField();
+
+  const customFieldValue = selectedCustomFields.reduce(
+    (acc, field) => {
+      const value = issue.fields[field.id];
+      if (value !== undefined && value !== null) {
+        acc[field.id] = formatCustomFieldValue(value);
+      }
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+
   // 渲染信息
-  const subtitle = buildSubtitle(key, assignee, reporter);
+  const subtitle = buildSubtitle(key, assignee, reporter, customFieldValue);
   const accessories = buildAccessories({
     status,
     priority,
@@ -77,6 +91,7 @@ export function processJiraSearchIssue(issue: JiraIssue, baseUrl: string): Proce
 
     // 其他信息
     timeTracking,
+    customFieldValue,
 
     // URL 信息
     url,
@@ -91,6 +106,7 @@ function buildSubtitle(
   issueKey: string,
   assignee: string | null,
   reporter: string | null,
+  customFieldValue?: Record<string, string>,
 ): List.Item.Props["subtitle"] {
   const parts = [];
 
@@ -114,6 +130,16 @@ function buildSubtitle(
   }
   if (assignee) {
     tooltipParts.push(`Assignee: ${assignee}`);
+  }
+
+  // 添加自定义字段到 tooltip
+  if (customFieldValue) {
+    const selectedFields = getSelectedCustomField();
+    Object.entries(customFieldValue).forEach(([fieldId, value]) => {
+      const field = selectedFields.find((f) => f.id === fieldId);
+      const fieldName = field?.name || fieldId;
+      tooltipParts.push(`${fieldName}: ${value}`);
+    });
   }
 
   return {

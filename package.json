@@ -114,6 +114,14 @@
       "description": "Search Jira issue with advanced filters and JQL syntax support",
       "mode": "view",
       "icon": "logo-jira.png"
+    },
+    {
+      "name": "jira-manage-field",
+      "title": "Manage Field",
+      "subtitle": "Jira",
+      "description": "Manage custom fields for Jira issue search",
+      "mode": "view",
+      "icon": "logo-jira.png"
     }
   ]
 }

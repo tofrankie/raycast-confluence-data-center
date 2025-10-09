@@ -26,6 +26,7 @@ function JiraSearchIssueContent() {
     let query = searchText.trim();
 
     if (!query) {
+      // for test: ORDER BY updated DESC
       query =
         "assignee = currentUser() AND resolution = unresolved ORDER BY summary ASC, key ASC, priority DESC, created ASC";
     } else {

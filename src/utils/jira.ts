@@ -1,7 +1,7 @@
 import { jiraRequest } from "./request";
 import { writeToSupportPathFile } from "./confluence";
 import { JIRA_API, DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
-import type { JiraSearchIssueResponse } from "../types";
+import type { JiraSearchIssueResponse, JiraField } from "../types";
 
 export interface JiraSearchIssueParams {
   jql: string;
@@ -28,6 +28,16 @@ export async function searchJiraIssue(params: JiraSearchIssueParams): Promise<Ji
   }
 
   return data;
+}
+
+export async function getJiraField(): Promise<JiraField[]> {
+  const data = await jiraRequest<JiraField[]>("GET", JIRA_API.FIELD);
+
+  if (data) {
+    writeToSupportPathFile(JSON.stringify(data, null, 2), "jira-manage-field-response.json");
+  }
+
+  return data || [];
 }
 
 // TODO:
