@@ -1,6 +1,5 @@
 import { createContext, useContext, ReactNode, useMemo, useState } from "react";
 import { getPreferenceValues } from "@raycast/api";
-import { getBaseUrl } from "../utils";
 import { DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
 import type { ConfluencePreferences } from "../types";
 
@@ -22,16 +21,9 @@ export function ConfluencePreferencesProvider({ children }: ConfluencePreference
 }
 
 const defaultPreferences: ConfluencePreferences = {
-  confluenceDomain: "",
+  confluenceBaseUrl: "",
   confluencePersonalAccessToken: "",
-  confluenceCacheUserAvatar: false,
-  confluenceDisplayRecentlyViewed: true,
   searchPageSize: DEFAULT_SEARCH_PAGE_SIZE,
-  domain: "",
-  token: "",
-  baseUrl: "",
-  cacheAvatar: false,
-  displayRecentlyViewed: true,
 };
 
 export function useConfluencePreferencesContext() {
@@ -40,20 +32,10 @@ export function useConfluencePreferencesContext() {
 }
 
 function initPreferences() {
-  const rawPreferences = getPreferenceValues<Preferences.ConfluenceSearchContent>();
+  const rawPreferences = getPreferenceValues<Preferences>();
 
   return {
-    // raw
     ...rawPreferences,
-
-    // alias
-    domain: rawPreferences.confluenceDomain,
-    token: rawPreferences.confluencePersonalAccessToken,
-    cacheAvatar: rawPreferences.confluenceCacheUserAvatar,
     searchPageSize: parseInt(rawPreferences.searchPageSize) || DEFAULT_SEARCH_PAGE_SIZE,
-    displayRecentlyViewed: rawPreferences.confluenceDisplayRecentlyViewed,
-
-    // computed
-    baseUrl: getBaseUrl(rawPreferences.confluenceDomain),
   };
 }

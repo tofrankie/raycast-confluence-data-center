@@ -2,10 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 import QueryProvider from "./query-provider";
-import { AVATAR_TYPES } from "./constants";
-import { SpaceFilter, CQLWrapper } from "./components";
-import { writeToSupportPathFile, buildCQL } from "./utils";
-import { useConfluenceSearchSpace, useAvatar } from "./hooks";
+import { APP_TYPE } from "./constants";
+import { ConfluenceSearchSpaceFilter, CQLWrapper } from "./components";
+import { buildCQL } from "./utils";
+import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "./hooks";
 import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
 import type { AvatarList, SearchFilter as SearchFilterType } from "./types";
 
@@ -22,7 +22,7 @@ export default function ConfluenceSearchSpaceProvider() {
 function ConfluenceSearchSpace() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilterType | null>(null);
-  const { searchPageSize, baseUrl } = useConfluencePreferencesContext();
+  const { searchPageSize, confluenceBaseUrl } = useConfluencePreferencesContext();
 
   const cql = useMemo(() => {
     if (!searchText) return "";
@@ -35,10 +35,10 @@ function ConfluenceSearchSpace() {
     return buildCQL(searchText, filter ? [filter, extraFilter] : []);
   }, [searchText, filter]);
 
-  const { data, fetchNextPage, isFetchingNextPage, isLoading, error } = useConfluenceSearchSpace(
+  const { data, fetchNextPage, isFetchingNextPage, isLoading, error } = useConfluenceSearchSpaceInfiniteQuery(
     cql,
     searchPageSize,
-    baseUrl,
+    confluenceBaseUrl,
   );
 
   const results = useMemo(() => data?.items ?? [], [data?.items]);
@@ -50,13 +50,6 @@ function ConfluenceSearchSpace() {
     }
   }, [error]);
 
-  // TODO: 调试
-  useEffect(() => {
-    if (results.length > 0) {
-      writeToSupportPathFile(JSON.stringify(results[0], null, 2), "temp-space.json");
-    }
-  }, [results]);
-
   const avatarList = useMemo(() => {
     return results
       .filter((item) => !!(item.avatarCacheKey && item.avatarUrl))
@@ -66,7 +59,7 @@ function ConfluenceSearchSpace() {
       })) as AvatarList;
   }, [results]);
 
-  useAvatar(avatarList, AVATAR_TYPES.CONFLUENCE);
+  useAvatar(avatarList, APP_TYPE.CONFLUENCE);
 
   const handleLoadMore = () => {
     if (hasMore && !isFetchingNextPage) {
@@ -82,7 +75,7 @@ function ConfluenceSearchSpace() {
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search Space..."
-      searchBarAccessory={<SpaceFilter value={filter?.id || ""} onChange={setFilter} />}
+      searchBarAccessory={<ConfluenceSearchSpaceFilter value={filter?.id || ""} onChange={setFilter} />}
       pagination={{
         onLoadMore: handleLoadMore,
         hasMore,

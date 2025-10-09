@@ -1,15 +1,21 @@
 import { Image } from "@raycast/api";
 import { avatarCache } from "./avatar";
 import { CONFLUENCE_ENTITY_TYPE, SPACE_TYPE_LABELS, TYPE_ICONS, DEFAULT_AVATAR } from "../constants";
-import type { ConfluenceSearchResult, ConfluenceSpaceType, ProcessedSpaceItem } from "../types";
+import type { ConfluenceSearchResult, ConfluenceSpaceType, ProcessedConfluenceSpaceItem } from "../types";
 
-export function processSpaceItems(results: ConfluenceSearchResult[], baseUrl: string): ProcessedSpaceItem[] {
+export function processConfluenceSearchSpaceItems(
+  results: ConfluenceSearchResult[],
+  baseUrl: string,
+): ProcessedConfluenceSpaceItem[] {
   return results
     .filter((result) => result.space && result.entityType === "space")
-    .map((result) => processSpaceItem(result, baseUrl));
+    .map((result) => processConfluenceSearchSpaceItem(result, baseUrl));
 }
 
-function processSpaceItem(result: ConfluenceSearchResult, baseUrl: string): ProcessedSpaceItem {
+function processConfluenceSearchSpaceItem(
+  result: ConfluenceSearchResult,
+  baseUrl: string,
+): ProcessedConfluenceSpaceItem {
   const space = result.space!;
 
   // 基础信息
@@ -59,5 +65,5 @@ function processSpaceItem(result: ConfluenceSearchResult, baseUrl: string): Proc
     url,
     subtitle,
     accessories,
-  } as ProcessedSpaceItem;
+  } as ProcessedConfluenceSpaceItem;
 }

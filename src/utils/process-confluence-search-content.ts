@@ -3,14 +3,17 @@ import { avatarCache } from "./avatar";
 import { CONFLUENCE_CONTENT_TYPE, DEFAULT_AVATAR, TYPE_ICONS, TYPE_LABELS } from "../constants";
 import type { ConfluenceSearchContentResult, IconType, ProcessedContentFields } from "../types";
 
-export function processContentItems(items: ConfluenceSearchContentResult[], baseUrl: string) {
+export function processConfluenceSearchContentItems(items: ConfluenceSearchContentResult[], baseUrl: string) {
   return items.map((item) => ({
     ...item,
-    ...processContentItem(item, baseUrl),
+    ...processConfluenceSearchContentItem(item, baseUrl),
   }));
 }
 
-function processContentItem(item: ConfluenceSearchContentResult, baseUrl: string): ProcessedContentFields {
+function processConfluenceSearchContentItem(
+  item: ConfluenceSearchContentResult,
+  baseUrl: string,
+): ProcessedContentFields {
   // 基础信息
   const id = item.id;
   const title = item.title;
@@ -36,7 +39,7 @@ function processContentItem(item: ConfluenceSearchContentResult, baseUrl: string
   // 用户信息
   const creator = item.history.createdBy.displayName;
   const updater = item.history.lastUpdated.by.displayName;
-  // Anonymous users may not have userKey
+  // Anonymous user may not have userKey
   const creatorUserKey = item.history.createdBy.userKey;
 
   // 头像信息
@@ -57,7 +60,7 @@ function processContentItem(item: ConfluenceSearchContentResult, baseUrl: string
   const canFavorite = EDITABLE_TYPES.includes(type);
 
   // 渲染信息
-  const subtitle = { value: spaceName, tooltip: `Space ${spaceName}` };
+  const subtitle = { value: spaceName, tooltip: "Space" };
   const accessories = [
     ...(isFavourited
       ? [

@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 import QueryProvider from "./query-provider";
-import { AVATAR_TYPES } from "./constants";
-import { useConfluenceSearchUser, useAvatar } from "./hooks";
+import { APP_TYPE } from "./constants";
+import { useConfluenceSearchUserInfiniteQuery, useAvatar } from "./hooks";
 import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
 import { AvatarList } from "./types";
 
@@ -19,17 +19,17 @@ export default function ConfluenceSearchUserProvider() {
 
 function ConfluenceSearchUser() {
   const [searchText, setSearchText] = useState("");
-  const { searchPageSize, baseUrl } = useConfluencePreferencesContext();
+  const { searchPageSize, confluenceBaseUrl } = useConfluencePreferencesContext();
 
   const cql = useMemo(() => {
     if (!searchText) return "";
     return `user.fullname ~ "${searchText}"`;
   }, [searchText]);
 
-  const { data, fetchNextPage, isFetchingNextPage, isLoading, error } = useConfluenceSearchUser(
+  const { data, fetchNextPage, isFetchingNextPage, isLoading, error } = useConfluenceSearchUserInfiniteQuery(
     cql,
     searchPageSize,
-    baseUrl,
+    confluenceBaseUrl,
   );
 
   const results = useMemo(() => data?.items ?? [], [data?.items]);
@@ -44,7 +44,7 @@ function ConfluenceSearchUser() {
       })) as AvatarList;
   }, [results]);
 
-  useAvatar(avatarList, AVATAR_TYPES.CONFLUENCE);
+  useAvatar(avatarList, APP_TYPE.CONFLUENCE);
 
   useEffect(() => {
     if (error) {

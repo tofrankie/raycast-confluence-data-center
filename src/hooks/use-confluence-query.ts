@@ -3,23 +3,23 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { DEFAULT_SEARCH_PAGE_SIZE, COMMAND_NAMES } from "../constants";
 import {
   searchContent,
-  searchUsers,
-  searchSpaces,
-  addToFavorites,
-  removeFromFavorites,
-  processUserItems,
-  processSpaceItems,
-  processContentItems,
+  searchUser,
+  searchSpace,
+  addToFavorite,
+  removeFromFavorite,
+  processConfluenceSearchUserItems,
+  processConfluenceSearchSpaceItems,
+  processConfluenceSearchContentItems,
 } from "../utils";
 import type {
   ConfluenceSearchContentResponse,
   ConfluenceSearchResponse,
-  ProcessedContentItem,
-  ProcessedUserItem,
-  ProcessedSpaceItem,
+  ProcessedConfluenceContentItem,
+  ProcessedConfluenceUserItem,
+  ProcessedConfluenceSpaceItem,
 } from "../types";
 
-export const useConfluenceSearchContent = (
+export const useConfluenceSearchContentInfiniteQuery = (
   cql: string,
   searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
   baseUrl: string,
@@ -28,7 +28,7 @@ export const useConfluenceSearchContent = (
     ConfluenceSearchContentResponse,
     Error,
     {
-      items: ProcessedContentItem[];
+      items: ProcessedConfluenceContentItem[];
       hasMore: boolean;
     }
   >({
@@ -40,7 +40,7 @@ export const useConfluenceSearchContent = (
       return response;
     },
     select: (data) => {
-      const items = data.pages.flatMap((page) => processContentItems(page.results, baseUrl));
+      const items = data.pages.flatMap((page) => processConfluenceSearchContentItems(page.results, baseUrl));
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
 
       return {
@@ -65,9 +65,9 @@ export const useToggleFavorite = () => {
   return useMutation({
     mutationFn: async ({ contentId, isFavorited }: { contentId: string; isFavorited: boolean }) => {
       if (isFavorited) {
-        await removeFromFavorites(contentId);
+        await removeFromFavorite(contentId);
       } else {
-        await addToFavorites(contentId);
+        await addToFavorite(contentId);
       }
     },
     onMutate: async ({ contentId, isFavorited }) => {
@@ -127,7 +127,7 @@ export const useToggleFavorite = () => {
   });
 };
 
-export const useConfluenceSearchUser = (
+export const useConfluenceSearchUserInfiniteQuery = (
   cql: string,
   searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
   baseUrl: string,
@@ -136,15 +136,15 @@ export const useConfluenceSearchUser = (
     ConfluenceSearchResponse,
     Error,
     {
-      items: ProcessedUserItem[];
+      items: ProcessedConfluenceUserItem[];
       hasMore: boolean;
     }
   >({
     enabled: cql.length >= 2,
-    queryKey: ["confluence-search-user", { cql, pageSize: searchPageSize }],
+    queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_USER, { cql, pageSize: searchPageSize }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchUsers(cql, searchPageSize, start);
+      const response = await searchUser(cql, searchPageSize, start);
       return response;
     },
     select: (data) => {
@@ -155,7 +155,7 @@ export const useConfluenceSearchUser = (
         (result, index, self) => index === self.findIndex((r) => r.user?.userKey === result.user?.userKey),
       );
 
-      const processedUsers = processUserItems(uniqueResults, baseUrl);
+      const processedUsers = processConfluenceSearchUserItems(uniqueResults, baseUrl);
 
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
 
@@ -175,7 +175,7 @@ export const useConfluenceSearchUser = (
   });
 };
 
-export const useConfluenceSearchSpace = (
+export const useConfluenceSearchSpaceInfiniteQuery = (
   cql: string,
   searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
   baseUrl: string,
@@ -184,7 +184,7 @@ export const useConfluenceSearchSpace = (
     ConfluenceSearchResponse,
     Error,
     {
-      items: ProcessedSpaceItem[];
+      items: ProcessedConfluenceSpaceItem[];
       hasMore: boolean;
     }
   >({
@@ -192,7 +192,7 @@ export const useConfluenceSearchSpace = (
     queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_SPACE, { cql, pageSize: searchPageSize }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchSpaces(cql, searchPageSize, start);
+      const response = await searchSpace(cql, searchPageSize, start);
       return response;
     },
     select: (data) => {
@@ -203,7 +203,7 @@ export const useConfluenceSearchSpace = (
         (result, index, self) => index === self.findIndex((r) => r.space?.key === result.space?.key),
       );
 
-      const processedSpaces = processSpaceItems(uniqueResults, baseUrl);
+      const processedSpaces = processConfluenceSearchSpaceItems(uniqueResults, baseUrl);
 
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
 

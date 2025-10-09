@@ -1,5 +1,4 @@
 import { getPreferenceValues } from "@raycast/api";
-import type { JiraPreferences } from "../types";
 
 type Method = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -8,16 +7,10 @@ export async function confluenceRequest<T>(
   endpoint: string,
   params?: Record<string, unknown>,
 ): Promise<T> {
-  const { confluenceDomain, confluencePersonalAccessToken } =
-    getPreferenceValues<Preferences.ConfluenceSearchContent>();
-
-  if (!confluenceDomain || !confluencePersonalAccessToken) {
-    throw new Error("Please configure Confluence domain and Personal Access Token in preferences");
-  }
+  const { confluenceBaseUrl, confluencePersonalAccessToken } = getPreferenceValues<Preferences>();
 
   try {
-    const baseUrl = getBaseUrl(confluenceDomain);
-    const url = new URL(endpoint, baseUrl);
+    const url = new URL(endpoint, confluenceBaseUrl);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -46,34 +39,11 @@ export async function confluenceRequest<T>(
   }
 }
 
-export function getBaseUrl(domain: string) {
-  return `https://${domain}`;
-}
-
-export function getAuthHeaders(token: string): Record<string, string> {
-  return {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  };
-}
-
-export async function jiraRequest<T>(
-  method: Method,
-  endpoint: string,
-  params?: Record<string, unknown>,
-  preferences?: JiraPreferences,
-): Promise<T> {
-  const jiraPrefs = preferences || getPreferenceValues<Preferences.JiraSearchIssue>();
-  const { jiraDomain, jiraPersonalAccessToken } = jiraPrefs;
-
-  if (!jiraDomain || !jiraPersonalAccessToken) {
-    throw new Error("Please configure Jira domain and Personal Access Token in preferences");
-  }
+export async function jiraRequest<T>(method: Method, endpoint: string, params?: Record<string, unknown>): Promise<T> {
+  const { jiraBaseUrl, jiraPersonalAccessToken } = getPreferenceValues<Preferences>();
 
   try {
-    const baseUrl = getBaseUrl(jiraDomain);
-    const url = new URL(endpoint, baseUrl);
+    const url = new URL(endpoint, jiraBaseUrl);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -100,8 +70,17 @@ export async function jiraRequest<T>(
     const result = (await response.json()) as T;
     return result;
   } catch (error) {
+    console.log("🚀 ~ jiraRequest ~ error:", error);
     handleConnectionError(error, "Jira");
   }
+}
+
+export function getAuthHeaders(token: string): Record<string, string> {
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
 }
 
 function handleHttpError(response: Response, service: string = "Service"): never {
@@ -111,7 +90,7 @@ function handleHttpError(response: Response, service: string = "Service"): never
     case 403:
       throw new Error(`Access denied. Please check your ${service} permissions`);
     case 404:
-      throw new Error(`${service} instance not found. Please check your domain`);
+      throw new Error(`${service} instance not found. Please check your instance`);
     default:
       throw new Error(`HTTP error: ${response.status}`);
   }

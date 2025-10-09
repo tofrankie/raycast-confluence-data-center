@@ -16,22 +16,22 @@ export async function searchContent(cql: string, limit: number = DEFAULT_SEARCH_
   const data = await confluenceRequest<ConfluenceSearchContentResponse>("GET", CONFLUENCE_API.SEARCH_CONTENT, params);
 
   // TODO: 调试
-  writeToSupportPathFile(JSON.stringify(data, null, 2), "search-content-response.json");
+  writeToSupportPathFile(JSON.stringify(data, null, 2), "confluence-search-content-response.json");
 
   return data;
 }
 
-export async function addToFavorites(contentId: string): Promise<void> {
+export async function addToFavorite(contentId: string): Promise<void> {
   const endpoint = `${CONFLUENCE_API.CONTENT_FAVOURITE}${contentId}`;
   await confluenceRequest<void>("PUT", endpoint);
 }
 
-export async function removeFromFavorites(contentId: string): Promise<void> {
+export async function removeFromFavorite(contentId: string): Promise<void> {
   const endpoint = `${CONFLUENCE_API.CONTENT_FAVOURITE}${contentId}`;
   await confluenceRequest<void>("DELETE", endpoint);
 }
 
-export async function searchUsers(cql: string, limit: number = DEFAULT_SEARCH_PAGE_SIZE, start: number = 0) {
+export async function searchUser(cql: string, limit: number = DEFAULT_SEARCH_PAGE_SIZE, start: number = 0) {
   const params = {
     cql,
     start,
@@ -42,12 +42,12 @@ export async function searchUsers(cql: string, limit: number = DEFAULT_SEARCH_PA
   const data = await confluenceRequest<ConfluenceSearchResponse>("GET", CONFLUENCE_API.SEARCH, params);
 
   // TODO: 调试
-  writeToSupportPathFile(JSON.stringify(data, null, 2), "search-user-response.json");
+  writeToSupportPathFile(JSON.stringify(data, null, 2), "confluence-search-user-response.json");
 
   return data;
 }
 
-export async function searchSpaces(cql: string, limit: number = DEFAULT_SEARCH_PAGE_SIZE, start: number = 0) {
+export async function searchSpace(cql: string, limit: number = DEFAULT_SEARCH_PAGE_SIZE, start: number = 0) {
   const params = {
     cql,
     start,
@@ -58,7 +58,7 @@ export async function searchSpaces(cql: string, limit: number = DEFAULT_SEARCH_P
   const data = await confluenceRequest<ConfluenceSearchResponse>("GET", CONFLUENCE_API.SEARCH, params);
 
   // TODO: 调试
-  writeToSupportPathFile(JSON.stringify(data, null, 2), "search-space-response.json");
+  writeToSupportPathFile(JSON.stringify(data, null, 2), "confluence-search-space-response.json");
 
   return data;
 }

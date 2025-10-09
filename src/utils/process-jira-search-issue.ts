@@ -1,11 +1,9 @@
 import { List } from "@raycast/api";
 import { JIRA_ISSUE_TYPE_ICONS } from "../constants";
-import { getAvatarUrl } from "./avatar";
 import { getJiraIssueUrl } from "./jira";
-import type { JiraIssue, ProcessedJiraIssueItem, JiraPreferences } from "../types";
+import type { JiraIssue, ProcessedJiraIssueItem } from "../types";
 
-export function processJiraIssue(issue: JiraIssue, preferences: JiraPreferences): ProcessedJiraIssueItem {
-  const { baseUrl, cacheAvatar } = preferences;
+export function processJiraSearchIssue(issue: JiraIssue, baseUrl: string): ProcessedJiraIssueItem {
   const { fields, key, id } = issue;
 
   // 基础信息
@@ -24,14 +22,6 @@ export function processJiraIssue(issue: JiraIssue, preferences: JiraPreferences)
   // 用户信息
   const assignee = fields.assignee?.displayName || null;
   const reporter = fields.reporter?.displayName || null;
-
-  // 头像处理
-  const assigneeAvatar = fields.assignee?.avatarUrls?.["48x48"]
-    ? getAvatarUrl(fields.assignee.avatarUrls["48x48"], cacheAvatar, "jira")
-    : null;
-  const reporterAvatar = fields.reporter?.avatarUrls?.["48x48"]
-    ? getAvatarUrl(fields.reporter.avatarUrls["48x48"], cacheAvatar, "jira")
-    : null;
 
   // 时间跟踪
   const timeTracking = {
@@ -84,8 +74,6 @@ export function processJiraIssue(issue: JiraIssue, preferences: JiraPreferences)
     // 用户信息
     assignee,
     reporter,
-    assigneeAvatar,
-    reporterAvatar,
 
     // 其他信息
     timeTracking,

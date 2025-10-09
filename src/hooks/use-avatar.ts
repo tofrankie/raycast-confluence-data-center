@@ -1,11 +1,15 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { avatarCache, downloadAvatar } from "../utils";
-import { useConfluencePreferencesContext } from "../contexts";
-import type { AvatarList, AvatarType } from "../types";
+import type { AvatarList, AppType } from "../types";
+import { getPreferenceValues } from "@raycast/api";
+import { APP_TYPE } from "../constants";
 
-export function useAvatar(avatarList: AvatarList, avatarType: AvatarType) {
-  const { token } = useConfluencePreferencesContext();
+export function useAvatar(avatarList: AvatarList, appType: AppType) {
+  const { confluencePersonalAccessToken, jiraPersonalAccessToken } = useMemo(
+    () => getPreferenceValues<Preferences>(),
+    [],
+  );
 
   const uniqueList = useMemo(() => {
     return avatarList.filter(
@@ -14,12 +18,13 @@ export function useAvatar(avatarList: AvatarList, avatarType: AvatarType) {
   }, [avatarList]);
 
   const queries = useMemo(() => {
+    const token = appType === APP_TYPE.CONFLUENCE ? confluencePersonalAccessToken : jiraPersonalAccessToken;
     return uniqueList.map((item) => ({
-      queryKey: [`${avatarType}-avatar`, { type: avatarType, url: item.url }],
+      queryKey: [`${appType}-avatar`, { type: appType, url: item.url }],
       queryFn: async () => {
         return downloadAvatar({
-          type: avatarType,
           token,
+          type: appType,
           url: item.url,
           key: item.key,
         });

@@ -1,12 +1,12 @@
 import path from "node:path";
 import fs from "node:fs/promises";
-import { CONFLUENCE_AVATAR_DIR, JIRA_AVATAR_DIR, AVATAR_TYPES } from "../constants";
-import type { AvatarType } from "../types";
 import { Cache } from "@raycast/api";
 import { getAuthHeaders } from "./request";
+import { CONFLUENCE_AVATAR_DIR, JIRA_AVATAR_DIR, APP_TYPE } from "../constants";
+import type { AppType } from "../types";
 
 type DownloadAvatarOptions = {
-  type: AvatarType;
+  type: AppType;
   token: string;
   url: string;
   key: string;
@@ -46,34 +46,12 @@ export async function downloadAvatar(options: DownloadAvatarOptions) {
   }
 }
 
-export function getAvatarDir(avatarType: AvatarType) {
-  return avatarType === AVATAR_TYPES.CONFLUENCE ? CONFLUENCE_AVATAR_DIR : JIRA_AVATAR_DIR;
+export function getAvatarDir(appType: AppType) {
+  return appType === APP_TYPE.CONFLUENCE ? CONFLUENCE_AVATAR_DIR : JIRA_AVATAR_DIR;
 }
 
-export function getAvatarPath(filename: string, avatarType: AvatarType) {
-  const baseDir = avatarType === AVATAR_TYPES.CONFLUENCE ? CONFLUENCE_AVATAR_DIR : JIRA_AVATAR_DIR;
-  return path.join(baseDir, filename);
-}
-
-// TODO:
-export function getAvatarUrl(originalUrl: string, cacheAvatar: boolean, avatarType: AvatarType) {
-  if (!originalUrl) return null;
-
-  if (!cacheAvatar) {
-    return originalUrl;
-  }
-
-  const urlHash = Buffer.from(originalUrl)
-    .toString("base64")
-    .replace(/[^a-zA-Z0-9]/g, "");
-  const filename = `${urlHash}.png`;
-  const cachedPath = getAvatarPath(filename, avatarType);
-
-  return `file://${cachedPath}`;
-}
-
-export function getImageExtension(remoteUrl: string, contentType?: string | null) {
-  const url = new URL(remoteUrl);
+export function getImageExtension(originalUrl: string, contentType?: string | null) {
+  const url = new URL(originalUrl);
   const pathname = url.pathname;
   const ext = path.extname(pathname);
 

@@ -3,20 +3,20 @@ import { avatarCache } from "./avatar";
 import { CONFLUENCE_ENTITY_TYPE, DEFAULT_AVATAR, TYPE_ICONS } from "../constants";
 import type { ConfluenceSearchResult, ProcessedUserFields } from "../types";
 
-export function processUserItems(items: ConfluenceSearchResult[], baseUrl: string) {
+export function processConfluenceSearchUserItems(items: ConfluenceSearchResult[], baseUrl: string) {
   return items.map((item) => ({
     ...item.user!,
-    ...processUserItem(item, baseUrl),
+    ...processConfluenceSearchUserItem(item, baseUrl),
   }));
 }
 
-function processUserItem(item: ConfluenceSearchResult, baseUrl: string): ProcessedUserFields {
+function processConfluenceSearchUserItem(item: ConfluenceSearchResult, baseUrl: string): ProcessedUserFields {
   const user = item.user!;
 
   // 基础信息
   const title = user.displayName;
   const username = user.username;
-  // Anonymous users may not have userKey
+  // Anonymous user may not have userKey
   const userKey = user.userKey;
   const displayName = user.displayName;
 

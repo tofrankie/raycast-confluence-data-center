@@ -1,25 +1,25 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { searchJiraIssues, type JiraSearchParams } from "../utils/jira";
-import { processJiraIssue } from "../utils/process-jira-issue";
-import type { JiraPreferences, ProcessedJiraIssueItem, JiraSearchResponse } from "../types";
+import { searchJiraIssue, type JiraSearchIssueParams } from "../utils/jira";
+import { processJiraSearchIssue } from "../utils/process-jira-search-issue";
+import type { ProcessedJiraIssueItem, JiraSearchIssueResponse } from "../types";
+import { COMMAND_NAMES, DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
 
-export function useJiraSearchIssue(
-  preferences: JiraPreferences,
+export function useJiraSearchIssueInfiniteQuery(
   jql: string,
-  enabled: boolean = true,
-  pageSize: number = 20,
+  baseUrl: string,
+  pageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
 ) {
   return useInfiniteQuery<
-    JiraSearchResponse,
+    JiraSearchIssueResponse,
     Error,
     {
       issues: ProcessedJiraIssueItem[];
       hasMore: boolean;
     }
   >({
-    queryKey: ["jira-search", preferences.baseUrl, jql, pageSize],
+    queryKey: [COMMAND_NAMES.JIRA_SEARCH_ISSUE, { jql, pageSize }],
     queryFn: async ({ pageParam = 0 }) => {
-      const params: JiraSearchParams = {
+      const params: JiraSearchIssueParams = {
         jql,
         startAt: pageParam as number,
         maxResults: pageSize,
@@ -38,14 +38,16 @@ export function useJiraSearchIssue(
         ],
       };
 
-      const response = await searchJiraIssues(preferences, params);
+      const response = await searchJiraIssue(params);
       return response;
     },
     select: (data) => {
       const allIssues = data.pages.flatMap((page) => page.issues);
 
       // 处理每个 issue
-      const processedIssues: ProcessedJiraIssueItem[] = allIssues.map((issue) => processJiraIssue(issue, preferences));
+      const processedIssues: ProcessedJiraIssueItem[] = allIssues.map((issue) =>
+        processJiraSearchIssue(issue, baseUrl),
+      );
 
       const hasMore =
         data.pages.length > 0
@@ -65,7 +67,7 @@ export function useJiraSearchIssue(
       }
       return undefined;
     },
-    enabled: enabled && !!preferences.baseUrl && !!preferences.token && !!jql.trim(),
+    enabled: jql.length >= 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
   });
