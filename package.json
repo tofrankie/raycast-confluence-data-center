@@ -86,7 +86,7 @@
     {
       "name": "confluence-search-content",
       "title": "Search Content",
-      "subtitle": "Confluence",
+      "subtitle": "Confluence Data Center",
       "description": "Search Confluence content with advanced filters and CQL syntax support",
       "mode": "view",
       "icon": "logo-confluence.png"
@@ -94,7 +94,7 @@
     {
       "name": "confluence-search-user",
       "title": "Search User",
-      "subtitle": "Confluence",
+      "subtitle": "Confluence Data Center",
       "description": "Search Confluence user by name",
       "mode": "view",
       "icon": "logo-confluence.png"
@@ -102,7 +102,7 @@
     {
       "name": "confluence-search-space",
       "title": "Search Space",
-      "subtitle": "Confluence",
+      "subtitle": "Confluence Data Center",
       "description": "Search Confluence spaces with type filters",
       "mode": "view",
       "icon": "logo-confluence.png"
@@ -110,7 +110,7 @@
     {
       "name": "jira-search-issue",
       "title": "Search Issue",
-      "subtitle": "Jira",
+      "subtitle": "Jira Data Center",
       "description": "Search Jira issue with advanced filters and JQL syntax support",
       "mode": "view",
       "icon": "logo-jira.png"
@@ -118,7 +118,7 @@
     {
       "name": "jira-manage-field",
       "title": "Manage Field",
-      "subtitle": "Jira",
+      "subtitle": "Jira Data Center",
       "description": "Manage custom fields for Jira issue search",
       "mode": "view",
       "icon": "logo-jira.png"

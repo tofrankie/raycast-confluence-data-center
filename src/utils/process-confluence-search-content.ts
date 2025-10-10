@@ -1,65 +1,57 @@
 import { Icon, Image } from "@raycast/api";
-import { avatarCache } from "./avatar";
-import { CONFLUENCE_CONTENT_TYPE, DEFAULT_AVATAR, TYPE_ICONS, TYPE_LABELS } from "../constants";
-import type { ConfluenceSearchContentResult, IconType, ProcessedContentFields } from "../types";
 
-export function processConfluenceSearchContentItems(items: ConfluenceSearchContentResult[], baseUrl: string) {
-  return items.map((item) => ({
-    ...item,
-    ...processConfluenceSearchContentItem(item, baseUrl),
-  }));
+import { avatarCache } from "@/utils";
+import { CONFLUENCE_CONTENT_TYPE, DEFAULT_AVATAR, TYPE_ICONS, TYPE_LABELS } from "@/constants";
+import type { ConfluenceSearchContentResult, IconType, ProcessedConfluenceContentItem } from "@/types";
+
+export function processConfluenceSearchContentItems(
+  items: ConfluenceSearchContentResult[],
+  baseUrl: string,
+): ProcessedConfluenceContentItem[] {
+  return items.map((item) => processConfluenceSearchContentItem(item, baseUrl));
 }
 
 function processConfluenceSearchContentItem(
   item: ConfluenceSearchContentResult,
   baseUrl: string,
-): ProcessedContentFields {
-  // 基础信息
+): ProcessedConfluenceContentItem {
   const id = item.id;
   const title = item.title;
   const spaceName = item.space?.name || "";
 
-  // 图标和类型
   const iconType = item.type as IconType;
   const icon = {
     value: TYPE_ICONS[iconType] ?? "icon-unknown.svg",
     tooltip: TYPE_LABELS[iconType] ?? "Unknown",
   };
 
-  // URL 字段
   const url = `${baseUrl}${item._links.webui}`;
   const editUrl = `${baseUrl}/pages/editpage.action?pageId=${item.id}`;
   const spaceUrl = `${baseUrl}${item.space._links.webui}`;
 
-  // 时间字段
   const createdAt = new Date(item.history.createdDate);
   const updatedAt = new Date(item.history.lastUpdated.when);
   const isSingleVersion = item.history.lastUpdated?.when === item.history.createdDate;
 
-  // 用户信息
   const creator = item.history.createdBy.displayName;
   const updater = item.history.lastUpdated.by.displayName;
   // Anonymous user may not have userKey
   const creatorUserKey = item.history.createdBy.userKey;
 
-  // 头像信息
   const creatorAvatarUrl = `${baseUrl}${item.history.createdBy.profilePicture.path}`;
   const creatorAvatarCacheKey = creatorUserKey;
   const creatorAvatar = (creatorAvatarCacheKey && avatarCache.get(creatorAvatarCacheKey)) ?? DEFAULT_AVATAR;
 
-  // 收藏状态
   const isFavourited = item.metadata.currentuser.favourited?.isFavourite ?? false;
   const favouritedAt = item.metadata.currentuser.favourited?.favouritedDate
     ? new Date(item.metadata.currentuser.favourited.favouritedDate).toISOString()
     : null;
 
-  // 类型信息
   const EDITABLE_TYPES = [CONFLUENCE_CONTENT_TYPE.PAGE, CONFLUENCE_CONTENT_TYPE.BLOGPOST] as const;
   const type = item.type as (typeof EDITABLE_TYPES)[number];
   const canEdit = EDITABLE_TYPES.includes(type);
   const canFavorite = EDITABLE_TYPES.includes(type);
 
-  // 渲染信息
   const subtitle = { value: spaceName, tooltip: "Space" };
   const accessories = [
     ...(isFavourited
@@ -87,42 +79,20 @@ function processConfluenceSearchContentItem(
   ];
 
   return {
-    // 基础信息
-    id,
+    renderKey: id,
     title,
-    spaceName,
-
-    // 图标和类型
+    id,
     icon,
-
-    // 时间信息
-    updatedAt,
-    createdAt,
-    isSingleVersion,
-
-    // 用户信息
-    creator,
-    updater,
-    creatorAvatar,
-    creatorAvatarUrl,
-    creatorAvatarCacheKey,
-
-    // 收藏状态
+    subtitle,
+    accessories,
+    canEdit,
+    canFavorite,
     isFavourited,
-    favouritedAt,
-
-    // URL 信息
     url,
     editUrl,
     spaceUrl,
-
-    // 类型信息
-    type,
-    canEdit,
-    canFavorite,
-
-    // 渲染信息
-    subtitle,
-    accessories,
+    spaceName,
+    creatorAvatarUrl,
+    creatorAvatarCacheKey,
   };
 }

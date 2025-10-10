@@ -10,6 +10,7 @@ export interface JiraSearchIssueResponse {
   maxResults: number;
   startAt: number;
   total: number;
+  names?: Record<string, string>;
 }
 
 export interface JiraIssue {
@@ -29,7 +30,7 @@ export interface JiraIssueFields {
   reporter: JiraUser;
   assignee: JiraUser;
   priority: JiraPriority;
-  updated: string;
+  updated: string | null;
   timetracking?: JiraTimeTracking;
   status: JiraStatus;
   [key: string]: unknown; // TODO: custom field
@@ -127,17 +128,4 @@ export interface JiraField {
     customId?: number;
     items?: string;
   };
-}
-
-export interface ProcessedJiraField extends JiraField {
-  subtitle: {
-    value: string;
-    tooltip: string;
-  };
-  accessories: Array<{
-    icon?: any;
-    text?: string;
-    tooltip: string;
-  }>;
-  isAdded: boolean;
 }

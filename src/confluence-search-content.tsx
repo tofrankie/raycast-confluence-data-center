@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import QueryProvider from "./query-provider";
-import { APP_TYPE } from "./constants";
-import { ConfluenceSearchContentFilter, CQLWrapper } from "./components";
-import { buildCQL } from "./utils";
-import { useConfluenceSearchContentInfiniteQuery, useToggleFavorite, useAvatar } from "./hooks";
-import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
-import type { AvatarList, SearchFilter as SearchFilterType } from "./types";
+
+import QueryProvider from "@/query-provider";
+import { buildCQL } from "@/utils";
+import { APP_TYPE, COMMAND_NAMES } from "@/constants";
+import { SearchBarAccessory, CQLWrapper } from "@/components";
+import { useConfluenceSearchContentInfiniteQuery, useToggleFavorite, useAvatar } from "@/hooks";
+import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "@/contexts";
+import type { AvatarList, SearchFilter } from "@/types";
 
 export default function ConfluenceSearchContentProvider() {
   return (
@@ -21,7 +22,7 @@ export default function ConfluenceSearchContentProvider() {
 
 function ConfluenceSearchContent() {
   const [searchText, setSearchText] = useState("");
-  const [filter, setFilter] = useState<SearchFilterType | null>(null);
+  const [filter, setFilter] = useState<SearchFilter | null>(null);
   const { searchPageSize, confluenceBaseUrl } = useConfluencePreferencesContext();
 
   const cql = useMemo(() => {
@@ -29,7 +30,7 @@ function ConfluenceSearchContent() {
       return `id in recentlyViewedContent(${searchPageSize}, 0)`;
     }
     if (!searchText && filter?.autoQuery) {
-      return filter.cql;
+      return filter.query;
     }
     if (!searchText || searchText.length < 2) {
       return "";
@@ -92,7 +93,13 @@ function ConfluenceSearchContent() {
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search Content..."
-      searchBarAccessory={<ConfluenceSearchContentFilter value={filter?.id || ""} onChange={setFilter} />}
+      searchBarAccessory={
+        <SearchBarAccessory
+          commandName={COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT}
+          value={filter?.id || ""}
+          onChange={setFilter}
+        />
+      }
       pagination={{
         hasMore,
         onLoadMore: handleLoadMore,
@@ -121,7 +128,7 @@ function ConfluenceSearchContent() {
             {results.map((item) => {
               return (
                 <List.Item
-                  key={item.id}
+                  key={item.renderKey}
                   icon={item.icon}
                   title={item.title}
                   subtitle={item.subtitle}

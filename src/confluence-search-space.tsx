@@ -1,13 +1,15 @@
 import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import QueryProvider from "./query-provider";
-import { APP_TYPE } from "./constants";
-import { ConfluenceSearchSpaceFilter, CQLWrapper } from "./components";
-import { buildCQL } from "./utils";
-import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "./hooks";
-import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
-import type { AvatarList, SearchFilter as SearchFilterType } from "./types";
+
+import QueryProvider from "@/query-provider";
+import { buildCQL } from "@/utils";
+import { APP_TYPE, COMMAND_NAMES } from "@/constants";
+import { SearchBarAccessory, CQLWrapper } from "@/components";
+import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "@/hooks";
+import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "@/contexts";
+
+import type { AvatarList, SearchFilter } from "@/types";
 
 export default function ConfluenceSearchSpaceProvider() {
   return (
@@ -21,7 +23,7 @@ export default function ConfluenceSearchSpaceProvider() {
 
 function ConfluenceSearchSpace() {
   const [searchText, setSearchText] = useState("");
-  const [filter, setFilter] = useState<SearchFilterType | null>(null);
+  const [filter, setFilter] = useState<SearchFilter | null>(null);
   const { searchPageSize, confluenceBaseUrl } = useConfluencePreferencesContext();
 
   const cql = useMemo(() => {
@@ -29,8 +31,8 @@ function ConfluenceSearchSpace() {
     const extraFilter = {
       id: "type",
       label: "Space",
-      cql: `type = space`,
-      // transform: (processedCql: string) => processedCql.replace("text ~ ", "space.title ~ "),
+      query: `type = space`,
+      // transform: (processedQuery: string) => processedQuery.replace("text ~ ", "space.title ~ "),
     };
     return buildCQL(searchText, filter ? [filter, extraFilter] : []);
   }, [searchText, filter]);
@@ -75,7 +77,13 @@ function ConfluenceSearchSpace() {
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search Space..."
-      searchBarAccessory={<ConfluenceSearchSpaceFilter value={filter?.id || ""} onChange={setFilter} />}
+      searchBarAccessory={
+        <SearchBarAccessory
+          commandName={COMMAND_NAMES.CONFLUENCE_SEARCH_SPACE}
+          value={filter?.id || ""}
+          onChange={setFilter}
+        />
+      }
       pagination={{
         onLoadMore: handleLoadMore,
         hasMore,
@@ -103,7 +111,7 @@ function ConfluenceSearchSpace() {
           results.map((space) => {
             return (
               <List.Item
-                key={space.key}
+                key={space.renderKey}
                 icon={space.icon}
                 title={space.name}
                 subtitle={space.subtitle}
@@ -116,7 +124,7 @@ function ConfluenceSearchSpace() {
                       content={space.url}
                       shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
                     />
-                    <Action.CopyToClipboard title="Copy Space Key" content={space.spaceKey} />
+                    <Action.CopyToClipboard title="Copy Space Key" content={space.key} />
                     {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
                   </ActionPanel>
                 }

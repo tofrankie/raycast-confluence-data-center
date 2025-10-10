@@ -1,6 +1,7 @@
 import type { InfiniteData } from "@tanstack/react-query";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_SEARCH_PAGE_SIZE, COMMAND_NAMES } from "../constants";
+
+import { DEFAULT_SEARCH_PAGE_SIZE, COMMAND_NAMES } from "@/constants";
 import {
   searchContent,
   searchUser,
@@ -10,14 +11,14 @@ import {
   processConfluenceSearchUserItems,
   processConfluenceSearchSpaceItems,
   processConfluenceSearchContentItems,
-} from "../utils";
+} from "@/utils";
 import type {
   ConfluenceSearchContentResponse,
   ConfluenceSearchResponse,
   ProcessedConfluenceContentItem,
   ProcessedConfluenceUserItem,
   ProcessedConfluenceSpaceItem,
-} from "../types";
+} from "@/types";
 
 export const useConfluenceSearchContentInfiniteQuery = (
   cql: string,

@@ -1,7 +1,8 @@
 import { createContext, useContext, ReactNode, useMemo, useState } from "react";
 import { getPreferenceValues } from "@raycast/api";
-import { DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
-import type { JiraPreferences } from "../types";
+
+import { DEFAULT_SEARCH_PAGE_SIZE } from "@/constants";
+import type { JiraPreferences } from "@/types";
 
 interface JiraPreferencesContextType {
   preferences: JiraPreferences;

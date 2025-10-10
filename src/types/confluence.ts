@@ -1,4 +1,4 @@
-import type { Icon } from "./common";
+import type { ConfluenceIcon } from "@/types";
 
 export interface ConfluencePreferences {
   confluenceBaseUrl: string;
@@ -56,7 +56,7 @@ export interface ConfluenceSearchContentResult {
       type: string;
       username: string;
       userKey: string;
-      profilePicture: Icon;
+      profilePicture: ConfluenceIcon;
       displayName: string;
       _links: {
         self: string;
@@ -71,7 +71,7 @@ export interface ConfluenceSearchContentResult {
         type: string;
         username: string;
         userKey: string;
-        profilePicture: Icon;
+        profilePicture: ConfluenceIcon;
         displayName: string;
         _links: {
           self: string;
@@ -166,7 +166,7 @@ export interface ConfluenceUser {
   type: string;
   username: string;
   userKey?: string;
-  profilePicture: Icon;
+  profilePicture: ConfluenceIcon;
   displayName: string;
   _links: {
     self: string;

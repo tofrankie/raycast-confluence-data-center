@@ -1,7 +1,8 @@
 import { Image } from "@raycast/api";
-import { avatarCache } from "./avatar";
-import { CONFLUENCE_ENTITY_TYPE, SPACE_TYPE_LABELS, TYPE_ICONS, DEFAULT_AVATAR } from "../constants";
-import type { ConfluenceSearchResult, ConfluenceSpaceType, ProcessedConfluenceSpaceItem } from "../types";
+
+import { avatarCache } from "@/utils";
+import { CONFLUENCE_ENTITY_TYPE, SPACE_TYPE_LABELS, TYPE_ICONS, DEFAULT_AVATAR } from "@/constants";
+import type { ConfluenceSearchResult, ConfluenceSpaceType, ProcessedConfluenceSpaceItem } from "@/types";
 
 export function processConfluenceSearchSpaceItems(
   results: ConfluenceSearchResult[],
@@ -18,20 +19,15 @@ function processConfluenceSearchSpaceItem(
 ): ProcessedConfluenceSpaceItem {
   const space = result.space!;
 
-  // 基础信息
   const spaceKey = space.key || "";
-  const spaceName = space.name || "";
   const spaceType = space.type || "";
 
-  // URL 信息
   const url = space._links?.webui ? `${baseUrl}${space._links.webui}` : "";
 
-  // 头像信息
   const avatarUrl = space.icon.path ? `${baseUrl}${space.icon.path}` : "";
   const avatarCacheKey = spaceKey ? `space-${spaceKey}` : undefined;
   const avatar = (avatarCacheKey && avatarCache.get(avatarCacheKey)) ?? DEFAULT_AVATAR;
 
-  // 图标
   const icon = avatar
     ? {
         source: avatar,
@@ -39,7 +35,6 @@ function processConfluenceSearchSpaceItem(
       }
     : TYPE_ICONS[CONFLUENCE_ENTITY_TYPE.SPACE];
 
-  // 渲染信息
   const description = space.description?.plain?.value || "";
   const subtitle = {
     value: description || spaceKey,
@@ -54,16 +49,15 @@ function processConfluenceSearchSpaceItem(
   ];
 
   return {
-    ...space,
-    spaceKey,
-    spaceName,
-    spaceType,
+    renderKey: space.key,
+    title: space.name,
+    key: space.key,
+    name: space.name,
     icon,
-    avatarUrl,
-    avatar,
-    avatarCacheKey,
-    url,
     subtitle,
     accessories,
-  } as ProcessedConfluenceSpaceItem;
+    url,
+    avatarUrl,
+    avatarCacheKey,
+  };
 }

@@ -1,7 +1,8 @@
 import { createContext, useContext, ReactNode, useMemo, useState } from "react";
 import { getPreferenceValues } from "@raycast/api";
-import { DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
-import type { ConfluencePreferences } from "../types";
+
+import { DEFAULT_SEARCH_PAGE_SIZE } from "@/constants";
+import type { ConfluencePreferences } from "@/types";
 
 interface ConfluencePreferencesContextType {
   preferences: ConfluencePreferences;

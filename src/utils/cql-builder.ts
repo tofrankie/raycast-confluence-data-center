@@ -1,5 +1,5 @@
-import { isCQLSyntax } from "./index";
-import type { SearchFilter } from "../types";
+import { isCQLSyntax } from "@/utils";
+import type { SearchFilter } from "@/types";
 
 export function buildCQL(userInput: string, filters: SearchFilter[]) {
   const isCQL = isCQLSyntax(userInput);
@@ -34,7 +34,7 @@ function buildCQLWithFilters(filters: SearchFilter[]) {
     return "";
   }
 
-  const filterCQLs = filters.map((filter) => filter.cql).filter((cql): cql is string => Boolean(cql));
+  const filterCQLs = filters.map((filter) => filter.query).filter((query): query is string => Boolean(query));
 
   if (!filterCQLs.length) {
     return "";

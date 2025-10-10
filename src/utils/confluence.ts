@@ -1,9 +1,11 @@
 import path from "node:path";
 import { writeFile } from "node:fs/promises";
+
 import { environment } from "@raycast/api";
-import { confluenceRequest } from "./request";
-import { CONFLUENCE_API, DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
-import type { ConfluenceSearchContentResponse, ConfluenceSearchResponse } from "../types";
+
+import { confluenceRequest } from "@/utils";
+import { CONFLUENCE_API, DEFAULT_SEARCH_PAGE_SIZE } from "@/constants";
+import type { ConfluenceSearchContentResponse, ConfluenceSearchResponse } from "@/types";
 
 export async function searchContent(cql: string, limit: number = DEFAULT_SEARCH_PAGE_SIZE, start: number = 0) {
   const params = {

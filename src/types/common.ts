@@ -1,4 +1,3 @@
-import type { List } from "@raycast/api";
 import {
   CONFLUENCE_ENTITY_TYPE,
   APP_TYPE,
@@ -6,7 +5,7 @@ import {
   CONFLUENCE_SPACE_TYPE,
   JIRA_PRIORITY,
   JIRA_ISSUE_TYPE_NAME,
-} from "../constants";
+} from "@/constants";
 
 export type AppType = (typeof APP_TYPE)[keyof typeof APP_TYPE];
 
@@ -26,7 +25,7 @@ export type JiraPriorityType = (typeof JIRA_PRIORITY)[keyof typeof JIRA_PRIORITY
 
 export type JiraIssueTypeName = (typeof JIRA_ISSUE_TYPE_NAME)[keyof typeof JIRA_ISSUE_TYPE_NAME];
 
-export interface Icon {
+export interface ConfluenceIcon {
   path: string;
   width: number;
   height: number;
@@ -39,15 +38,6 @@ export interface AvatarItem {
 }
 
 export type AvatarList = AvatarItem[];
-
-export interface SearchFilter {
-  id: string;
-  label: string;
-  cql: string;
-  icon?: List.Dropdown.Item.Props["icon"];
-  transform?: (processedCql: string, context?: { userInput: string; filter: SearchFilter }) => string;
-  autoQuery?: boolean;
-}
 
 export interface CQLQuery {
   raw: string;

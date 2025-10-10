@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
-import { avatarCache, downloadAvatar } from "../utils";
-import type { AvatarList, AppType } from "../types";
 import { getPreferenceValues } from "@raycast/api";
-import { APP_TYPE } from "../constants";
+
+import { APP_TYPE } from "@/constants";
+import { avatarCache, downloadAvatar } from "@/utils";
+import type { AvatarList, AppType } from "@/types";
 
 export function useAvatar(avatarList: AvatarList, appType: AppType) {
   const { confluencePersonalAccessToken, jiraPersonalAccessToken } = useMemo(

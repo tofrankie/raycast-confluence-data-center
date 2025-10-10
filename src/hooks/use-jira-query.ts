@@ -1,10 +1,14 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { searchJiraIssue, type JiraSearchIssueParams } from "../utils/jira";
-import { processJiraSearchIssue } from "../utils/process-jira-search-issue";
-import { getSelectedCustomFieldIds, processJiraFieldItem } from "../utils/process-jira-manage-field";
-import { getJiraField } from "../utils/jira";
-import type { ProcessedJiraIssueItem, JiraSearchIssueResponse, JiraField, ProcessedJiraField } from "../types";
-import { COMMAND_NAMES, DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
+
+import {
+  searchJiraIssue,
+  processJiraSearchIssue,
+  getSelectedCustomFieldIds,
+  processJiraFieldItem,
+  getJiraField,
+} from "@/utils";
+import { COMMAND_NAMES, DEFAULT_SEARCH_PAGE_SIZE } from "@/constants";
+import type { JiraSearchIssueResponse, JiraField, ProcessedJiraIssueItem, ProcessedJiraFieldItem } from "@/types";
 
 export function useJiraSearchIssueInfiniteQuery(
   jql: string,
@@ -23,7 +27,7 @@ export function useJiraSearchIssueInfiniteQuery(
     queryFn: async ({ pageParam = 0 }) => {
       const customFieldIds = getSelectedCustomFieldIds();
 
-      const params: JiraSearchIssueParams = {
+      const params = {
         jql,
         startAt: pageParam as number,
         maxResults: pageSize,
@@ -41,6 +45,7 @@ export function useJiraSearchIssueInfiniteQuery(
           "timetracking",
           ...customFieldIds,
         ],
+        expand: ["names"],
       };
 
       const response = await searchJiraIssue(params);
@@ -48,7 +53,10 @@ export function useJiraSearchIssueInfiniteQuery(
     },
     select: (data) => {
       const allIssue = data.pages.flatMap((page) => page.issues);
-      const processedIssues: ProcessedJiraIssueItem[] = allIssue.map((issue) => processJiraSearchIssue(issue, baseUrl));
+      const names = data.pages[0]?.names; // 获取 names 对象
+      const processedIssues: ProcessedJiraIssueItem[] = allIssue.map((issue) =>
+        processJiraSearchIssue(issue, baseUrl, names),
+      );
 
       const hasMore =
         data.pages.length > 0
@@ -75,7 +83,7 @@ export function useJiraSearchIssueInfiniteQuery(
 }
 
 export function useJiraFieldQuery() {
-  return useQuery<JiraField[], Error, ProcessedJiraField[]>({
+  return useQuery<JiraField[], Error, ProcessedJiraFieldItem[]>({
     queryKey: [COMMAND_NAMES.JIRA_MANAGE_FIELD],
     queryFn: async () => {
       const fields = await getJiraField();

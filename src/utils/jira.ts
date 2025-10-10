@@ -1,15 +1,14 @@
-import { jiraRequest } from "./request";
-import { writeToSupportPathFile } from "./confluence";
-import { JIRA_API, DEFAULT_SEARCH_PAGE_SIZE } from "../constants";
-import type { JiraSearchIssueResponse, JiraField } from "../types";
+import { jiraRequest, writeToSupportPathFile } from "@/utils";
+import { JIRA_API, DEFAULT_SEARCH_PAGE_SIZE } from "@/constants";
+import type { JiraSearchIssueResponse, JiraField } from "@/types";
 
-export interface JiraSearchIssueParams {
+type JiraSearchIssueParams = {
   jql: string;
   startAt?: number;
   maxResults?: number;
   fields?: string[];
   expand?: string[];
-}
+};
 
 export async function searchJiraIssue(params: JiraSearchIssueParams): Promise<JiraSearchIssueResponse> {
   const searchParams = {

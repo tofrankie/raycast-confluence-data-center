@@ -1,5 +1,6 @@
 import { List, Icon, ActionPanel, Action } from "@raycast/api";
-import { isCQLSyntax, validateCQL } from "../utils";
+
+import { isCQLSyntax, validateCQL } from "@/utils";
 
 interface CQLWrapperProps {
   query: string;

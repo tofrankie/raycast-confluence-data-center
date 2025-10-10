@@ -1,11 +1,19 @@
 import { useState, useMemo } from "react";
-import { List, ActionPanel, Action, Icon, showToast, Toast, open, Clipboard, showHUD } from "@raycast/api";
-import QueryProvider from "./query-provider";
-import { parseJQL } from "./utils/cql-parser";
-import { JIRA_SEARCH_ISSUE_FILTERS } from "./constants";
-import { useJiraSearchIssueInfiniteQuery } from "./hooks/use-jira-query";
-import { JiraPreferencesProvider, useJiraPreferencesContext } from "./contexts/jira-preferences-context";
-import type { ProcessedJiraIssueItem } from "./types";
+import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
+
+import QueryProvider from "@/query-provider";
+import { parseJQL } from "@/utils";
+import { COMMAND_NAMES } from "@/constants";
+import { SearchBarAccessory } from "@/components";
+import { useJiraSearchIssueInfiniteQuery } from "@/hooks";
+import { JiraPreferencesProvider, useJiraPreferencesContext } from "@/contexts";
+import type { SearchFilter } from "@/types";
+
+// for test: ORDER BY updated DESC
+const DEFAULT_JQL =
+  "assignee = currentUser() AND resolution = unresolved ORDER BY summary ASC, key ASC, priority DESC, created ASC";
+
+const ISSUE_KEY_REGEX = /^[A-Z][A-Z0-9_]+-\d+$/;
 
 export default function JiraSearchIssueProvider() {
   return (
@@ -20,50 +28,44 @@ export default function JiraSearchIssueProvider() {
 function JiraSearchIssueContent() {
   const preferences = useJiraPreferencesContext();
   const [searchText, setSearchText] = useState("");
-  const [selectedFilterId, setSelectedFilterId] = useState<string>("");
+  const [filter, setFilter] = useState<SearchFilter | null>(null);
 
   const jql = useMemo(() => {
     let query = searchText.trim();
 
     if (!query) {
-      // for test: ORDER BY updated DESC
-      query =
-        "assignee = currentUser() AND resolution = unresolved ORDER BY summary ASC, key ASC, priority DESC, created ASC";
+      query = DEFAULT_JQL;
     } else {
       const parsed = parseJQL(query);
       if (!parsed.isCQL) {
-        query = `text ~ "${query}"`;
+        if (ISSUE_KEY_REGEX.test(query)) {
+          query = `issuekey = "${query}" OR text ~ "${query}"`;
+        } else {
+          query = `text ~ "${query}"`;
+        }
       }
     }
 
-    const selectedFilter = JIRA_SEARCH_ISSUE_FILTERS.find((filter) => filter.id === selectedFilterId);
-    if (selectedFilter && selectedFilter.cql) {
+    if (filter && filter.query) {
       if (query.includes("ORDER BY")) {
         const orderByPart = query.match(/ORDER BY .+$/)?.[0] || "";
         const baseQuery = query.replace(/ORDER BY .+$/, "").trim();
-        query = `${baseQuery} AND ${selectedFilter.cql} ${orderByPart}`;
+        query = `${baseQuery} AND ${filter.query} ${orderByPart}`;
       } else {
-        query = `${query} AND ${selectedFilter.cql}`;
+        query = `${query} AND ${filter.query}`;
       }
     }
 
     return query;
-  }, [searchText, selectedFilterId]);
+  }, [searchText, filter]);
 
-  const { data, error, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useJiraSearchIssueInfiniteQuery(
-    jql,
-    preferences.jiraBaseUrl,
-    preferences.searchPageSize,
-  );
+  const { data, error, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+    useJiraSearchIssueInfiniteQuery(jql, preferences.jiraBaseUrl, preferences.searchPageSize);
 
   const issues = data?.issues || [];
 
   const handleSearchTextChange = (text: string) => {
     setSearchText(text);
-  };
-
-  const handleFilterChange = (filterId: string) => {
-    setSelectedFilterId(filterId);
   };
 
   const handleLoadMore = () => {
@@ -72,21 +74,8 @@ function JiraSearchIssueContent() {
     }
   };
 
-  const hasMore = data?.hasMore || false;
-
-  const handleOpenIssue = (issue: ProcessedJiraIssueItem) => {
-    open(issue.url);
-  };
-
-  const handleCopyIssueKey = async (issue: ProcessedJiraIssueItem) => {
-    await Clipboard.copy(issue.key);
-    await showHUD(`Copied ${issue.key}`);
-  };
-
-  const handleCopyIssueUrl = async (issue: ProcessedJiraIssueItem) => {
-    await Clipboard.copy(issue.url);
-    await showHUD("Copied issue URL");
-  };
+  // const hasMore = data?.hasMore || false;
+  const hasMore = false;
 
   if (error) {
     showToast({
@@ -104,12 +93,11 @@ function JiraSearchIssueContent() {
       onSearchTextChange={handleSearchTextChange}
       searchBarPlaceholder="Search Issue..."
       searchBarAccessory={
-        <List.Dropdown tooltip="Filter Issue" value={selectedFilterId} onChange={handleFilterChange}>
-          <List.Dropdown.Item title="All Issue" value="" />
-          {JIRA_SEARCH_ISSUE_FILTERS.map((filter) => (
-            <List.Dropdown.Item key={filter.id} title={filter.label} value={filter.id} icon={filter.icon} />
-          ))}
-        </List.Dropdown>
+        <SearchBarAccessory
+          commandName={COMMAND_NAMES.JIRA_SEARCH_ISSUE}
+          value={filter?.id || ""}
+          onChange={setFilter}
+        />
       }
       throttle
       pagination={{
@@ -126,38 +114,38 @@ function JiraSearchIssueContent() {
         />
       ) : (
         <List.Section title={sectionTitle}>
-          {issues.map((issue) => (
+          {issues.map((item) => (
             <List.Item
-              key={issue.id}
-              title={issue.summary}
-              subtitle={issue.subtitle}
-              icon={issue.icon}
-              accessories={issue.accessories}
+              key={item.renderKey}
+              title={item.summary}
+              subtitle={item.subtitle}
+              icon={item.icon}
+              accessories={item.accessories}
               actions={
                 <ActionPanel>
-                  <ActionPanel.Section>
-                    <Action title="Open Issue" icon={Icon.Globe} onAction={() => handleOpenIssue(issue)} />
-                    <Action
-                      title="Copy Issue Key"
-                      icon={Icon.Clipboard}
-                      shortcut={{ modifiers: ["cmd"], key: "c" }}
-                      onAction={() => handleCopyIssueKey(issue)}
-                    />
-                    <Action
-                      title="Copy Issue URL"
-                      icon={Icon.Link}
-                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                      onAction={() => handleCopyIssueUrl(issue)}
-                    />
-                  </ActionPanel.Section>
-                  <ActionPanel.Section>
-                    <Action
-                      title="Refresh"
-                      icon={Icon.ArrowClockwise}
-                      shortcut={{ modifiers: ["cmd"], key: "r" }}
-                      onAction={() => window.location.reload()}
-                    />
-                  </ActionPanel.Section>
+                  <Action.OpenInBrowser title="Open in Browser" url={item.url} />
+                  <Action.CopyToClipboard
+                    title="Copy URL"
+                    shortcut={{ modifiers: ["cmd"], key: "c" }}
+                    content={item.url}
+                  />
+                  <Action.CopyToClipboard
+                    title="Copy Key"
+                    shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                    content={item.key}
+                  />
+                  <Action.CopyToClipboard
+                    title="Copy Summary"
+                    shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
+                    content={item.summary}
+                  />
+                  <Action.CopyToClipboard title="Copy JQL" content={jql} />
+                  <Action
+                    title="Refresh"
+                    icon={Icon.ArrowClockwise}
+                    shortcut={{ modifiers: ["cmd"], key: "r" }}
+                    onAction={() => refetch()}
+                  />
                 </ActionPanel>
               }
             />

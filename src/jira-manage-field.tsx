@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import QueryProvider from "./query-provider";
-import { JiraPreferencesProvider } from "./contexts/jira-preferences-context";
-import { useJiraFieldQuery } from "./hooks/use-jira-query";
-import { getSelectedCustomField, addCustomField, removeCustomField } from "./utils/process-jira-manage-field";
-import type { JiraField } from "./types";
+
+import QueryProvider from "@/query-provider";
+import { useJiraFieldQuery } from "@/hooks";
+import { JiraPreferencesProvider } from "@/contexts";
+import { getSelectedCustomField, addCustomField, removeCustomField } from "@/utils";
+import type { JiraField, ProcessedJiraFieldItem } from "@/types";
 
 export default function JiraManageFieldProvider() {
   return (
@@ -36,26 +37,40 @@ function JiraManageFieldContent() {
 
     return {
       addedFieldsFiltered,
-      systemFields: filteredFields.filter((item) => !item.custom && !addedFieldIds.includes(item.id)),
-      customFields: filteredFields.filter((item) => item.custom && !addedFieldIds.includes(item.id)),
+      systemFields: filteredFields.filter((item) => !item.custom),
+      customFields: filteredFields.filter((item) => item.custom),
     };
   }, [data, searchText, addedFields]);
 
-  const handleToggleField = (field: JiraField) => {
+  const handleToggleField = (field: ProcessedJiraFieldItem) => {
     const isAdded = addedFields.some((item) => item.id === field.id);
 
     if (isAdded) {
       removeCustomField(field.id);
       setAddedFields(addedFields.filter((item) => item.id !== field.id));
     } else {
-      addCustomField(field);
-      setAddedFields([...addedFields, field]);
+      const jiraField: JiraField = {
+        id: field.id,
+        name: field.name,
+        custom: field.custom,
+        schema: field.schema,
+        orderable: true,
+        navigable: true,
+        searchable: true,
+        clauseNames: [field.id],
+      };
+      addCustomField(jiraField);
+      setAddedFields([...addedFields, jiraField]);
     }
   };
 
   const isFieldAdded = useMemo(() => {
-    return (field: JiraField) => addedFields.some((item) => item.id === field.id);
+    return (field: ProcessedJiraFieldItem) => addedFields.some((item) => item.id === field.id);
   }, [addedFields]);
+
+  const isUserField = useMemo(() => {
+    return (field: ProcessedJiraFieldItem) => field.schema?.type === "user";
+  }, []);
 
   const isEmpty = !isLoading && searchText.length && !data?.length;
 
@@ -70,8 +85,8 @@ function JiraManageFieldContent() {
       {isEmpty ? (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}
-          title="No Fields Found"
-          description="Try adjusting your search terms"
+          title="No Results"
+          description="Try adjusting your search filters"
         />
       ) : (
         <>
@@ -83,8 +98,48 @@ function JiraManageFieldContent() {
                     icon: Icon.Checkmark,
                     tooltip: "Included in search",
                   },
-                  ...item.accessories,
+                  ...(item.accessories ?? []),
                 ];
+
+                return (
+                  <List.Item
+                    key={item.renderKey}
+                    title={item.name}
+                    subtitle={item.subtitle}
+                    accessories={updatedAccessories}
+                    keywords={item.keywords}
+                    actions={
+                      <ActionPanel>
+                        {isUserField(item) && (
+                          <Action
+                            title="Remove from Search"
+                            icon={Icon.Minus}
+                            onAction={() => handleToggleField(item)}
+                          />
+                        )}
+                        <Action.CopyToClipboard title="Copy Field ID" content={item.id} />
+                      </ActionPanel>
+                    }
+                  />
+                );
+              })}
+            </List.Section>
+          )}
+
+          {customFields.length > 0 && (
+            <List.Section title={`Custom Fields (${customFields.length})`}>
+              {customFields.map((item) => {
+                const accessories = item.accessories;
+                const isAdded = isFieldAdded(item);
+                const updatedAccessories = isAdded
+                  ? [
+                      {
+                        icon: Icon.Checkmark,
+                        tooltip: "Included in search",
+                      },
+                      ...(accessories ?? []),
+                    ]
+                  : (accessories ?? []);
 
                 return (
                   <List.Item
@@ -92,9 +147,16 @@ function JiraManageFieldContent() {
                     title={item.name}
                     subtitle={item.subtitle}
                     accessories={updatedAccessories}
+                    keywords={item.keywords}
                     actions={
                       <ActionPanel>
-                        <Action title="Remove from Search" icon={Icon.Minus} onAction={() => handleToggleField(item)} />
+                        {isUserField(item) && (
+                          <Action
+                            title={isAdded ? "Remove from Search" : "Add to Search"}
+                            icon={isAdded ? Icon.Minus : Icon.Plus}
+                            onAction={() => handleToggleField(item)}
+                          />
+                        )}
                         <Action.CopyToClipboard title="Copy Field ID" content={item.id} />
                       </ActionPanel>
                     }
@@ -108,10 +170,11 @@ function JiraManageFieldContent() {
             <List.Section title={`System Fields (${systemFields.length})`}>
               {systemFields.map((item) => (
                 <List.Item
-                  key={item.id}
+                  key={item.renderKey}
                   title={item.name}
                   subtitle={item.subtitle}
                   accessories={item.accessories}
+                  keywords={item.keywords}
                   actions={
                     <ActionPanel>
                       <Action.CopyToClipboard title="Copy Field ID" content={item.id} />
@@ -119,40 +182,6 @@ function JiraManageFieldContent() {
                   }
                 />
               ))}
-            </List.Section>
-          )}
-
-          {customFields.length > 0 && (
-            <List.Section title={`Custom Fields (${customFields.length})`}>
-              {customFields.map((item) => {
-                const accessories = item.accessories;
-                const isAdded = isFieldAdded(item);
-                if (isAdded) {
-                  accessories.unshift({
-                    icon: Icon.Checkmark,
-                    tooltip: "Included in search",
-                  });
-                }
-
-                return (
-                  <List.Item
-                    key={item.id}
-                    title={item.name}
-                    subtitle={item.subtitle}
-                    accessories={accessories}
-                    actions={
-                      <ActionPanel>
-                        <Action
-                          title={isAdded ? "Remove from Search" : "Add to Search"}
-                          icon={isAdded ? Icon.Minus : Icon.Plus}
-                          onAction={() => handleToggleField(item)}
-                        />
-                        <Action.CopyToClipboard title="Copy Field ID" content={item.id} />
-                      </ActionPanel>
-                    }
-                  />
-                );
-              })}
             </List.Section>
           )}
         </>

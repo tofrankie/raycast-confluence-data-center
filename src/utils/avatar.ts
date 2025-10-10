@@ -1,9 +1,11 @@
 import path from "node:path";
 import fs from "node:fs/promises";
+
 import { Cache } from "@raycast/api";
-import { getAuthHeaders } from "./request";
-import { CONFLUENCE_AVATAR_DIR, JIRA_AVATAR_DIR, APP_TYPE } from "../constants";
-import type { AppType } from "../types";
+
+import { getAuthHeaders } from "@/utils";
+import { CONFLUENCE_AVATAR_DIR, JIRA_AVATAR_DIR, APP_TYPE } from "@/constants";
+import type { AppType } from "@/types";
 
 type DownloadAvatarOptions = {
   type: AppType;

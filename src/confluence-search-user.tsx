@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import QueryProvider from "./query-provider";
-import { APP_TYPE } from "./constants";
-import { useConfluenceSearchUserInfiniteQuery, useAvatar } from "./hooks";
-import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "./contexts";
-import { AvatarList } from "./types";
+
+import QueryProvider from "@/query-provider";
+import { APP_TYPE } from "@/constants";
+import { useConfluenceSearchUserInfiniteQuery, useAvatar } from "@/hooks";
+import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "@/contexts";
+import { AvatarList } from "@/types";
 
 export default function ConfluenceSearchUserProvider() {
   return (
@@ -82,7 +83,7 @@ function ConfluenceSearchUser() {
         results.map((user) => {
           return (
             <List.Item
-              key={user.userKey}
+              key={user.renderKey}
               icon={user.icon}
               title={user.title}
               subtitle={user.subtitle}

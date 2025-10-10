@@ -1,5 +1,4 @@
-import { List } from "@raycast/api";
-import type { ConfluenceSpaceType, IconType, LabelType } from "../types";
+import type { ConfluenceSpaceType, IconType, LabelType, ListItemIcon } from "@/types";
 
 export const CONFLUENCE_ENTITY_TYPE = {
   CONTENT: "content",
@@ -30,7 +29,7 @@ export const TYPE_ICONS = {
   [CONFLUENCE_CONTENT_TYPE.BLOGPOST]: "icon-blogpost.svg",
   [CONFLUENCE_CONTENT_TYPE.ATTACHMENT]: "icon-attachment.svg",
   [CONFLUENCE_CONTENT_TYPE.COMMENT]: "icon-comment.svg",
-} as const satisfies Record<IconType, List.Item.Props["icon"]>;
+} as const satisfies Record<IconType, ListItemIcon>;
 
 export const TYPE_LABELS = {
   [CONFLUENCE_ENTITY_TYPE.CONTENT]: "Content",
@@ -48,3 +47,23 @@ export const SPACE_TYPE_LABELS = {
   [CONFLUENCE_SPACE_TYPE.GLOBAL]: "Global Space",
   [CONFLUENCE_SPACE_TYPE.FAVOURITE]: "Favourite",
 } as const satisfies Record<ConfluenceSpaceType, string>;
+
+export const CQL_PATTERNS = [
+  // field operator
+  /^\s*\w+\s*[=~!<>]/,
+
+  // currentUser function
+  /currentUser\(\)/,
+
+  // now function
+  /now\(\)/,
+
+  // logical operators
+  /\b(AND|OR|NOT)\b/,
+
+  // official fields
+  /(ancestor|container|content|created|creator|contributor|favourite|id|label|lastModified|macro|mention|parent|space|text|title|type|watcher)\s*[=~!<>]/,
+
+  // entityType values
+  /type\s*=\s*["']?(content|page|blogpost|attachment|comment|space|user|group)["']?/i,
+] as const;

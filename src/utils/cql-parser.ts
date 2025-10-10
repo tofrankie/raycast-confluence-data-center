@@ -1,5 +1,5 @@
-import { CQLQuery } from "../types";
-import { CQL_PATTERNS } from "../constants";
+import { CQL_PATTERNS } from "@/constants";
+import { CQLQuery } from "@/types";
 
 export function isCQLSyntax(query: string): boolean {
   if (!query || query.trim().length < 2) {
@@ -93,7 +93,7 @@ export function parseJQL(query: string): CQLQuery {
   }
 
   const trimmedQuery = query.trim();
-  
+
   // JQL 语法特征检查
   const jqlPatterns = [
     // 字段操作符
@@ -117,7 +117,7 @@ export function parseJQL(query: string): CQLQuery {
     /text\s*~|summary\s*~|description\s*~/i,
   ];
 
-  const isJQL = jqlPatterns.some(pattern => pattern.test(trimmedQuery));
+  const isJQL = jqlPatterns.some((pattern) => pattern.test(trimmedQuery));
 
   if (!isJQL) {
     return {

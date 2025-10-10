@@ -1,40 +1,19 @@
-import { List } from "@raycast/api";
-import { JIRA_ISSUE_TYPE_ICONS } from "../constants";
-import { getJiraIssueUrl } from "./jira";
-import { getSelectedCustomField, formatCustomFieldValue } from "./process-jira-manage-field";
-import type { JiraIssue, ProcessedJiraIssueItem } from "../types";
+import { JIRA_ISSUE_TYPE_ICONS } from "@/constants";
+import { getJiraIssueUrl, getSelectedCustomField } from "@/utils";
+import type { JiraIssue, JiraUser, ProcessedJiraIssueItem, ListItemAccessories, ListItemSubtitle } from "@/types";
 
-export function processJiraSearchIssue(issue: JiraIssue, baseUrl: string): ProcessedJiraIssueItem {
+export function processJiraSearchIssue(
+  issue: JiraIssue,
+  baseUrl: string,
+  names?: Record<string, string>,
+): ProcessedJiraIssueItem {
   const { fields, key, id } = issue;
 
-  // 基础信息
   const summary = fields.summary || "No Summary";
-  const status = fields.status?.name || "Unknown";
-  const priority = fields.priority?.name || "Medium";
   const issueType = fields.issuetype?.name || "Task";
-  const projectKey = fields.project?.key || "";
-  const projectName = fields.project?.name || "";
 
-  // 时间信息
-  const created = fields.created ? new Date(fields.created) : new Date();
-  const updated = new Date(fields.updated);
-  const dueDate = fields.duedate ? new Date(fields.duedate) : null;
-
-  // 用户信息
-  const assignee = fields.assignee?.displayName || null;
-  const reporter = fields.reporter?.displayName || null;
-
-  // 时间跟踪
-  const timeTracking = {
-    originalEstimate: fields.timetracking?.originalEstimate || null,
-    remainingEstimate: fields.timetracking?.remainingEstimate || null,
-    timeSpent: fields.timetracking?.timeSpent || null,
-  };
-
-  // URL 信息
   const url = getJiraIssueUrl(baseUrl, key);
 
-  // 图标处理
   const icon = {
     value: JIRA_ISSUE_TYPE_ICONS[issueType as keyof typeof JIRA_ISSUE_TYPE_ICONS] || "icon-unknown.svg",
     tooltip: `Issue Type: ${issueType}`,
@@ -46,68 +25,36 @@ export function processJiraSearchIssue(issue: JiraIssue, baseUrl: string): Proce
     (acc, field) => {
       const value = issue.fields[field.id];
       if (value !== undefined && value !== null) {
-        acc[field.id] = formatCustomFieldValue(value);
+        acc[field.id] = value as JiraUser;
       }
       return acc;
     },
-    {} as Record<string, string>,
+    {} as Record<string, JiraUser>,
   );
 
-  // 渲染信息
-  const subtitle = buildSubtitle(key, assignee, reporter, customFieldValue);
-  const accessories = buildAccessories({
-    status,
-    priority,
-    created,
-    updated,
-    dueDate,
-    timeTracking,
-  });
+  const subtitle = buildSubtitle(issue, customFieldValue, names);
+  const accessories = buildAccessories(issue);
 
   return {
-    ...issue,
-    // 基础信息
-    id,
+    renderKey: id,
+    title: summary,
     key,
     summary,
-    description: "", // 暂时为空字符串，因为当前 API 响应中没有 description
-    status,
-    priority,
-    issueType,
-    projectKey,
-    projectName,
-
-    // 图标和类型
     icon,
-
-    // 时间信息
-    created,
-    updated,
-    dueDate,
-
-    // 用户信息
-    assignee,
-    reporter,
-
-    // 其他信息
-    timeTracking,
-    customFieldValue,
-
-    // URL 信息
-    url,
-
-    // 渲染信息
     subtitle,
     accessories,
+    url,
   };
 }
 
 function buildSubtitle(
-  issueKey: string,
-  assignee: string | null,
-  reporter: string | null,
-  customFieldValue?: Record<string, string>,
-): List.Item.Props["subtitle"] {
+  issue: JiraIssue,
+  customFieldValue?: Record<string, JiraUser>,
+  names?: Record<string, string>,
+): ListItemSubtitle {
+  const { key: issueKey, fields } = issue;
+  const assignee = fields.assignee?.displayName || null;
+  const reporter = fields.reporter?.displayName || null;
   const parts = [];
 
   if (issueKey) {
@@ -120,10 +67,9 @@ function buildSubtitle(
 
   const subtitle = parts.join(" ");
 
-  // 构建 tooltip
   const tooltipParts = [];
   if (issueKey) {
-    tooltipParts.push(`Issue Key: ${issueKey}`);
+    tooltipParts.push(`${issueKey}`);
   }
   if (reporter) {
     tooltipParts.push(`Reporter: ${reporter}`);
@@ -132,13 +78,11 @@ function buildSubtitle(
     tooltipParts.push(`Assignee: ${assignee}`);
   }
 
-  // 添加自定义字段到 tooltip
+  // TODO: 支持更多类型的自定义字段
   if (customFieldValue) {
-    const selectedFields = getSelectedCustomField();
     Object.entries(customFieldValue).forEach(([fieldId, value]) => {
-      const field = selectedFields.find((f) => f.id === fieldId);
-      const fieldName = field?.name || fieldId;
-      tooltipParts.push(`${fieldName}: ${value}`);
+      const fieldName = names?.[fieldId] || fieldId;
+      tooltipParts.push(`${fieldName}: ${value.displayName}`);
     });
   }
 
@@ -148,26 +92,20 @@ function buildSubtitle(
   };
 }
 
-interface BuildAccessoriesParams {
-  status: string;
-  priority: string;
-  created: Date;
-  updated: Date;
-  dueDate: Date | null;
-  timeTracking: { originalEstimate: string | null; remainingEstimate: string | null; timeSpent: string | null };
-}
+function buildAccessories(issue: JiraIssue): ListItemAccessories {
+  const { fields } = issue;
+  const status = fields.status?.name || "Unknown";
+  const priority = fields.priority?.name || "Medium";
+  const created = fields.created ? new Date(fields.created) : null;
+  const updated = fields.updated ? new Date(fields.updated) : null;
+  const dueDate = fields.duedate ? new Date(fields.duedate) : null;
+  const timeTracking = {
+    originalEstimate: fields.timetracking?.originalEstimate || null,
+    remainingEstimate: fields.timetracking?.remainingEstimate || null,
+    timeSpent: fields.timetracking?.timeSpent || null,
+  };
+  const accessories: ListItemAccessories = [];
 
-function buildAccessories({
-  status,
-  priority,
-  created,
-  updated,
-  dueDate,
-  timeTracking,
-}: BuildAccessoriesParams): List.Item.Props["accessories"] {
-  const accessories: List.Item.Props["accessories"] = [];
-
-  // 优先级
   if (priority) {
     accessories.push({
       tag: priority,
@@ -175,7 +113,6 @@ function buildAccessories({
     });
   }
 
-  // 状态
   if (status) {
     accessories.push({
       tag: status,
@@ -183,16 +120,17 @@ function buildAccessories({
     });
   }
 
-  // 更新时间
   const timeTooltipParts = [];
-  timeTooltipParts.push(`Updated: ${updated.toLocaleString()}`);
-
   if (created) {
-    timeTooltipParts.push(`Created: ${created.toLocaleString()}`);
+    timeTooltipParts.push(`Created at ${created.toLocaleString()}`);
+  }
+
+  if (updated) {
+    timeTooltipParts.push(`Updated at ${updated.toLocaleString()}`);
   }
 
   if (dueDate) {
-    timeTooltipParts.push(`Due: ${dueDate.toLocaleString()}`);
+    timeTooltipParts.push(`Due at ${dueDate.toLocaleString()}`);
   }
 
   if (timeTracking.originalEstimate) {
@@ -208,29 +146,9 @@ function buildAccessories({
   }
 
   accessories.push({
-    text: formatRelativeTime(updated),
+    date: updated ?? created,
     tooltip: timeTooltipParts.join("\n"),
   });
 
   return accessories;
-}
-
-function formatRelativeTime(date: Date): string {
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (diffInSeconds < 60) {
-    return "now";
-  } else if (diffInSeconds < 3600) {
-    const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes}m ago`;
-  } else if (diffInSeconds < 86400) {
-    const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours}h ago`;
-  } else if (diffInSeconds < 2592000) {
-    const days = Math.floor(diffInSeconds / 86400);
-    return `${days}d ago`;
-  } else {
-    return date.toLocaleDateString();
-  }
 }
