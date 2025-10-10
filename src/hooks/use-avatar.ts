@@ -1,16 +1,31 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
-import { getPreferenceValues } from "@raycast/api";
 
 import { APP_TYPE } from "@/constants";
 import { avatarCache, downloadAvatar } from "@/utils";
-import type { AvatarList, AppType } from "@/types";
+import { useConfluencePreferencesContext, useJiraPreferencesContext } from "@/contexts";
+import type { AvatarList, AppType, AvatarType } from "@/types";
 
-export function useAvatar(avatarList: AvatarList, appType: AppType) {
-  const { confluencePersonalAccessToken, jiraPersonalAccessToken } = useMemo(
-    () => getPreferenceValues<Preferences>(),
-    [],
-  );
+export function useAvatar<T>({
+  items,
+  extractAvatarData,
+  appType,
+  avatarType,
+}: {
+  items: T[];
+  appType: AppType;
+  avatarType: AvatarType;
+  extractAvatarData: (items: T[]) => AvatarList;
+}) {
+  const confluencePreferences = useConfluencePreferencesContext();
+  const jiraPreferences = useJiraPreferencesContext();
+
+  const token =
+    appType === APP_TYPE.CONFLUENCE
+      ? confluencePreferences.confluencePersonalAccessToken
+      : jiraPreferences.jiraPersonalAccessToken;
+
+  const avatarList = useMemo(() => extractAvatarData(items), [items, extractAvatarData]);
 
   const uniqueList = useMemo(() => {
     return avatarList.filter(
@@ -19,13 +34,12 @@ export function useAvatar(avatarList: AvatarList, appType: AppType) {
   }, [avatarList]);
 
   const queries = useMemo(() => {
-    const token = appType === APP_TYPE.CONFLUENCE ? confluencePersonalAccessToken : jiraPersonalAccessToken;
     return uniqueList.map((item) => ({
-      queryKey: [`${appType}-avatar`, { type: appType, url: item.url }],
+      queryKey: [`${appType}-avatar`, { url: item.url }],
       queryFn: async () => {
         return downloadAvatar({
           token,
-          type: appType,
+          type: avatarType,
           url: item.url,
           key: item.key,
         });
@@ -33,7 +47,7 @@ export function useAvatar(avatarList: AvatarList, appType: AppType) {
       staleTime: Infinity,
       gcTime: Infinity,
     }));
-  }, [uniqueList]);
+  }, [uniqueList, appType, token]);
 
   useQueries({ queries });
 }

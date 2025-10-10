@@ -1,3 +1,5 @@
+import { environment } from "@raycast/api";
+
 export const APP_TYPE = {
   CONFLUENCE: "confluence",
   JIRA: "jira",
@@ -24,9 +26,15 @@ export const JIRA_API = {
 
 export const DEFAULT_AVATAR = "avatar-default.svg";
 
-export const CONFLUENCE_AVATAR_DIR = "/tmp/raycast-confluence-data-center/confluence/avatars";
+export const AVATAR_TYPE = {
+  CONFLUENCE_USER: "confluence-user",
+  CONFLUENCE_SPACE: "confluence-space",
+} as const;
 
-export const JIRA_AVATAR_DIR = "/tmp/raycast-confluence-data-center/jira/avatars";
+export const AVATAR_DIR = {
+  [AVATAR_TYPE.CONFLUENCE_USER]: `${environment.supportPath}/avatars/confluence-user`,
+  [AVATAR_TYPE.CONFLUENCE_SPACE]: `${environment.supportPath}/avatars/confluence-space`,
+} as const;
 
 export const DEFAULT_SEARCH_PAGE_SIZE = 20;
 

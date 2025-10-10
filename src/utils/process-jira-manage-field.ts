@@ -21,7 +21,7 @@ export function setSelectedCustomField(field: JiraField[]): void {
 
 export function addCustomField(field: JiraField): void {
   const current = getSelectedCustomField();
-  if (!current.some((f) => f.id === field.id)) {
+  if (!current.some((item) => item.id === field.id)) {
     setSelectedCustomField([...current, field]);
   }
 }

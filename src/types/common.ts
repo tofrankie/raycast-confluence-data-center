@@ -5,9 +5,12 @@ import {
   CONFLUENCE_SPACE_TYPE,
   JIRA_PRIORITY,
   JIRA_ISSUE_TYPE_NAME,
+  AVATAR_TYPE,
 } from "@/constants";
 
 export type AppType = (typeof APP_TYPE)[keyof typeof APP_TYPE];
+
+export type AvatarType = (typeof AVATAR_TYPE)[keyof typeof AVATAR_TYPE];
 
 export type ConfluenceEntityType = (typeof CONFLUENCE_ENTITY_TYPE)[keyof typeof CONFLUENCE_ENTITY_TYPE];
 
@@ -31,13 +34,6 @@ export interface ConfluenceIcon {
   height: number;
   isDefault: boolean;
 }
-
-export interface AvatarItem {
-  key: string;
-  url: string;
-}
-
-export type AvatarList = AvatarItem[];
 
 export interface CQLQuery {
   raw: string;

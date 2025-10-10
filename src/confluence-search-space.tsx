@@ -4,12 +4,12 @@ import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { buildCQL } from "@/utils";
-import { APP_TYPE, COMMAND_NAMES } from "@/constants";
+import { APP_TYPE, AVATAR_TYPE, COMMAND_NAMES } from "@/constants";
 import { SearchBarAccessory, CQLWrapper } from "@/components";
 import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "@/hooks";
 import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "@/contexts";
-
-import type { AvatarList, SearchFilter } from "@/types";
+import { avatarExtractors } from "@/utils";
+import type { SearchFilter } from "@/types";
 
 export default function ConfluenceSearchSpaceProvider() {
   return (
@@ -52,16 +52,12 @@ function ConfluenceSearchSpace() {
     }
   }, [error]);
 
-  const avatarList = useMemo(() => {
-    return results
-      .filter((item) => !!(item.avatarCacheKey && item.avatarUrl))
-      .map((item) => ({
-        url: item.avatarUrl,
-        key: item.avatarCacheKey,
-      })) as AvatarList;
-  }, [results]);
-
-  useAvatar(avatarList, APP_TYPE.CONFLUENCE);
+  useAvatar({
+    items: results,
+    appType: APP_TYPE.CONFLUENCE,
+    avatarType: AVATAR_TYPE.CONFLUENCE_SPACE,
+    extractAvatarData: avatarExtractors.confluenceSpace,
+  });
 
   const handleLoadMore = () => {
     if (hasMore && !isFetchingNextPage) {
@@ -69,7 +65,7 @@ function ConfluenceSearchSpace() {
     }
   };
 
-  const isEmpty = !isLoading && searchText.length >= 2 && results.length === 0;
+  const isEmpty = !isLoading && searchText.trim() && !results.length;
 
   return (
     <List

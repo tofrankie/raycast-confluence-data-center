@@ -1,4 +1,5 @@
 export * from "./avatar";
+export * from "./avatar-extractors";
 export * from "./confluence";
 export * from "./jira";
 export * from "./request";

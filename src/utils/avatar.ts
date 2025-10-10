@@ -4,11 +4,11 @@ import fs from "node:fs/promises";
 import { Cache } from "@raycast/api";
 
 import { getAuthHeaders } from "@/utils";
-import { CONFLUENCE_AVATAR_DIR, JIRA_AVATAR_DIR, APP_TYPE } from "@/constants";
-import type { AppType } from "@/types";
+import { AVATAR_DIR } from "@/constants";
+import type { AvatarType } from "@/types";
 
 type DownloadAvatarOptions = {
-  type: AppType;
+  type: AvatarType;
   token: string;
   url: string;
   key: string;
@@ -20,7 +20,7 @@ export async function downloadAvatar(options: DownloadAvatarOptions) {
   const { type, token, url, key } = options;
 
   try {
-    const outputDir = getAvatarDir(type);
+    const outputDir = AVATAR_DIR[type];
     await ensureDirExists(outputDir);
 
     const response = await fetch(url, {
@@ -46,10 +46,6 @@ export async function downloadAvatar(options: DownloadAvatarOptions) {
   } catch (error) {
     return error instanceof Error ? error.message : "Unknown error";
   }
-}
-
-export function getAvatarDir(appType: AppType) {
-  return appType === APP_TYPE.CONFLUENCE ? CONFLUENCE_AVATAR_DIR : JIRA_AVATAR_DIR;
 }
 
 export function getImageExtension(originalUrl: string, contentType?: string | null) {

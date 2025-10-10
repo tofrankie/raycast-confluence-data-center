@@ -3,10 +3,10 @@ import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { APP_TYPE } from "@/constants";
+import { APP_TYPE, AVATAR_TYPE } from "@/constants";
 import { useConfluenceSearchUserInfiniteQuery, useAvatar } from "@/hooks";
 import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "@/contexts";
-import { AvatarList } from "@/types";
+import { avatarExtractors } from "@/utils";
 
 export default function ConfluenceSearchUserProvider() {
   return (
@@ -36,16 +36,12 @@ function ConfluenceSearchUser() {
   const results = useMemo(() => data?.items ?? [], [data?.items]);
   const hasMore = useMemo(() => data?.hasMore ?? false, [data?.hasMore]);
 
-  const avatarList = useMemo(() => {
-    return results
-      .filter((item) => !!(item.avatarCacheKey && item.avatarUrl))
-      .map((item) => ({
-        url: item.avatarUrl,
-        key: item.avatarCacheKey,
-      })) as AvatarList;
-  }, [results]);
-
-  useAvatar(avatarList, APP_TYPE.CONFLUENCE);
+  useAvatar({
+    items: results,
+    appType: APP_TYPE.CONFLUENCE,
+    avatarType: AVATAR_TYPE.CONFLUENCE_USER,
+    extractAvatarData: avatarExtractors.confluenceUser,
+  });
 
   useEffect(() => {
     if (error) {
@@ -59,7 +55,7 @@ function ConfluenceSearchUser() {
     }
   };
 
-  const isEmpty = !isLoading && searchText.length >= 2 && results.length === 0;
+  const isEmpty = !isLoading && searchText.length >= 2 && !results.length;
 
   return (
     <List

@@ -18,7 +18,7 @@ export function SearchBarAccessory({ commandName, value, onChange }: SearchBarAc
       return;
     }
 
-    const filter = filters.find((f) => f.id === filterId);
+    const filter = filters.find((item) => item.id === filterId);
     if (filter) {
       const { id, query, transform, autoQuery } = filter;
       onChange({ id, query, transform, autoQuery });

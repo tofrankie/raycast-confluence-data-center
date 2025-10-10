@@ -25,7 +25,7 @@ function processConfluenceSearchSpaceItem(
   const url = space._links?.webui ? `${baseUrl}${space._links.webui}` : "";
 
   const avatarUrl = space.icon.path ? `${baseUrl}${space.icon.path}` : "";
-  const avatarCacheKey = spaceKey ? `space-${spaceKey}` : undefined;
+  const avatarCacheKey = spaceKey;
   const avatar = (avatarCacheKey && avatarCache.get(avatarCacheKey)) ?? DEFAULT_AVATAR;
 
   const icon = avatar
