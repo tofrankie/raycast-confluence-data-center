@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
-import { List, ActionPanel, Action, Icon } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { useJiraFieldQuery } from "@/hooks";
 import { JiraPreferencesProvider } from "@/contexts";
-import { getSelectedCustomField, addCustomField, removeCustomField } from "@/utils";
+import { getSelectedCustomFields, addCustomField, removeCustomField, clearAllCacheWithToast } from "@/utils";
 import type { JiraField, ProcessedJiraFieldItem } from "@/types";
 
 export default function JiraManageFieldProvider() {
@@ -22,10 +22,10 @@ function JiraManageFieldContent() {
   const [searchText, setSearchText] = useState("");
   const [addedFields, setAddedFields] = useState<JiraField[]>([]);
 
-  const { data, isLoading, error } = useJiraFieldQuery();
+  const { data, isLoading, error, refetch } = useJiraFieldQuery();
 
   useEffect(() => {
-    setAddedFields(getSelectedCustomField());
+    setAddedFields(getSelectedCustomFields());
   }, []);
 
   const { addedFieldsFiltered, systemFields, customFields } = useMemo(() => {
@@ -80,6 +80,15 @@ function JiraManageFieldContent() {
     }
   }, [error]);
 
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      showToast(Toast.Style.Success, "Refresh successful");
+    } catch {
+      // Error handling is done by useEffect
+    }
+  };
+
   return (
     <List throttle isLoading={isLoading} onSearchTextChange={setSearchText} searchBarPlaceholder="Search field...">
       {isEmpty ? (
@@ -118,6 +127,13 @@ function JiraManageFieldContent() {
                           />
                         )}
                         <Action.CopyToClipboard title="Copy Field ID" content={item.id} />
+                        <Action
+                          title="Refresh"
+                          icon={Icon.ArrowClockwise}
+                          shortcut={{ modifiers: ["cmd"], key: "r" }}
+                          onAction={handleRefresh}
+                        />
+                        <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                       </ActionPanel>
                     }
                   />
@@ -158,6 +174,13 @@ function JiraManageFieldContent() {
                           />
                         )}
                         <Action.CopyToClipboard title="Copy Field ID" content={item.id} />
+                        <Action
+                          title="Refresh"
+                          icon={Icon.ArrowClockwise}
+                          shortcut={{ modifiers: ["cmd"], key: "r" }}
+                          onAction={handleRefresh}
+                        />
+                        <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                       </ActionPanel>
                     }
                   />
@@ -178,6 +201,7 @@ function JiraManageFieldContent() {
                   actions={
                     <ActionPanel>
                       <Action.CopyToClipboard title="Copy Field ID" content={item.id} />
+                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }
                 />

@@ -1,6 +1,6 @@
 import { Icon } from "@raycast/api";
 
-import { COMMAND_NAMES } from "@/constants";
+import { COMMAND_NAME } from "@/constants";
 
 import type { SearchBarAccessoryItem, SearchBarAccessoryCommandName } from "@/types";
 
@@ -34,7 +34,7 @@ const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
   },
   {
     id: "favourite",
-    title: "My Favorites",
+    title: "My Favourites",
     query: "favourite = currentUser() order by favourite desc",
     icon: Icon.Star,
     autoQuery: true,
@@ -58,12 +58,6 @@ const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
 const CONFLUENCE_SEARCH_SPACE_FILTERS: SearchBarAccessoryItem[] = [
   {
     id: "default",
-    title: "All Space",
-    query: "",
-    icon: Icon.MagnifyingGlass,
-  },
-  {
-    id: "all",
     title: "All Space",
     query: "",
     icon: Icon.MagnifyingGlass,
@@ -134,7 +128,7 @@ const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
 ];
 
 export const SEARCH_BAR_ACCESSORY_CONFIGS: Record<SearchBarAccessoryCommandName, SearchBarAccessoryItem[]> = {
-  [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT]: CONFLUENCE_SEARCH_CONTENT_FILTERS,
-  [COMMAND_NAMES.CONFLUENCE_SEARCH_SPACE]: CONFLUENCE_SEARCH_SPACE_FILTERS,
-  [COMMAND_NAMES.JIRA_SEARCH_ISSUE]: JIRA_SEARCH_ISSUE_FILTERS,
+  [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT]: CONFLUENCE_SEARCH_CONTENT_FILTERS,
+  [COMMAND_NAME.CONFLUENCE_SEARCH_SPACE]: CONFLUENCE_SEARCH_SPACE_FILTERS,
+  [COMMAND_NAME.JIRA_SEARCH_ISSUE]: JIRA_SEARCH_ISSUE_FILTERS,
 };

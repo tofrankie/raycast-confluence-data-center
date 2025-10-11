@@ -80,6 +80,14 @@
       "required": true,
       "default": "20",
       "placeholder": "20"
+    },
+    {
+      "name": "debugEnable",
+      "title": "Debug Enable",
+      "description": "Enable debug mode to write API responses to files for troubleshooting",
+      "type": "checkbox",
+      "required": false,
+      "default": false
     }
   ],
   "commands": [
@@ -95,7 +103,7 @@
       "name": "confluence-search-user",
       "title": "Search User",
       "subtitle": "Confluence Data Center",
-      "description": "Search Confluence user by name",
+      "description": "Search Confluence users by name",
       "mode": "view",
       "icon": "logo-confluence.png"
     },
@@ -111,7 +119,7 @@
       "name": "jira-search-issue",
       "title": "Search Issue",
       "subtitle": "Jira Data Center",
-      "description": "Search Jira issue with advanced filters and JQL syntax support",
+      "description": "Search Jira issues with advanced filters and JQL syntax support",
       "mode": "view",
       "icon": "logo-jira.png"
     },

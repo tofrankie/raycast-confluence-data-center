@@ -1,14 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
-import { List, ActionPanel, Action, Icon } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { buildCQL } from "@/utils";
-import { APP_TYPE, AVATAR_TYPE, COMMAND_NAMES } from "@/constants";
+import { buildCQL, avatarExtractors, clearAllCacheWithToast } from "@/utils";
+import { APP_TYPE, AVATAR_TYPE, COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import { SearchBarAccessory, CQLWrapper } from "@/components";
 import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "@/hooks";
 import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "@/contexts";
-import { avatarExtractors } from "@/utils";
 import type { SearchFilter } from "@/types";
 
 export default function ConfluenceSearchSpaceProvider() {
@@ -24,7 +23,7 @@ export default function ConfluenceSearchSpaceProvider() {
 function ConfluenceSearchSpace() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
-  const { searchPageSize, confluenceBaseUrl } = useConfluencePreferencesContext();
+  const { confluenceBaseUrl } = useConfluencePreferencesContext();
 
   const cql = useMemo(() => {
     if (!searchText) return "";
@@ -37,9 +36,8 @@ function ConfluenceSearchSpace() {
     return buildCQL(searchText, filter ? [filter, extraFilter] : []);
   }, [searchText, filter]);
 
-  const { data, fetchNextPage, isFetchingNextPage, isLoading, error } = useConfluenceSearchSpaceInfiniteQuery(
+  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } = useConfluenceSearchSpaceInfiniteQuery(
     cql,
-    searchPageSize,
     confluenceBaseUrl,
   );
 
@@ -51,6 +49,15 @@ function ConfluenceSearchSpace() {
       showFailureToast(error, { title: "Search Failed" });
     }
   }, [error]);
+
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      showToast(Toast.Style.Success, "Refresh successful");
+    } catch {
+      // Error handling is done by useEffect
+    }
+  };
 
   useAvatar({
     items: results,
@@ -75,15 +82,15 @@ function ConfluenceSearchSpace() {
       searchBarPlaceholder="Search Space..."
       searchBarAccessory={
         <SearchBarAccessory
-          commandName={COMMAND_NAMES.CONFLUENCE_SEARCH_SPACE}
+          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_SPACE}
           value={filter?.id || ""}
           onChange={setFilter}
         />
       }
       pagination={{
-        onLoadMore: handleLoadMore,
         hasMore,
-        pageSize: searchPageSize,
+        onLoadMore: handleLoadMore,
+        pageSize: SEARCH_PAGE_SIZE,
       }}
     >
       <CQLWrapper query={searchText}>
@@ -122,6 +129,13 @@ function ConfluenceSearchSpace() {
                     />
                     <Action.CopyToClipboard title="Copy Space Key" content={space.key} />
                     {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
+                    <Action
+                      title="Refresh"
+                      icon={Icon.ArrowClockwise}
+                      shortcut={{ modifiers: ["cmd"], key: "r" }}
+                      onAction={handleRefresh}
+                    />
+                    <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                   </ActionPanel>
                 }
               />

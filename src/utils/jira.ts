@@ -1,5 +1,5 @@
-import { jiraRequest, writeToSupportPathFile } from "@/utils";
-import { JIRA_API, DEFAULT_SEARCH_PAGE_SIZE } from "@/constants";
+import { jiraRequest, writeResponseFile } from "@/utils";
+import { JIRA_API, DEFAULT_SEARCH_PAGE_SIZE, COMMAND_NAME } from "@/constants";
 import type { JiraSearchIssueResponse, JiraField } from "@/types";
 
 type JiraSearchIssueParams = {
@@ -22,8 +22,7 @@ export async function searchJiraIssue(params: JiraSearchIssueParams): Promise<Ji
   const data = await jiraRequest<JiraSearchIssueResponse>("GET", JIRA_API.SEARCH, searchParams);
 
   if (data) {
-    // TODO: 调试
-    writeToSupportPathFile(JSON.stringify(data, null, 2), "jira-search-issue-response.json");
+    writeResponseFile(JSON.stringify(data, null, 2), COMMAND_NAME.JIRA_SEARCH_ISSUE);
   }
 
   return data;
@@ -33,17 +32,12 @@ export async function getJiraField(): Promise<JiraField[]> {
   const data = await jiraRequest<JiraField[]>("GET", JIRA_API.FIELD);
 
   if (data) {
-    writeToSupportPathFile(JSON.stringify(data, null, 2), "jira-manage-field-response.json");
+    writeResponseFile(JSON.stringify(data, null, 2), COMMAND_NAME.JIRA_MANAGE_FIELD);
   }
 
   return data || [];
 }
 
-// TODO:
 export function getJiraIssueUrl(baseUrl: string, issueKey: string): string {
   return `${baseUrl}/browse/${issueKey}`;
-}
-
-export function getJiraProjectUrl(baseUrl: string, projectKey: string): string {
-  return `${baseUrl}/browse/${projectKey}`;
 }

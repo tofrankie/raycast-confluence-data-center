@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
+import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { parseJQL } from "@/utils";
-import { COMMAND_NAMES } from "@/constants";
+import { parseJQL, clearAllCacheWithToast } from "@/utils";
+import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import { SearchBarAccessory } from "@/components";
 import { useJiraSearchIssueInfiniteQuery } from "@/hooks";
 import { JiraPreferencesProvider, useJiraPreferencesContext } from "@/contexts";
@@ -26,7 +27,7 @@ export default function JiraSearchIssueProvider() {
 }
 
 function JiraSearchIssueContent() {
-  const preferences = useJiraPreferencesContext();
+  const { jiraBaseUrl } = useJiraPreferencesContext();
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 
@@ -60,7 +61,7 @@ function JiraSearchIssueContent() {
   }, [searchText, filter]);
 
   const { data, error, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
-    useJiraSearchIssueInfiniteQuery(jql, preferences.jiraBaseUrl, preferences.searchPageSize);
+    useJiraSearchIssueInfiniteQuery(jql, jiraBaseUrl);
 
   const issues = data?.issues || [];
 
@@ -74,16 +75,22 @@ function JiraSearchIssueContent() {
     }
   };
 
-  // const hasMore = data?.hasMore || false;
-  const hasMore = false;
+  const hasMore = data?.hasMore || false;
 
-  if (error) {
-    showToast({
-      style: Toast.Style.Failure,
-      title: "Search Failed",
-      message: error.message,
-    });
-  }
+  useEffect(() => {
+    if (error) {
+      showFailureToast(error, { title: "Search Failed" });
+    }
+  }, [error]);
+
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      showToast(Toast.Style.Success, "Refresh successful");
+    } catch {
+      // Error handling is done by useEffect
+    }
+  };
 
   const sectionTitle = !searchText && issues.length ? `Assigned to Me (${issues.length})` : undefined;
 
@@ -94,16 +101,16 @@ function JiraSearchIssueContent() {
       searchBarPlaceholder="Search Issue..."
       searchBarAccessory={
         <SearchBarAccessory
-          commandName={COMMAND_NAMES.JIRA_SEARCH_ISSUE}
+          commandName={COMMAND_NAME.JIRA_SEARCH_ISSUE}
           value={filter?.id || ""}
           onChange={setFilter}
         />
       }
       throttle
       pagination={{
-        onLoadMore: handleLoadMore,
         hasMore,
-        pageSize: preferences.searchPageSize,
+        onLoadMore: handleLoadMore,
+        pageSize: SEARCH_PAGE_SIZE,
       }}
     >
       {issues.length === 0 && !isLoading ? (
@@ -144,8 +151,9 @@ function JiraSearchIssueContent() {
                     title="Refresh"
                     icon={Icon.ArrowClockwise}
                     shortcut={{ modifiers: ["cmd"], key: "r" }}
-                    onAction={() => refetch()}
+                    onAction={handleRefresh}
                   />
+                  <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                 </ActionPanel>
               }
             />

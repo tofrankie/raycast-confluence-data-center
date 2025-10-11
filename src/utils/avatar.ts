@@ -1,9 +1,7 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 
-import { Cache } from "@raycast/api";
-
-import { getAuthHeaders } from "@/utils";
+import { getAuthHeaders, avatarCache, ensureDirExists } from "@/utils";
 import { AVATAR_DIR } from "@/constants";
 import type { AvatarType } from "@/types";
 
@@ -13,8 +11,6 @@ type DownloadAvatarOptions = {
   url: string;
   key: string;
 };
-
-export const avatarCache = new Cache();
 
 export async function downloadAvatar(options: DownloadAvatarOptions) {
   const { type, token, url, key } = options;
@@ -75,28 +71,4 @@ function getExtensionFromContentType(contentType: string) {
     "image/svg+xml": ".svg",
   };
   return mimeToExtMap[mimeType] || ".png";
-}
-
-const dirExists: Record<string, boolean> = {};
-
-async function ensureDirExists(dir: string) {
-  if (dirExists[dir]) return;
-
-  const isExists = await pathExists(dir);
-  if (isExists) {
-    dirExists[dir] = true;
-    return;
-  }
-
-  await fs.mkdir(dir, { recursive: true });
-  dirExists[dir] = true;
-}
-
-export async function pathExists(path: string) {
-  try {
-    await fs.access(path, fs.constants.F_OK);
-    return true;
-  } catch {
-    return false;
-  }
 }

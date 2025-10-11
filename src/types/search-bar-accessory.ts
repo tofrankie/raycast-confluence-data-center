@@ -1,10 +1,10 @@
-import { COMMAND_NAMES } from "@/constants";
+import { COMMAND_NAME } from "@/constants";
 import type { DropdownItemIcon } from "@/types";
 
 export type SearchBarAccessoryCommandName =
-  | typeof COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT
-  | typeof COMMAND_NAMES.CONFLUENCE_SEARCH_SPACE
-  | typeof COMMAND_NAMES.JIRA_SEARCH_ISSUE;
+  | typeof COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT
+  | typeof COMMAND_NAME.CONFLUENCE_SEARCH_SPACE
+  | typeof COMMAND_NAME.JIRA_SEARCH_ISSUE;
 
 export interface SearchBarAccessoryItem {
   id: string;

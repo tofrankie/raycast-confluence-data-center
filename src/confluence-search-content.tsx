@@ -1,14 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
-import { List, ActionPanel, Action, Icon } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { buildCQL } from "@/utils";
-import { APP_TYPE, AVATAR_TYPE, COMMAND_NAMES } from "@/constants";
+import { buildCQL, clearAllCacheWithToast, avatarExtractors } from "@/utils";
+import { APP_TYPE, AVATAR_TYPE, COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import { SearchBarAccessory, CQLWrapper } from "@/components";
 import { useConfluenceSearchContentInfiniteQuery, useToggleFavorite, useAvatar } from "@/hooks";
 import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "@/contexts";
-import { avatarExtractors } from "@/utils";
 import type { SearchFilter } from "@/types";
 
 export default function ConfluenceSearchContentProvider() {
@@ -24,11 +23,11 @@ export default function ConfluenceSearchContentProvider() {
 function ConfluenceSearchContent() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
-  const { searchPageSize, confluenceBaseUrl } = useConfluencePreferencesContext();
+  const { confluenceBaseUrl } = useConfluencePreferencesContext();
 
   const cql = useMemo(() => {
     if (!searchText && !filter) {
-      return `id in recentlyViewedContent(${searchPageSize}, 0)`;
+      return `id in recentlyViewedContent(${SEARCH_PAGE_SIZE}, 0)`;
     }
     if (!searchText && filter?.autoQuery) {
       return filter.query;
@@ -37,13 +36,10 @@ function ConfluenceSearchContent() {
       return "";
     }
     return buildCQL(searchText, filter ? [filter] : []);
-  }, [searchText, filter, searchPageSize]);
+  }, [searchText, filter]);
 
-  const { data, fetchNextPage, isFetchingNextPage, isLoading, error } = useConfluenceSearchContentInfiniteQuery(
-    cql,
-    searchPageSize,
-    confluenceBaseUrl,
-  );
+  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =
+    useConfluenceSearchContentInfiniteQuery(cql, confluenceBaseUrl);
 
   const results = useMemo(() => data?.items ?? [], [data?.items]);
 
@@ -74,6 +70,15 @@ function ConfluenceSearchContent() {
     }
   }, [error]);
 
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      showToast(Toast.Style.Success, "Refresh successful");
+    } catch {
+      // Error handling is done by useEffect
+    }
+  };
+
   const handleLoadMore = () => {
     if (hasMore && !isFetchingNextPage) {
       fetchNextPage();
@@ -82,7 +87,7 @@ function ConfluenceSearchContent() {
 
   const isEmpty = !isLoading && searchText.length >= 2 && !results.length;
 
-  const sectionTitle = !searchText && !filter && results.length ? `Recently Viewed (${results.length})` : undefined;
+  const sectionTitle = !searchText && !filter && results.length ? `Viewed Recently (${results.length})` : undefined;
 
   return (
     <List
@@ -92,7 +97,7 @@ function ConfluenceSearchContent() {
       searchBarPlaceholder="Search Content..."
       searchBarAccessory={
         <SearchBarAccessory
-          commandName={COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT}
+          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT}
           value={filter?.id || ""}
           onChange={setFilter}
         />
@@ -100,7 +105,7 @@ function ConfluenceSearchContent() {
       pagination={{
         hasMore,
         onLoadMore: handleLoadMore,
-        pageSize: searchPageSize,
+        pageSize: SEARCH_PAGE_SIZE,
       }}
     >
       <CQLWrapper query={searchText}>
@@ -144,7 +149,7 @@ function ConfluenceSearchContent() {
                       {item.canFavorite && (
                         <Action
                           icon={item.isFavourited ? Icon.StarDisabled : Icon.Star}
-                          title={item.isFavourited ? "Remove from Favorites" : "Add to Favorites"}
+                          title={item.isFavourited ? "Remove from Favourites" : "Add to Favourites"}
                           onAction={() => handleToggleFavorite(item.id, item.isFavourited)}
                           shortcut={{ modifiers: ["cmd"], key: "f" }}
                         />
@@ -157,6 +162,13 @@ function ConfluenceSearchContent() {
                         />
                       )}
                       {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
+                      <Action
+                        title="Refresh"
+                        icon={Icon.ArrowClockwise}
+                        shortcut={{ modifiers: ["cmd"], key: "r" }}
+                        onAction={handleRefresh}
+                      />
+                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }
                 />

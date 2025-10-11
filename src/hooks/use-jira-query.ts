@@ -7,14 +7,10 @@ import {
   processJiraFieldItem,
   getJiraField,
 } from "@/utils";
-import { COMMAND_NAMES, DEFAULT_SEARCH_PAGE_SIZE } from "@/constants";
+import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import type { JiraSearchIssueResponse, JiraField, ProcessedJiraIssueItem, ProcessedJiraFieldItem } from "@/types";
 
-export function useJiraSearchIssueInfiniteQuery(
-  jql: string,
-  baseUrl: string,
-  pageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
-) {
+export function useJiraSearchIssueInfiniteQuery(jql: string, baseUrl: string) {
   return useInfiniteQuery<
     JiraSearchIssueResponse,
     Error,
@@ -23,14 +19,14 @@ export function useJiraSearchIssueInfiniteQuery(
       hasMore: boolean;
     }
   >({
-    queryKey: [COMMAND_NAMES.JIRA_SEARCH_ISSUE, { jql, pageSize }],
+    queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUE, { jql, pageSize: SEARCH_PAGE_SIZE }],
     queryFn: async ({ pageParam = 0 }) => {
       const customFieldIds = getSelectedCustomFieldIds();
 
       const params = {
         jql,
         startAt: pageParam as number,
-        maxResults: pageSize,
+        maxResults: SEARCH_PAGE_SIZE,
         fields: [
           "summary",
           "status",
@@ -84,7 +80,7 @@ export function useJiraSearchIssueInfiniteQuery(
 
 export function useJiraFieldQuery() {
   return useQuery<JiraField[], Error, ProcessedJiraFieldItem[]>({
-    queryKey: [COMMAND_NAMES.JIRA_MANAGE_FIELD],
+    queryKey: [COMMAND_NAME.JIRA_MANAGE_FIELD],
     queryFn: async () => {
       const fields = await getJiraField();
       return fields;

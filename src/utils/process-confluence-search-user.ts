@@ -1,7 +1,7 @@
 import { Image } from "@raycast/api";
 
 import { avatarCache } from "@/utils";
-import { CONFLUENCE_ENTITY_TYPE, DEFAULT_AVATAR, TYPE_ICONS } from "@/constants";
+import { CONFLUENCE_ENTITY_TYPE, CONFLUENCE_USER_STATUS, DEFAULT_AVATAR, TYPE_ICONS } from "@/constants";
 import type { ConfluenceSearchResult, ProcessedConfluenceUserItem } from "@/types";
 
 export function processConfluenceSearchUserItems(
@@ -34,7 +34,11 @@ function processConfluenceSearchUserItem(item: ConfluenceSearchResult, baseUrl: 
   const url = `${baseUrl}${item.url}`;
 
   const subtitle = { value: username, tooltip: `Username` };
-  const accessories = undefined;
+
+  const accessories =
+    user.status !== CONFLUENCE_USER_STATUS.CURRENT
+      ? [{ text: user.status.charAt(0).toUpperCase() + user.status.slice(1), tooltip: "User Status" }]
+      : undefined;
 
   return {
     renderKey: userKey,

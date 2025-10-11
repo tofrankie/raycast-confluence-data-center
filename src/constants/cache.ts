@@ -1,0 +1,23 @@
+import path from "node:path";
+import { environment } from "@raycast/api";
+
+export const DEFAULT_AVATAR = "avatar-default.svg";
+
+export const AVATAR_TYPE = {
+  CONFLUENCE_USER: "confluence-user",
+  CONFLUENCE_SPACE: "confluence-space",
+} as const;
+
+export const AVATAR_DIR = {
+  [AVATAR_TYPE.CONFLUENCE_USER]: `${environment.supportPath}/avatar/confluence-user`,
+  [AVATAR_TYPE.CONFLUENCE_SPACE]: `${environment.supportPath}/avatar/confluence-space`,
+} as const;
+
+export const CACHE_DIRECTORY = {
+  AVATAR: path.join(environment.supportPath, "avatar"),
+  RESPONSE: path.join(environment.supportPath, "response"),
+} as const;
+
+export const CACHE_KEY = {
+  JIRA_SELECTED_CUSTOM_FIELD: "jira-selected-custom-field",
+} as const;

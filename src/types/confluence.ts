@@ -164,15 +164,13 @@ export interface ConfluenceSearchResult {
 
 export interface ConfluenceUser {
   type: string;
+  status: string;
   username: string;
   userKey?: string;
   profilePicture: ConfluenceIcon;
   displayName: string;
   _links: {
     self: string;
-  };
-  _expandable: {
-    status: string;
   };
 }
 

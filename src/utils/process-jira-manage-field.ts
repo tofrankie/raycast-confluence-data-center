@@ -1,34 +1,33 @@
-import { Cache, Icon } from "@raycast/api";
+import { Icon } from "@raycast/api";
 
 import { CACHE_KEY } from "@/constants";
+import { customFieldCache } from "@/utils";
 import type { JiraField, ListItemAccessories, ProcessedJiraFieldItem } from "@/types";
 
-const customFieldCache = new Cache();
-
-export function getSelectedCustomField(): JiraField[] {
+export function getSelectedCustomFields(): JiraField[] {
   const cached = customFieldCache.get(CACHE_KEY.JIRA_SELECTED_CUSTOM_FIELD);
   return cached ? JSON.parse(cached) : [];
 }
 
 export function getSelectedCustomFieldIds(): string[] {
-  const fields = getSelectedCustomField();
+  const fields = getSelectedCustomFields();
   return (fields || []).map((field) => field.id);
 }
 
-export function setSelectedCustomField(field: JiraField[]): void {
-  customFieldCache.set(CACHE_KEY.JIRA_SELECTED_CUSTOM_FIELD, JSON.stringify(field));
+export function setSelectedCustomFields(fields: JiraField[]): void {
+  customFieldCache.set(CACHE_KEY.JIRA_SELECTED_CUSTOM_FIELD, JSON.stringify(fields));
 }
 
 export function addCustomField(field: JiraField): void {
-  const current = getSelectedCustomField();
+  const current = getSelectedCustomFields();
   if (!current.some((item) => item.id === field.id)) {
-    setSelectedCustomField([...current, field]);
+    setSelectedCustomFields([...current, field]);
   }
 }
 
 export function removeCustomField(fieldId: string): void {
-  const current = getSelectedCustomField();
-  setSelectedCustomField(current.filter((field) => field.id !== fieldId));
+  const current = getSelectedCustomFields();
+  setSelectedCustomFields(current.filter((field) => field.id !== fieldId));
 }
 
 export function processJiraFieldItem(field: JiraField, isAdded: boolean): ProcessedJiraFieldItem {

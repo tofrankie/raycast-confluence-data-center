@@ -1,5 +1,5 @@
 import { JIRA_ISSUE_TYPE_ICONS } from "@/constants";
-import { getJiraIssueUrl, getSelectedCustomField } from "@/utils";
+import { getJiraIssueUrl, getSelectedCustomFields } from "@/utils";
 import type { JiraIssue, JiraUser, ProcessedJiraIssueItem, ListItemAccessories, ListItemSubtitle } from "@/types";
 
 export function processJiraSearchIssue(
@@ -19,7 +19,7 @@ export function processJiraSearchIssue(
     tooltip: `Issue Type: ${issueType}`,
   };
 
-  const selectedCustomFields = getSelectedCustomField();
+  const selectedCustomFields = getSelectedCustomFields();
 
   const customFieldValue = selectedCustomFields.reduce(
     (acc, field) => {

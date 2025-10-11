@@ -1,11 +1,14 @@
-import { environment } from "@raycast/api";
+import { getPreferenceValues } from "@raycast/api";
+import { formatSearchPageSize } from "@/utils";
+
+const preferences = getPreferenceValues<Preferences>();
 
 export const APP_TYPE = {
   CONFLUENCE: "confluence",
   JIRA: "jira",
 } as const;
 
-export const COMMAND_NAMES = {
+export const COMMAND_NAME = {
   CONFLUENCE_SEARCH_CONTENT: "confluence-search-content",
   CONFLUENCE_SEARCH_USER: "confluence-search-user",
   CONFLUENCE_SEARCH_SPACE: "confluence-search-space",
@@ -24,20 +27,8 @@ export const JIRA_API = {
   FIELD: "/rest/api/2/field",
 } as const;
 
-export const DEFAULT_AVATAR = "avatar-default.svg";
-
-export const AVATAR_TYPE = {
-  CONFLUENCE_USER: "confluence-user",
-  CONFLUENCE_SPACE: "confluence-space",
-} as const;
-
-export const AVATAR_DIR = {
-  [AVATAR_TYPE.CONFLUENCE_USER]: `${environment.supportPath}/avatars/confluence-user`,
-  [AVATAR_TYPE.CONFLUENCE_SPACE]: `${environment.supportPath}/avatars/confluence-space`,
-} as const;
-
 export const DEFAULT_SEARCH_PAGE_SIZE = 20;
 
-export const CACHE_KEY = {
-  JIRA_SELECTED_CUSTOM_FIELD: "jira-selected-custom-field",
-} as const;
+export const SEARCH_PAGE_SIZE = formatSearchPageSize(preferences.searchPageSize) || DEFAULT_SEARCH_PAGE_SIZE;
+
+export const DEBUG_ENABLE = preferences.debugEnable;

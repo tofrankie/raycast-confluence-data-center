@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode, useMemo, useState } from "react";
 import { getPreferenceValues } from "@raycast/api";
 
+import { formatSearchPageSize } from "@/utils";
 import { DEFAULT_SEARCH_PAGE_SIZE } from "@/constants";
 import type { ConfluencePreferences } from "@/types";
 
@@ -34,9 +35,10 @@ export function useConfluencePreferencesContext() {
 
 function initPreferences() {
   const rawPreferences = getPreferenceValues<Preferences>();
+  const searchPageSize = formatSearchPageSize(rawPreferences.searchPageSize);
 
   return {
     ...rawPreferences,
-    searchPageSize: parseInt(rawPreferences.searchPageSize) || DEFAULT_SEARCH_PAGE_SIZE,
+    searchPageSize: searchPageSize || DEFAULT_SEARCH_PAGE_SIZE,
   };
 }

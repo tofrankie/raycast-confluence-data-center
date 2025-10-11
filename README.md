@@ -1,6 +1,6 @@
 # Confluence Data Center
 
-A Raycast extension for searching Confluence Data Center and Jira Data Center content with advanced filters and CQL/JQL syntax support.
+A powerful Raycast extension for searching Confluence Data Center and Jira Data Center content with advanced filters and CQL/JQL syntax support.
 
 ## ⚙️ Setup Required
 
@@ -14,30 +14,30 @@ On first use, you'll need to provide:
 
 > 💡
 >
-> - Keep your access token secure and don't share it with others.
+> - Keep your access token secure and don't share it with anyone.
 > - Pagination Tip: If pagination doesn't work properly, try increasing the page size to ensure results exceed the Raycast window height.
 
 ## ✨ Features
 
-### Confluence
+### 📚 Confluence
 
 - **🔍 Advanced Search** - Search Confluence content with intelligent filters
-- **🎯 Smart Filters** - Filter by creator, contributor, favorites, mentions, and more
+- **🎯 Smart Filters** - Filter by creator, contributor, favourites, mentions, and more
 - **📝 CQL Support** - Use Confluence Query Language for advanced searches
 - **⚡ Fast Results** - Quick access to pages, blog posts, and attachments
-- **👥 User Search** - Find Confluence user by name
-- **📁 Space Search** - Discover and browse Confluence space
+- **👥 User Search** - Find Confluence users by name
+- **📁 Space Search** - Discover and browse Confluence spaces
 
-### Jira
+### 🎫 Jira
 
-- **🎫 Issue Search** - Search Jira issue with advanced filters
+- **🎫 Issue Search** - Search Jira issues with advanced filters
 - **🔍 JQL Support** - Use Jira Query Language for complex searches
 - **📊 Smart Filters** - Filter by assignee, reporter, status, priority, and more
-- **⚡ Quick Access** - Fast navigation to issue, project, and user
+- **⚡ Quick Access** - Fast navigation to issues, projects, and users
 
-### General
+### 🛠️ General
 
-- **🔗 Direct Actions** - Open, edit, copy links, and manage favorite
+- **🔗 Direct Actions** - Open, edit, copy links, and manage favourites
 - **📄 Smart Pagination** - Seamless infinite scroll with configurable page size (default: 20 results per page)
 - **⚙️ Customizable Settings** - Adjust results per page to optimize your workflow
 

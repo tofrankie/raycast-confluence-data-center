@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
-import { List, ActionPanel, Action, Icon } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { APP_TYPE, AVATAR_TYPE } from "@/constants";
+import { APP_TYPE, AVATAR_TYPE, SEARCH_PAGE_SIZE } from "@/constants";
 import { useConfluenceSearchUserInfiniteQuery, useAvatar } from "@/hooks";
 import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "@/contexts";
-import { avatarExtractors } from "@/utils";
+import { avatarExtractors, clearAllCacheWithToast } from "@/utils";
 
 export default function ConfluenceSearchUserProvider() {
   return (
@@ -20,16 +20,15 @@ export default function ConfluenceSearchUserProvider() {
 
 function ConfluenceSearchUser() {
   const [searchText, setSearchText] = useState("");
-  const { searchPageSize, confluenceBaseUrl } = useConfluencePreferencesContext();
+  const { confluenceBaseUrl } = useConfluencePreferencesContext();
 
   const cql = useMemo(() => {
     if (!searchText) return "";
     return `user.fullname ~ "${searchText}"`;
   }, [searchText]);
 
-  const { data, fetchNextPage, isFetchingNextPage, isLoading, error } = useConfluenceSearchUserInfiniteQuery(
+  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } = useConfluenceSearchUserInfiniteQuery(
     cql,
-    searchPageSize,
     confluenceBaseUrl,
   );
 
@@ -49,6 +48,15 @@ function ConfluenceSearchUser() {
     }
   }, [error]);
 
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      showToast(Toast.Style.Success, "Refresh successful");
+    } catch {
+      // Error handling is done by useEffect
+    }
+  };
+
   const handleLoadMore = () => {
     if (hasMore && !isFetchingNextPage) {
       fetchNextPage();
@@ -64,9 +72,9 @@ function ConfluenceSearchUser() {
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search User..."
       pagination={{
-        onLoadMore: handleLoadMore,
         hasMore,
-        pageSize: searchPageSize,
+        onLoadMore: handleLoadMore,
+        pageSize: SEARCH_PAGE_SIZE,
       }}
     >
       {isEmpty ? (
@@ -93,6 +101,13 @@ function ConfluenceSearchUser() {
                     shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
                   />
                   {!!user.userKey && <Action.CopyToClipboard title="Copy User Key" content={user.userKey} />}
+                  <Action
+                    title="Refresh"
+                    icon={Icon.ArrowClockwise}
+                    shortcut={{ modifiers: ["cmd"], key: "r" }}
+                    onAction={handleRefresh}
+                  />
+                  <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                 </ActionPanel>
               }
             />

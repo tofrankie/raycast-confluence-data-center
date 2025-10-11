@@ -1,5 +1,11 @@
 import type { ConfluenceSpaceType, IconType, LabelType, ListItemIcon } from "@/types";
 
+export const CONFLUENCE_USER_STATUS = {
+  CURRENT: "current",
+  INACTIVE: "inactive",
+  DEACTIVATED: "deactivated",
+} as const;
+
 export const CONFLUENCE_ENTITY_TYPE = {
   CONTENT: "content",
   SPACE: "space",

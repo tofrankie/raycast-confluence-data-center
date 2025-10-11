@@ -1,7 +1,7 @@
 import type { InfiniteData } from "@tanstack/react-query";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { DEFAULT_SEARCH_PAGE_SIZE, COMMAND_NAMES } from "@/constants";
+import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import {
   searchContent,
   searchUser,
@@ -20,11 +20,7 @@ import type {
   ProcessedConfluenceSpaceItem,
 } from "@/types";
 
-export const useConfluenceSearchContentInfiniteQuery = (
-  cql: string,
-  searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
-  baseUrl: string,
-) => {
+export const useConfluenceSearchContentInfiniteQuery = (cql: string, baseUrl: string) => {
   return useInfiniteQuery<
     ConfluenceSearchContentResponse,
     Error,
@@ -34,10 +30,10 @@ export const useConfluenceSearchContentInfiniteQuery = (
     }
   >({
     enabled: cql.length >= 2,
-    queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT, { cql, pageSize: searchPageSize }],
+    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT, { cql, pageSize: SEARCH_PAGE_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchContent(cql, searchPageSize, start);
+      const response = await searchContent(cql, SEARCH_PAGE_SIZE, start);
       return response;
     },
     select: (data) => {
@@ -52,7 +48,7 @@ export const useConfluenceSearchContentInfiniteQuery = (
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       const hasNextLink = !!lastPage._links?.next;
-      const nextPageParam = hasNextLink ? allPages.length * searchPageSize : undefined;
+      const nextPageParam = hasNextLink ? allPages.length * SEARCH_PAGE_SIZE : undefined;
       return nextPageParam;
     },
     staleTime: 60 * 1000, // 1min
@@ -73,14 +69,14 @@ export const useToggleFavorite = () => {
     },
     onMutate: async ({ contentId, isFavorited }) => {
       // 取消所有正在进行的查询，避免冲突
-      await queryClient.cancelQueries({ queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT] });
+      await queryClient.cancelQueries({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] });
 
       // 获取当前查询的缓存数据
-      const previousData = queryClient.getQueriesData({ queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT] });
+      const previousData = queryClient.getQueriesData({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] });
 
       // 乐观更新所有相关的查询缓存
       queryClient.setQueriesData(
-        { queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT] },
+        { queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] },
         (old: InfiniteData<ConfluenceSearchContentResponse> | undefined) => {
           if (!old) return old;
 
@@ -123,16 +119,12 @@ export const useToggleFavorite = () => {
     },
     onSettled: () => {
       // 无论成功还是失败，都重新获取数据以确保一致性
-      queryClient.invalidateQueries({ queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_CONTENT] });
+      queryClient.invalidateQueries({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] });
     },
   });
 };
 
-export const useConfluenceSearchUserInfiniteQuery = (
-  cql: string,
-  searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
-  baseUrl: string,
-) => {
+export const useConfluenceSearchUserInfiniteQuery = (cql: string, baseUrl: string) => {
   return useInfiniteQuery<
     ConfluenceSearchResponse,
     Error,
@@ -142,10 +134,10 @@ export const useConfluenceSearchUserInfiniteQuery = (
     }
   >({
     enabled: cql.length >= 2,
-    queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_USER, { cql, pageSize: searchPageSize }],
+    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_USER, { cql, pageSize: SEARCH_PAGE_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchUser(cql, searchPageSize, start);
+      const response = await searchUser(cql, SEARCH_PAGE_SIZE, start);
       return response;
     },
     select: (data) => {
@@ -168,7 +160,7 @@ export const useConfluenceSearchUserInfiniteQuery = (
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       const hasNextLink = !!lastPage._links?.next;
-      const nextPageParam = hasNextLink ? allPages.length * searchPageSize : undefined;
+      const nextPageParam = hasNextLink ? allPages.length * SEARCH_PAGE_SIZE : undefined;
       return nextPageParam;
     },
     staleTime: 60 * 1000, // 1min
@@ -176,11 +168,7 @@ export const useConfluenceSearchUserInfiniteQuery = (
   });
 };
 
-export const useConfluenceSearchSpaceInfiniteQuery = (
-  cql: string,
-  searchPageSize: number = DEFAULT_SEARCH_PAGE_SIZE,
-  baseUrl: string,
-) => {
+export const useConfluenceSearchSpaceInfiniteQuery = (cql: string, baseUrl: string) => {
   return useInfiniteQuery<
     ConfluenceSearchResponse,
     Error,
@@ -190,10 +178,10 @@ export const useConfluenceSearchSpaceInfiniteQuery = (
     }
   >({
     enabled: cql.length >= 2,
-    queryKey: [COMMAND_NAMES.CONFLUENCE_SEARCH_SPACE, { cql, pageSize: searchPageSize }],
+    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_SPACE, { cql, pageSize: SEARCH_PAGE_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchSpace(cql, searchPageSize, start);
+      const response = await searchSpace(cql, SEARCH_PAGE_SIZE, start);
       return response;
     },
     select: (data) => {
@@ -216,7 +204,7 @@ export const useConfluenceSearchSpaceInfiniteQuery = (
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       const hasNextLink = !!lastPage._links?.next;
-      const nextPageParam = hasNextLink ? allPages.length * searchPageSize : undefined;
+      const nextPageParam = hasNextLink ? allPages.length * SEARCH_PAGE_SIZE : undefined;
       return nextPageParam;
     },
     staleTime: 60 * 1000, // 1min

@@ -1,13 +1,8 @@
-import path from "node:path";
-import { writeFile } from "node:fs/promises";
-
-import { environment } from "@raycast/api";
-
-import { confluenceRequest } from "@/utils";
-import { CONFLUENCE_API, DEFAULT_SEARCH_PAGE_SIZE } from "@/constants";
+import { confluenceRequest, writeResponseFile } from "@/utils";
+import { CONFLUENCE_API, COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import type { ConfluenceSearchContentResponse, ConfluenceSearchResponse } from "@/types";
 
-export async function searchContent(cql: string, limit: number = DEFAULT_SEARCH_PAGE_SIZE, start: number = 0) {
+export async function searchContent(cql: string, limit: number = SEARCH_PAGE_SIZE, start: number = 0) {
   const params = {
     cql,
     start,
@@ -17,8 +12,9 @@ export async function searchContent(cql: string, limit: number = DEFAULT_SEARCH_
 
   const data = await confluenceRequest<ConfluenceSearchContentResponse>("GET", CONFLUENCE_API.SEARCH_CONTENT, params);
 
-  // TODO: 调试
-  writeToSupportPathFile(JSON.stringify(data, null, 2), "confluence-search-content-response.json");
+  if (data) {
+    writeResponseFile(JSON.stringify(data, null, 2), COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT);
+  }
 
   return data;
 }
@@ -33,23 +29,24 @@ export async function removeFromFavorite(contentId: string): Promise<void> {
   await confluenceRequest<void>("DELETE", endpoint);
 }
 
-export async function searchUser(cql: string, limit: number = DEFAULT_SEARCH_PAGE_SIZE, start: number = 0) {
+export async function searchUser(cql: string, limit: number = SEARCH_PAGE_SIZE, start: number = 0) {
   const params = {
     cql,
     start,
     limit,
-    expand: "user",
+    expand: "user,user.status",
   };
 
   const data = await confluenceRequest<ConfluenceSearchResponse>("GET", CONFLUENCE_API.SEARCH, params);
 
-  // TODO: 调试
-  writeToSupportPathFile(JSON.stringify(data, null, 2), "confluence-search-user-response.json");
+  if (data) {
+    writeResponseFile(JSON.stringify(data, null, 2), COMMAND_NAME.CONFLUENCE_SEARCH_USER);
+  }
 
   return data;
 }
 
-export async function searchSpace(cql: string, limit: number = DEFAULT_SEARCH_PAGE_SIZE, start: number = 0) {
+export async function searchSpace(cql: string, limit: number = SEARCH_PAGE_SIZE, start: number = 0) {
   const params = {
     cql,
     start,
@@ -59,15 +56,9 @@ export async function searchSpace(cql: string, limit: number = DEFAULT_SEARCH_PA
 
   const data = await confluenceRequest<ConfluenceSearchResponse>("GET", CONFLUENCE_API.SEARCH, params);
 
-  // TODO: 调试
-  writeToSupportPathFile(JSON.stringify(data, null, 2), "confluence-search-space-response.json");
+  if (data) {
+    writeResponseFile(JSON.stringify(data, null, 2), COMMAND_NAME.CONFLUENCE_SEARCH_SPACE);
+  }
 
   return data;
-}
-
-export async function writeToSupportPathFile(content: string, filename: string) {
-  const filePath = path.join(environment.supportPath, filename);
-  await writeFile(filePath, content, "utf8");
-  // TODO:
-  console.log("🚀 ~ File written to:", filePath);
 }
