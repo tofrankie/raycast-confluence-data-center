@@ -7,7 +7,6 @@ import { parseJQL, clearAllCacheWithToast } from "@/utils";
 import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import { SearchBarAccessory } from "@/components";
 import { useJiraSearchIssueInfiniteQuery } from "@/hooks";
-import { JiraPreferencesProvider, useJiraPreferencesContext } from "@/contexts";
 import type { SearchFilter } from "@/types";
 
 // for test: ORDER BY updated DESC
@@ -18,16 +17,13 @@ const ISSUE_KEY_REGEX = /^[A-Z][A-Z0-9_]+-\d+$/;
 
 export default function JiraSearchIssueProvider() {
   return (
-    <JiraPreferencesProvider>
-      <QueryProvider>
-        <JiraSearchIssueContent />
-      </QueryProvider>
-    </JiraPreferencesProvider>
+    <QueryProvider>
+      <JiraSearchIssueContent />
+    </QueryProvider>
   );
 }
 
 function JiraSearchIssueContent() {
-  const { jiraBaseUrl } = useJiraPreferencesContext();
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 
@@ -61,7 +57,7 @@ function JiraSearchIssueContent() {
   }, [searchText, filter]);
 
   const { data, error, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
-    useJiraSearchIssueInfiniteQuery(jql, jiraBaseUrl);
+    useJiraSearchIssueInfiniteQuery(jql);
 
   const issues = data?.issues || [];
 

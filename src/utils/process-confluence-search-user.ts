@@ -1,17 +1,20 @@
 import { Image } from "@raycast/api";
 
 import { avatarCache } from "@/utils";
-import { CONFLUENCE_ENTITY_TYPE, CONFLUENCE_USER_STATUS, DEFAULT_AVATAR, TYPE_ICONS } from "@/constants";
+import {
+  CONFLUENCE_BASE_URL,
+  CONFLUENCE_ENTITY_TYPE,
+  CONFLUENCE_USER_STATUS,
+  DEFAULT_AVATAR,
+  TYPE_ICONS,
+} from "@/constants";
 import type { ConfluenceSearchResult, ProcessedConfluenceUserItem } from "@/types";
 
-export function processConfluenceSearchUserItems(
-  items: ConfluenceSearchResult[],
-  baseUrl: string,
-): ProcessedConfluenceUserItem[] {
-  return items.map((item) => processConfluenceSearchUserItem(item, baseUrl));
+export function processConfluenceSearchUserItems(items: ConfluenceSearchResult[]): ProcessedConfluenceUserItem[] {
+  return items.map((item) => processConfluenceSearchUserItem(item));
 }
 
-function processConfluenceSearchUserItem(item: ConfluenceSearchResult, baseUrl: string): ProcessedConfluenceUserItem {
+function processConfluenceSearchUserItem(item: ConfluenceSearchResult): ProcessedConfluenceUserItem {
   const user = item.user!;
 
   const title = user.displayName;
@@ -19,7 +22,7 @@ function processConfluenceSearchUserItem(item: ConfluenceSearchResult, baseUrl: 
   // Anonymous user may not have userKey, use username as fallback
   const userKey = user.userKey || user.username;
 
-  const avatarUrl = user.profilePicture.path ? `${baseUrl}${user.profilePicture.path}` : "";
+  const avatarUrl = user.profilePicture.path ? `${CONFLUENCE_BASE_URL}${user.profilePicture.path}` : "";
   const avatarCacheKey = userKey;
   const avatar = (avatarCacheKey && avatarCache.get(avatarCacheKey)) ?? DEFAULT_AVATAR;
 
@@ -31,7 +34,7 @@ function processConfluenceSearchUserItem(item: ConfluenceSearchResult, baseUrl: 
     : TYPE_ICONS[CONFLUENCE_ENTITY_TYPE.USER];
 
   // TODO: 打开空间主页
-  const url = `${baseUrl}${item.url}`;
+  const url = `${CONFLUENCE_BASE_URL}${item.url}`;
 
   const subtitle = { value: username, tooltip: `Username` };
 

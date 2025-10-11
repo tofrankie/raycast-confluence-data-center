@@ -2,17 +2,13 @@ import { JIRA_ISSUE_TYPE_ICONS } from "@/constants";
 import { getJiraIssueUrl, getSelectedCustomFields } from "@/utils";
 import type { JiraIssue, JiraUser, ProcessedJiraIssueItem, ListItemAccessories, ListItemSubtitle } from "@/types";
 
-export function processJiraSearchIssue(
-  issue: JiraIssue,
-  baseUrl: string,
-  names?: Record<string, string>,
-): ProcessedJiraIssueItem {
+export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, string>): ProcessedJiraIssueItem {
   const { fields, key, id } = issue;
 
   const summary = fields.summary || "No Summary";
   const issueType = fields.issuetype?.name || "Task";
 
-  const url = getJiraIssueUrl(baseUrl, key);
+  const url = getJiraIssueUrl(key);
 
   const icon = {
     value: JIRA_ISSUE_TYPE_ICONS[issueType as keyof typeof JIRA_ISSUE_TYPE_ICONS] || "icon-unknown.svg",

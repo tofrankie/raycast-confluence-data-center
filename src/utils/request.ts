@@ -1,4 +1,9 @@
-import { getPreferenceValues } from "@raycast/api";
+import {
+  CONFLUENCE_BASE_URL,
+  CONFLUENCE_PERSONAL_ACCESS_TOKEN,
+  JIRA_BASE_URL,
+  JIRA_PERSONAL_ACCESS_TOKEN,
+} from "@/constants";
 
 type Method = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -7,10 +12,8 @@ export async function confluenceRequest<T>(
   endpoint: string,
   params?: Record<string, unknown>,
 ): Promise<T> {
-  const { confluenceBaseUrl, confluencePersonalAccessToken } = getPreferenceValues<Preferences>();
-
   try {
-    const url = new URL(endpoint, confluenceBaseUrl);
+    const url = new URL(endpoint, CONFLUENCE_BASE_URL);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -20,7 +23,7 @@ export async function confluenceRequest<T>(
 
     const response = await fetch(url.toString(), {
       method,
-      headers: getAuthHeaders(confluencePersonalAccessToken),
+      headers: getAuthHeaders(CONFLUENCE_PERSONAL_ACCESS_TOKEN),
     });
 
     if (!response.ok) {
@@ -40,10 +43,8 @@ export async function confluenceRequest<T>(
 }
 
 export async function jiraRequest<T>(method: Method, endpoint: string, params?: Record<string, unknown>): Promise<T> {
-  const { jiraBaseUrl, jiraPersonalAccessToken } = getPreferenceValues<Preferences>();
-
   try {
-    const url = new URL(endpoint, jiraBaseUrl);
+    const url = new URL(endpoint, JIRA_BASE_URL);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -55,7 +56,7 @@ export async function jiraRequest<T>(method: Method, endpoint: string, params?: 
 
     const response = await fetch(url.toString(), {
       method,
-      headers: getAuthHeaders(jiraPersonalAccessToken),
+      headers: getAuthHeaders(JIRA_PERSONAL_ACCESS_TOKEN),
     });
 
     if (!response.ok) {

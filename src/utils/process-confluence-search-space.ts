@@ -1,30 +1,30 @@
 import { Image } from "@raycast/api";
 
 import { avatarCache } from "@/utils";
-import { CONFLUENCE_ENTITY_TYPE, SPACE_TYPE_LABELS, TYPE_ICONS, DEFAULT_AVATAR } from "@/constants";
+import {
+  CONFLUENCE_ENTITY_TYPE,
+  SPACE_TYPE_LABELS,
+  TYPE_ICONS,
+  DEFAULT_AVATAR,
+  CONFLUENCE_BASE_URL,
+} from "@/constants";
 import type { ConfluenceSearchResult, ConfluenceSpaceType, ProcessedConfluenceSpaceItem } from "@/types";
 
-export function processConfluenceSearchSpaceItems(
-  results: ConfluenceSearchResult[],
-  baseUrl: string,
-): ProcessedConfluenceSpaceItem[] {
+export function processConfluenceSearchSpaceItems(results: ConfluenceSearchResult[]): ProcessedConfluenceSpaceItem[] {
   return results
     .filter((result) => result.space && result.entityType === "space")
-    .map((result) => processConfluenceSearchSpaceItem(result, baseUrl));
+    .map((result) => processConfluenceSearchSpaceItem(result));
 }
 
-function processConfluenceSearchSpaceItem(
-  result: ConfluenceSearchResult,
-  baseUrl: string,
-): ProcessedConfluenceSpaceItem {
+function processConfluenceSearchSpaceItem(result: ConfluenceSearchResult): ProcessedConfluenceSpaceItem {
   const space = result.space!;
 
   const spaceKey = space.key || "";
   const spaceType = space.type || "";
 
-  const url = space._links?.webui ? `${baseUrl}${space._links.webui}` : "";
+  const url = space._links?.webui ? `${CONFLUENCE_BASE_URL}${space._links.webui}` : "";
 
-  const avatarUrl = space.icon.path ? `${baseUrl}${space.icon.path}` : "";
+  const avatarUrl = space.icon.path ? `${CONFLUENCE_BASE_URL}${space.icon.path}` : "";
   const avatarCacheKey = spaceKey;
   const avatar = (avatarCacheKey && avatarCache.get(avatarCacheKey)) ?? DEFAULT_AVATAR;
 

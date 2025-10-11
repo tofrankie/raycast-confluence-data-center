@@ -1,20 +1,16 @@
 import { Icon, Image } from "@raycast/api";
 
 import { avatarCache } from "@/utils";
-import { CONFLUENCE_CONTENT_TYPE, DEFAULT_AVATAR, TYPE_ICONS, TYPE_LABELS } from "@/constants";
+import { CONFLUENCE_BASE_URL, CONFLUENCE_CONTENT_TYPE, DEFAULT_AVATAR, TYPE_ICONS, TYPE_LABELS } from "@/constants";
 import type { ConfluenceSearchContentResult, IconType, ProcessedConfluenceContentItem } from "@/types";
 
 export function processConfluenceSearchContentItems(
   items: ConfluenceSearchContentResult[],
-  baseUrl: string,
 ): ProcessedConfluenceContentItem[] {
-  return items.map((item) => processConfluenceSearchContentItem(item, baseUrl));
+  return items.map((item) => processConfluenceSearchContentItem(item));
 }
 
-function processConfluenceSearchContentItem(
-  item: ConfluenceSearchContentResult,
-  baseUrl: string,
-): ProcessedConfluenceContentItem {
+function processConfluenceSearchContentItem(item: ConfluenceSearchContentResult): ProcessedConfluenceContentItem {
   const id = item.id;
   const title = item.title;
   const spaceName = item.space?.name || "";
@@ -24,6 +20,8 @@ function processConfluenceSearchContentItem(
     value: TYPE_ICONS[iconType] ?? "icon-unknown.svg",
     tooltip: TYPE_LABELS[iconType] ?? "Unknown",
   };
+
+  const baseUrl = CONFLUENCE_BASE_URL;
 
   const url = `${baseUrl}${item._links.webui}`;
   const editUrl = `${baseUrl}/pages/editpage.action?pageId=${item.id}`;

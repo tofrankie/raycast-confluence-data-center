@@ -4,17 +4,14 @@ import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { useJiraFieldQuery } from "@/hooks";
-import { JiraPreferencesProvider } from "@/contexts";
 import { getSelectedCustomFields, addCustomField, removeCustomField, clearAllCacheWithToast } from "@/utils";
 import type { JiraField, ProcessedJiraFieldItem } from "@/types";
 
 export default function JiraManageFieldProvider() {
   return (
-    <JiraPreferencesProvider>
-      <QueryProvider>
-        <JiraManageFieldContent />
-      </QueryProvider>
-    </JiraPreferencesProvider>
+    <QueryProvider>
+      <JiraManageFieldContent />
+    </QueryProvider>
   );
 }
 

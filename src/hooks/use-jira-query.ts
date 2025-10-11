@@ -10,7 +10,7 @@ import {
 import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import type { JiraSearchIssueResponse, JiraField, ProcessedJiraIssueItem, ProcessedJiraFieldItem } from "@/types";
 
-export function useJiraSearchIssueInfiniteQuery(jql: string, baseUrl: string) {
+export function useJiraSearchIssueInfiniteQuery(jql: string) {
   return useInfiniteQuery<
     JiraSearchIssueResponse,
     Error,
@@ -49,10 +49,8 @@ export function useJiraSearchIssueInfiniteQuery(jql: string, baseUrl: string) {
     },
     select: (data) => {
       const allIssue = data.pages.flatMap((page) => page.issues);
-      const names = data.pages[0]?.names; // 获取 names 对象
-      const processedIssues: ProcessedJiraIssueItem[] = allIssue.map((issue) =>
-        processJiraSearchIssue(issue, baseUrl, names),
-      );
+      const names = data.pages[0]?.names;
+      const processedIssues: ProcessedJiraIssueItem[] = allIssue.map((issue) => processJiraSearchIssue(issue, names));
 
       const hasMore =
         data.pages.length > 0

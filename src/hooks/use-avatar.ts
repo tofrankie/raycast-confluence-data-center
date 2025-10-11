@@ -1,9 +1,8 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
 
-import { APP_TYPE } from "@/constants";
+import { APP_TYPE, CONFLUENCE_PERSONAL_ACCESS_TOKEN, JIRA_PERSONAL_ACCESS_TOKEN } from "@/constants";
 import { avatarCache, downloadAvatar } from "@/utils";
-import { useConfluencePreferencesContext, useJiraPreferencesContext } from "@/contexts";
 import type { AvatarList, AppType, AvatarType } from "@/types";
 
 export function useAvatar<T>({
@@ -17,13 +16,7 @@ export function useAvatar<T>({
   avatarType: AvatarType;
   extractAvatarData: (items: T[]) => AvatarList;
 }) {
-  const confluencePreferences = useConfluencePreferencesContext();
-  const jiraPreferences = useJiraPreferencesContext();
-
-  const token =
-    appType === APP_TYPE.CONFLUENCE
-      ? confluencePreferences.confluencePersonalAccessToken
-      : jiraPreferences.jiraPersonalAccessToken;
+  const token = appType === APP_TYPE.CONFLUENCE ? CONFLUENCE_PERSONAL_ACCESS_TOKEN : JIRA_PERSONAL_ACCESS_TOKEN;
 
   const avatarList = useMemo(() => extractAvatarData(items), [items, extractAvatarData]);
 

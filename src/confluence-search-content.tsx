@@ -7,23 +7,19 @@ import { buildCQL, clearAllCacheWithToast, avatarExtractors } from "@/utils";
 import { APP_TYPE, AVATAR_TYPE, COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import { SearchBarAccessory, CQLWrapper } from "@/components";
 import { useConfluenceSearchContentInfiniteQuery, useToggleFavorite, useAvatar } from "@/hooks";
-import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "@/contexts";
 import type { SearchFilter } from "@/types";
 
 export default function ConfluenceSearchContentProvider() {
   return (
-    <ConfluencePreferencesProvider>
-      <QueryProvider>
-        <ConfluenceSearchContent />
-      </QueryProvider>
-    </ConfluencePreferencesProvider>
+    <QueryProvider>
+      <ConfluenceSearchContent />
+    </QueryProvider>
   );
 }
 
 function ConfluenceSearchContent() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
-  const { confluenceBaseUrl } = useConfluencePreferencesContext();
 
   const cql = useMemo(() => {
     if (!searchText && !filter) {
@@ -39,7 +35,7 @@ function ConfluenceSearchContent() {
   }, [searchText, filter]);
 
   const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =
-    useConfluenceSearchContentInfiniteQuery(cql, confluenceBaseUrl);
+    useConfluenceSearchContentInfiniteQuery(cql);
 
   const results = useMemo(() => data?.items ?? [], [data?.items]);
 

@@ -1,5 +1,5 @@
 import { jiraRequest, writeResponseFile } from "@/utils";
-import { JIRA_API, DEFAULT_SEARCH_PAGE_SIZE, COMMAND_NAME } from "@/constants";
+import { JIRA_API, COMMAND_NAME, SEARCH_PAGE_SIZE, JIRA_BASE_URL } from "@/constants";
 import type { JiraSearchIssueResponse, JiraField } from "@/types";
 
 type JiraSearchIssueParams = {
@@ -14,7 +14,7 @@ export async function searchJiraIssue(params: JiraSearchIssueParams): Promise<Ji
   const searchParams = {
     jql: params.jql,
     startAt: params.startAt || 0,
-    maxResults: params.maxResults || DEFAULT_SEARCH_PAGE_SIZE,
+    maxResults: params.maxResults || SEARCH_PAGE_SIZE,
     fields: params.fields?.join(","),
     expand: params.expand?.join(","),
   };
@@ -38,6 +38,6 @@ export async function getJiraField(): Promise<JiraField[]> {
   return data || [];
 }
 
-export function getJiraIssueUrl(baseUrl: string, issueKey: string): string {
-  return `${baseUrl}/browse/${issueKey}`;
+export function getJiraIssueUrl(issueKey: string): string {
+  return `${JIRA_BASE_URL}/browse/${issueKey}`;
 }

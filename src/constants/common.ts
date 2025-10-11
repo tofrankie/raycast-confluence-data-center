@@ -1,8 +1,3 @@
-import { getPreferenceValues } from "@raycast/api";
-import { formatSearchPageSize } from "@/utils";
-
-const preferences = getPreferenceValues<Preferences>();
-
 export const APP_TYPE = {
   CONFLUENCE: "confluence",
   JIRA: "jira",
@@ -26,9 +21,3 @@ export const JIRA_API = {
   SEARCH: "/rest/api/2/search",
   FIELD: "/rest/api/2/field",
 } as const;
-
-export const DEFAULT_SEARCH_PAGE_SIZE = 20;
-
-export const SEARCH_PAGE_SIZE = formatSearchPageSize(preferences.searchPageSize) || DEFAULT_SEARCH_PAGE_SIZE;
-
-export const DEBUG_ENABLE = preferences.debugEnable;

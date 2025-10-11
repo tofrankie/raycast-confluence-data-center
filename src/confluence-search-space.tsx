@@ -7,23 +7,19 @@ import { buildCQL, avatarExtractors, clearAllCacheWithToast } from "@/utils";
 import { APP_TYPE, AVATAR_TYPE, COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import { SearchBarAccessory, CQLWrapper } from "@/components";
 import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "@/hooks";
-import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "@/contexts";
 import type { SearchFilter } from "@/types";
 
 export default function ConfluenceSearchSpaceProvider() {
   return (
-    <ConfluencePreferencesProvider>
-      <QueryProvider>
-        <ConfluenceSearchSpace />
-      </QueryProvider>
-    </ConfluencePreferencesProvider>
+    <QueryProvider>
+      <ConfluenceSearchSpace />
+    </QueryProvider>
   );
 }
 
 function ConfluenceSearchSpace() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
-  const { confluenceBaseUrl } = useConfluencePreferencesContext();
 
   const cql = useMemo(() => {
     if (!searchText) return "";
@@ -36,10 +32,8 @@ function ConfluenceSearchSpace() {
     return buildCQL(searchText, filter ? [filter, extraFilter] : []);
   }, [searchText, filter]);
 
-  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } = useConfluenceSearchSpaceInfiniteQuery(
-    cql,
-    confluenceBaseUrl,
-  );
+  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =
+    useConfluenceSearchSpaceInfiniteQuery(cql);
 
   const results = useMemo(() => data?.items ?? [], [data?.items]);
   const hasMore = useMemo(() => data?.hasMore ?? false, [data?.hasMore]);

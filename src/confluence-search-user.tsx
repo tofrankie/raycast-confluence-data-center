@@ -5,32 +5,26 @@ import { showFailureToast } from "@raycast/utils";
 import QueryProvider from "@/query-provider";
 import { APP_TYPE, AVATAR_TYPE, SEARCH_PAGE_SIZE } from "@/constants";
 import { useConfluenceSearchUserInfiniteQuery, useAvatar } from "@/hooks";
-import { ConfluencePreferencesProvider, useConfluencePreferencesContext } from "@/contexts";
 import { avatarExtractors, clearAllCacheWithToast } from "@/utils";
 
 export default function ConfluenceSearchUserProvider() {
   return (
-    <ConfluencePreferencesProvider>
-      <QueryProvider>
-        <ConfluenceSearchUser />
-      </QueryProvider>
-    </ConfluencePreferencesProvider>
+    <QueryProvider>
+      <ConfluenceSearchUser />
+    </QueryProvider>
   );
 }
 
 function ConfluenceSearchUser() {
   const [searchText, setSearchText] = useState("");
-  const { confluenceBaseUrl } = useConfluencePreferencesContext();
 
   const cql = useMemo(() => {
     if (!searchText) return "";
     return `user.fullname ~ "${searchText}"`;
   }, [searchText]);
 
-  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } = useConfluenceSearchUserInfiniteQuery(
-    cql,
-    confluenceBaseUrl,
-  );
+  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =
+    useConfluenceSearchUserInfiniteQuery(cql);
 
   const results = useMemo(() => data?.items ?? [], [data?.items]);
   const hasMore = useMemo(() => data?.hasMore ?? false, [data?.hasMore]);

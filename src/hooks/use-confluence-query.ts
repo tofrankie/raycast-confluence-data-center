@@ -20,7 +20,7 @@ import type {
   ProcessedConfluenceSpaceItem,
 } from "@/types";
 
-export const useConfluenceSearchContentInfiniteQuery = (cql: string, baseUrl: string) => {
+export const useConfluenceSearchContentInfiniteQuery = (cql: string) => {
   return useInfiniteQuery<
     ConfluenceSearchContentResponse,
     Error,
@@ -37,7 +37,7 @@ export const useConfluenceSearchContentInfiniteQuery = (cql: string, baseUrl: st
       return response;
     },
     select: (data) => {
-      const items = data.pages.flatMap((page) => processConfluenceSearchContentItems(page.results, baseUrl));
+      const items = data.pages.flatMap((page) => processConfluenceSearchContentItems(page.results));
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
 
       return {
@@ -124,7 +124,7 @@ export const useToggleFavorite = () => {
   });
 };
 
-export const useConfluenceSearchUserInfiniteQuery = (cql: string, baseUrl: string) => {
+export const useConfluenceSearchUserInfiniteQuery = (cql: string) => {
   return useInfiniteQuery<
     ConfluenceSearchResponse,
     Error,
@@ -148,7 +148,7 @@ export const useConfluenceSearchUserInfiniteQuery = (cql: string, baseUrl: strin
         (result, index, self) => index === self.findIndex((r) => r.user?.userKey === result.user?.userKey),
       );
 
-      const processedUsers = processConfluenceSearchUserItems(uniqueResults, baseUrl);
+      const processedUsers = processConfluenceSearchUserItems(uniqueResults);
 
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
 
@@ -168,7 +168,7 @@ export const useConfluenceSearchUserInfiniteQuery = (cql: string, baseUrl: strin
   });
 };
 
-export const useConfluenceSearchSpaceInfiniteQuery = (cql: string, baseUrl: string) => {
+export const useConfluenceSearchSpaceInfiniteQuery = (cql: string) => {
   return useInfiniteQuery<
     ConfluenceSearchResponse,
     Error,
@@ -192,7 +192,7 @@ export const useConfluenceSearchSpaceInfiniteQuery = (cql: string, baseUrl: stri
         (result, index, self) => index === self.findIndex((r) => r.space?.key === result.space?.key),
       );
 
-      const processedSpaces = processConfluenceSearchSpaceItems(uniqueResults, baseUrl);
+      const processedSpaces = processConfluenceSearchSpaceItems(uniqueResults);
 
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
 
