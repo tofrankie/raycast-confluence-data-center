@@ -11,7 +11,7 @@ import {
 
 const FETCH_CONFIG = {
   method: "GET",
-  endpoint: "/rest/api/2/status",
+  endpoint: "/rest/api/2/jql/autocompletedata",
   appType: APP_TYPE.JIRA as typeof APP_TYPE.JIRA | typeof APP_TYPE.CONFLUENCE,
 } as const;
 

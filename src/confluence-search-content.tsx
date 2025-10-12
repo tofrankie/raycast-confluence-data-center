@@ -22,16 +22,18 @@ function ConfluenceSearchContent() {
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 
   const cql = useMemo(() => {
-    if (!searchText && !filter) {
+    const trimmedText = searchText.trim();
+
+    if (!trimmedText && !filter) {
       return `id in recentlyViewedContent(${SEARCH_PAGE_SIZE}, 0)`;
     }
-    if (!searchText && filter?.autoQuery) {
+    if (!trimmedText && filter?.autoQuery) {
       return filter.query;
     }
-    if (!searchText || searchText.length < 2) {
+    if (trimmedText.length < 2) {
       return "";
     }
-    return buildCQL(searchText, filter ? [filter] : []);
+    return buildCQL(trimmedText, filter ? [filter] : []);
   }, [searchText, filter]);
 
   const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =

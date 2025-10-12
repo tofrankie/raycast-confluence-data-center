@@ -7,6 +7,8 @@ export * from "./jira";
 export * from "./request";
 export * from "./cql-parser";
 export * from "./cql-builder";
+export * from "./jql-parser";
+export * from "./jql-builder";
 export * from "./process-confluence-search-content";
 export * from "./process-confluence-search-user";
 export * from "./process-confluence-search-space";

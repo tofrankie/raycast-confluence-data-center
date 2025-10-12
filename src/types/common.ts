@@ -44,3 +44,13 @@ export interface CQLQuery {
     values: string[];
   };
 }
+
+export interface JQLQuery {
+  raw: string;
+  isJQL: boolean;
+  parsed?: {
+    fields: string[];
+    operators: string[];
+    values: string[];
+  };
+}

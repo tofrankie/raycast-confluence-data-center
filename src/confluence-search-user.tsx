@@ -81,23 +81,23 @@ function ConfluenceSearchUser() {
         />
       ) : (
         <List.Section title={searchTitle}>
-          {results.map((user) => {
+          {results.map((item) => {
             return (
               <List.Item
-                key={user.renderKey}
-                icon={user.icon}
-                title={user.title}
-                subtitle={user.subtitle}
-                accessories={user.accessories}
+                key={item.renderKey}
+                icon={item.icon}
+                title={item.title}
+                subtitle={item.subtitle}
+                accessories={item.accessories}
                 actions={
                   <ActionPanel>
-                    <Action.OpenInBrowser title="Open in Browser" url={user.url} />
+                    <Action.OpenInBrowser title="Open in Browser" url={item.url} />
                     <Action.CopyToClipboard
                       title="Copy Link"
-                      content={user.url}
+                      content={item.url}
                       shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
                     />
-                    {!!user.userKey && <Action.CopyToClipboard title="Copy User Key" content={user.userKey} />}
+                    {!!item.userKey && <Action.CopyToClipboard title="Copy User Key" content={item.userKey} />}
                     <Action
                       title="Refresh"
                       icon={Icon.ArrowClockwise}

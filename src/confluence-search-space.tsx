@@ -108,23 +108,23 @@ function ConfluenceSearchSpace() {
           />
         ) : (
           <List.Section title={searchTitle}>
-            {results.map((space) => {
+            {results.map((item) => {
               return (
                 <List.Item
-                  key={space.renderKey}
-                  icon={space.icon}
-                  title={space.name}
-                  subtitle={space.subtitle}
-                  accessories={space.accessories}
+                  key={item.renderKey}
+                  icon={item.icon}
+                  title={item.name}
+                  subtitle={item.subtitle}
+                  accessories={item.accessories}
                   actions={
                     <ActionPanel>
-                      <Action.OpenInBrowser title="Open in Browser" url={space.url} />
+                      <Action.OpenInBrowser title="Open in Browser" url={item.url} />
                       <Action.CopyToClipboard
                         title="Copy Link"
-                        content={space.url}
+                        content={item.url}
                         shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
                       />
-                      <Action.CopyToClipboard title="Copy Space Key" content={space.key} />
+                      <Action.CopyToClipboard title="Copy Space Key" content={item.key} />
                       {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
                       <Action
                         title="Refresh"

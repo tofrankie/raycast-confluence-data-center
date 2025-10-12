@@ -3,15 +3,11 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { parseJQL, clearAllCacheWithToast } from "@/utils";
-import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import { SearchBarAccessory } from "@/components";
+import { clearAllCacheWithToast, buildJQL } from "@/utils";
+import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery } from "@/hooks";
 import type { SearchFilter } from "@/types";
-
-// for test: ORDER BY updated DESC
-const DEFAULT_JQL = "assignee = currentUser() AND resolution = unresolved";
-const DEFAULT_ORDER_BY = "ORDER BY updated DESC, created DESC, summary ASC, key ASC, priority DESC";
 
 const ISSUE_KEY_REGEX = /^[A-Z][A-Z0-9_]+-\d+$/;
 const PURE_NUMBER_REGEX = /^\d+$/;
@@ -37,36 +33,45 @@ function JiraSearchIssueContent() {
   });
 
   const jql = useMemo(() => {
-    let query = searchText.trim();
+    const trimmedText = searchText.trim();
+    const filters = filter ? [filter] : [];
 
-    if (!query && filter?.autoQuery) {
-      query = filter.query;
-    } else if (!query && !filter) {
-      query = DEFAULT_JQL;
-    } else if (query) {
-      const parsed = parseJQL(query);
-      if (!parsed.isCQL) {
-        if (ISSUE_KEY_REGEX.test(query)) {
-          query = `key = "${query}" OR summary ~ "${query}"`;
-        } else if (PURE_NUMBER_REGEX.test(query) && projectKeys?.length) {
-          const issueKeys = projectKeys.map((key) => `${key}-${query}`).join(", ");
-          query = `summary ~ "${query}" OR key in (${issueKeys})`;
-        } else {
-          query = `summary ~ "${query}"`;
-        }
-      }
+    if (!trimmedText && filter?.autoQuery) {
+      return filter.query;
     }
 
-    query = query ? `${query} ${DEFAULT_ORDER_BY}` : "";
+    if (!trimmedText.length) {
+      return "";
+    }
 
-    return query;
+    if (ISSUE_KEY_REGEX.test(trimmedText)) {
+      filters.push({
+        id: "issue_key",
+        query: `key in (${trimmedText}) ORDER BY updated DESC, created DESC`,
+      });
+    } else if (PURE_NUMBER_REGEX.test(trimmedText) && projectKeys?.length) {
+      const keys = projectKeys.map((key) => `${key}-${trimmedText}`).join(", ");
+      filters.push({
+        id: "issue_key",
+        query: `key in (${keys}) ORDER BY updated DESC, created DESC`,
+      });
+    }
+    // TODO:
+    // else if (trimmedText && !isJQLSyntax(trimmedText)) {
+    //   filters.push({
+    //     id: "text",
+    //     query: "ORDER BY updated DESC, created DESC",
+    //   });
+    // }
+
+    return buildJQL(trimmedText, filters);
   }, [searchText, filter, projectKeys]);
 
   const jiraIssueEnabled = useMemo(() => {
     return (isJiraProjectFetched || !!jiraProjectError) && jql.length >= 2;
-  }, [isJiraProjectFetched, jiraProjectError]);
+  }, [isJiraProjectFetched, jiraProjectError, jql]);
 
-  const { data, error, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+  const { data, error, isLoading, isFetched, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
     useJiraSearchIssueInfiniteQuery(jql, {
       enabled: jiraIssueEnabled,
     });
@@ -100,10 +105,9 @@ function JiraSearchIssueContent() {
     }
   };
 
-  const sectionTitle =
-    !searchText && issues.length ? `Assigned to Me (${issues.length}/${data?.totalCount})` : undefined;
+  const sectionTitle = !searchText && issues.length ? `Results (${issues.length}/${data?.totalCount})` : undefined;
 
-  const isEmpty = !isLoading && !issues.length && jql.length;
+  const isEmpty = isFetched && !issues.length && jql.length;
 
   return (
     <List
