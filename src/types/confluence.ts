@@ -196,8 +196,16 @@ export interface ConfluenceSpace {
     };
   };
   metadata?: {
-    _expandable: {
-      labels: string;
+    labels: {
+      results: Array<{
+        prefix: string;
+        name: string;
+        id: string;
+        label: string;
+      }>;
+      start: number;
+      limit: number;
+      size: number;
     };
   };
   _links: {
@@ -205,8 +213,6 @@ export interface ConfluenceSpace {
     webui: string;
   };
   _expandable: {
-    metadata: string;
-    icon: string;
     retentionPolicy: string;
     homepage: string;
   };

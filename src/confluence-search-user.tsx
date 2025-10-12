@@ -20,7 +20,7 @@ function ConfluenceSearchUser() {
 
   const cql = useMemo(() => {
     if (!searchText) return "";
-    return `user.fullname ~ "${searchText}"`;
+    return `user.fullname ~ "${searchText}" AND type = user`;
   }, [searchText]);
 
   const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =

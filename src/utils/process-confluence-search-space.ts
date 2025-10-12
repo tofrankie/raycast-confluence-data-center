@@ -1,4 +1,4 @@
-import { Image } from "@raycast/api";
+import { Icon, Image } from "@raycast/api";
 
 import { avatarCache } from "@/utils";
 import {
@@ -28,6 +28,9 @@ function processConfluenceSearchSpaceItem(result: ConfluenceSearchResult): Proce
   const avatarCacheKey = spaceKey;
   const avatar = (avatarCacheKey && avatarCache.get(avatarCacheKey)) ?? DEFAULT_AVATAR;
 
+  const isFavourited =
+    space.metadata?.labels?.results?.some((label) => label.prefix === "my" && label.name === "favourite") ?? false;
+
   const icon = avatar
     ? {
         source: avatar,
@@ -42,6 +45,14 @@ function processConfluenceSearchSpaceItem(result: ConfluenceSearchResult): Proce
   };
   const spaceTypeLabel = SPACE_TYPE_LABELS[spaceType as ConfluenceSpaceType] ?? spaceType;
   const accessories = [
+    ...(isFavourited
+      ? [
+          {
+            icon: Icon.Star,
+            tooltip: "My Favourite Space",
+          },
+        ]
+      : []),
     {
       text: spaceTypeLabel,
       tooltip: `Space Type`,

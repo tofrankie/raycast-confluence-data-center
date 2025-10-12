@@ -29,7 +29,7 @@ function ConfluenceSearchSpace() {
       query: `type = space`,
       // transform: (processedQuery: string) => processedQuery.replace("text ~ ", "space.title ~ "),
     };
-    return buildCQL(searchText, filter ? [filter, extraFilter] : []);
+    return buildCQL(searchText, filter ? [filter, extraFilter] : [extraFilter]);
   }, [searchText, filter]);
 
   const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =

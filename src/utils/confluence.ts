@@ -51,7 +51,7 @@ export async function searchSpace(cql: string, limit: number = SEARCH_PAGE_SIZE,
     cql,
     start,
     limit,
-    expand: "space,space.description.plain,space.icon",
+    expand: "space,space.description.plain,space.icon,space.metadata.labels",
   };
 
   const data = await confluenceRequest<ConfluenceSearchResponse>("GET", CONFLUENCE_API.SEARCH, params);
