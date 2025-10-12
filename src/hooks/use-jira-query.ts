@@ -17,10 +17,9 @@ import type {
   ProcessedJiraFieldItem,
 } from "@/types";
 
-export function useJiraSearchIssueInfiniteQuery<TData = { issues: ProcessedJiraIssueItem[]; hasMore: boolean }>(
-  jql: string,
-  queryOptions?: Partial<UseInfiniteQueryOptions<JiraSearchIssueResponse, Error, TData>>,
-) {
+export function useJiraSearchIssueInfiniteQuery<
+  TData = { issues: ProcessedJiraIssueItem[]; hasMore: boolean; totalCount: number },
+>(jql: string, queryOptions?: Partial<UseInfiniteQueryOptions<JiraSearchIssueResponse, Error, TData>>) {
   return useInfiniteQuery<JiraSearchIssueResponse, Error, TData>({
     queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUE, { jql, pageSize: SEARCH_PAGE_SIZE }],
     queryFn: async ({ pageParam = 0 }) => {
@@ -36,7 +35,6 @@ export function useJiraSearchIssueInfiniteQuery<TData = { issues: ProcessedJiraI
           "status",
           "priority",
           "issuetype",
-          "project",
           "assignee",
           "reporter",
           "created",
@@ -54,6 +52,7 @@ export function useJiraSearchIssueInfiniteQuery<TData = { issues: ProcessedJiraI
     select: (data) => {
       const allIssue = data.pages.flatMap((page) => page.issues);
       const names = data.pages[0]?.names;
+      const totalCount = data.pages[0]?.total;
       const processedIssues: ProcessedJiraIssueItem[] = allIssue.map((issue) => processJiraSearchIssue(issue, names));
 
       const hasMore =
@@ -64,6 +63,7 @@ export function useJiraSearchIssueInfiniteQuery<TData = { issues: ProcessedJiraI
 
       return {
         issues: processedIssues,
+        totalCount,
         hasMore,
       } as TData;
     },

@@ -26,7 +26,6 @@ export interface JiraIssueFields {
   issuetype: JiraIssueType;
   duedate: string | null;
   created: string;
-  project: JiraProject;
   reporter: JiraUser;
   assignee: JiraUser;
   priority: JiraPriority;

@@ -13,7 +13,14 @@ export interface ConfluenceSearchContentResponse {
   size: number;
   cqlQuery: string;
   searchDuration: number;
-  totalSize: number; // TODO: totalCount?
+  /**
+   * Note: The API documentation states 'totalCount', but the actual response returns 'totalSize'. It's unclear which one is correct.
+   */
+  totalCount?: number;
+  /**
+   * Note: The API documentation states 'totalCount', but the actual response returns 'totalSize'. It's unclear which one is correct.
+   */
+  totalSize?: number;
   _links: ConfluenceSearchLinks;
 }
 
@@ -138,7 +145,14 @@ export interface ConfluenceSearchResponse {
   start: number;
   limit: number;
   size: number;
-  totalSize: number;
+  /**
+   * Note: The API documentation states 'totalCount', but the actual response returns 'totalSize'. It's unclear which one is correct.
+   */
+  totalCount?: number;
+  /**
+   * Note: The API documentation states 'totalCount', but the actual response returns 'totalSize'. It's unclear which one is correct.
+   */
+  totalSize?: number;
   cqlQuery: string;
   searchDuration: number;
   _links: ConfluenceSearchLinks;

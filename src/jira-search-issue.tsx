@@ -36,16 +36,14 @@ function JiraSearchIssueContent() {
     select: (list) => list.map((item) => item.key),
   });
 
-  const jiraIssueEnabled = useMemo(() => {
-    return isJiraProjectFetched || !!jiraProjectError;
-  }, [isJiraProjectFetched, jiraProjectError]);
-
   const jql = useMemo(() => {
     let query = searchText.trim();
 
-    if (!query) {
+    if (!query && filter?.autoQuery) {
+      query = filter.query;
+    } else if (!query && !filter) {
       query = DEFAULT_JQL;
-    } else {
+    } else if (query) {
       const parsed = parseJQL(query);
       if (!parsed.isCQL) {
         if (ISSUE_KEY_REGEX.test(query)) {
@@ -59,14 +57,18 @@ function JiraSearchIssueContent() {
       }
     }
 
-    query = `${query} ${DEFAULT_ORDER_BY}`;
+    query = query ? `${query} ${DEFAULT_ORDER_BY}` : "";
 
     return query;
   }, [searchText, filter, projectKeys]);
 
+  const jiraIssueEnabled = useMemo(() => {
+    return (isJiraProjectFetched || !!jiraProjectError) && jql.length >= 2;
+  }, [isJiraProjectFetched, jiraProjectError]);
+
   const { data, error, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
     useJiraSearchIssueInfiniteQuery(jql, {
-      enabled: jiraIssueEnabled && jql.length >= 2,
+      enabled: jiraIssueEnabled,
     });
 
   const issues = data?.issues || [];
@@ -98,7 +100,10 @@ function JiraSearchIssueContent() {
     }
   };
 
-  const sectionTitle = !searchText && issues.length ? `Assigned to Me (${issues.length})` : undefined;
+  const sectionTitle =
+    !searchText && issues.length ? `Assigned to Me (${issues.length}/${data?.totalCount})` : undefined;
+
+  const isEmpty = !isLoading && !issues.length && jql.length;
 
   return (
     <List
@@ -119,7 +124,7 @@ function JiraSearchIssueContent() {
         pageSize: SEARCH_PAGE_SIZE,
       }}
     >
-      {issues.length === 0 && !isLoading ? (
+      {isEmpty ? (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}
           title="No Results"

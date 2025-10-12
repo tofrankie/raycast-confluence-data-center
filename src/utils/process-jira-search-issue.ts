@@ -49,7 +49,7 @@ function buildSubtitle(
   names?: Record<string, string>,
 ): ListItemSubtitle {
   const { key: issueKey, fields } = issue;
-  const assignee = fields.assignee?.displayName || null;
+  const assignee = fields.assignee?.displayName || "Unassigned";
   const reporter = fields.reporter?.displayName || null;
 
   const subtitle = `${issueKey}@${assignee}`;
@@ -121,15 +121,15 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
   }
 
   if (timeTracking.originalEstimate) {
-    timeTooltipParts.push(`Original Estimate: ${timeTracking.originalEstimate}`);
+    timeTooltipParts.push(`Estimate Time: ${timeTracking.originalEstimate}`);
   }
 
   if (timeTracking.remainingEstimate) {
-    timeTooltipParts.push(`Remaining Estimate: ${timeTracking.remainingEstimate}`);
+    timeTooltipParts.push(`Remaining Time: ${timeTracking.remainingEstimate}`);
   }
 
   if (timeTracking.timeSpent) {
-    timeTooltipParts.push(`Time Spent: ${timeTracking.timeSpent}`);
+    timeTooltipParts.push(`Logged Time: ${timeTracking.timeSpent}`);
   }
 
   accessories.push({

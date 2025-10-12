@@ -68,6 +68,8 @@ function ConfluenceSearchSpace() {
 
   const isEmpty = !isLoading && searchText.trim() && !results.length;
 
+  const searchTitle = `Results (${results.length}/${data?.totalCount})`;
+
   return (
     <List
       throttle
@@ -105,36 +107,38 @@ function ConfluenceSearchSpace() {
             }
           />
         ) : (
-          results.map((space) => {
-            return (
-              <List.Item
-                key={space.renderKey}
-                icon={space.icon}
-                title={space.name}
-                subtitle={space.subtitle}
-                accessories={space.accessories}
-                actions={
-                  <ActionPanel>
-                    <Action.OpenInBrowser title="Open in Browser" url={space.url} />
-                    <Action.CopyToClipboard
-                      title="Copy Link"
-                      content={space.url}
-                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                    />
-                    <Action.CopyToClipboard title="Copy Space Key" content={space.key} />
-                    {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
-                    <Action
-                      title="Refresh"
-                      icon={Icon.ArrowClockwise}
-                      shortcut={{ modifiers: ["cmd"], key: "r" }}
-                      onAction={handleRefresh}
-                    />
-                    <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
-                  </ActionPanel>
-                }
-              />
-            );
-          })
+          <List.Section title={searchTitle}>
+            {results.map((space) => {
+              return (
+                <List.Item
+                  key={space.renderKey}
+                  icon={space.icon}
+                  title={space.name}
+                  subtitle={space.subtitle}
+                  accessories={space.accessories}
+                  actions={
+                    <ActionPanel>
+                      <Action.OpenInBrowser title="Open in Browser" url={space.url} />
+                      <Action.CopyToClipboard
+                        title="Copy Link"
+                        content={space.url}
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                      />
+                      <Action.CopyToClipboard title="Copy Space Key" content={space.key} />
+                      {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
+                      <Action
+                        title="Refresh"
+                        icon={Icon.ArrowClockwise}
+                        shortcut={{ modifiers: ["cmd"], key: "r" }}
+                        onAction={handleRefresh}
+                      />
+                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
+                    </ActionPanel>
+                  }
+                />
+              );
+            })}
+          </List.Section>
         )}
       </CQLWrapper>
     </List>

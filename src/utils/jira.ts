@@ -1,5 +1,5 @@
 import { jiraRequest, writeResponseFile } from "@/utils";
-import { JIRA_API, COMMAND_NAME, SEARCH_PAGE_SIZE, JIRA_BASE_URL } from "@/constants";
+import { JIRA_API, COMMAND_NAME, JIRA_BASE_URL } from "@/constants";
 import type { JiraSearchIssueResponse, JiraField, JiraProject } from "@/types";
 
 type JiraSearchIssueParams = {

@@ -83,7 +83,10 @@ function ConfluenceSearchContent() {
 
   const isEmpty = !isLoading && searchText.length >= 2 && !results.length;
 
-  const sectionTitle = !searchText && !filter && results.length ? `Viewed Recently (${results.length})` : undefined;
+  const sectionTitle =
+    !searchText && !filter && results.length
+      ? `Viewed Recently (${results.length})`
+      : `Results (${results.length}/${data?.totalCount})`;
 
   return (
     <List

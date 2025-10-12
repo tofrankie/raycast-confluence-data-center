@@ -21,7 +21,7 @@ import type {
 } from "@/types";
 
 export const useConfluenceSearchContentInfiniteQuery = <
-  TData = { items: ProcessedConfluenceContentItem[]; hasMore: boolean },
+  TData = { items: ProcessedConfluenceContentItem[]; hasMore: boolean; totalCount: number },
 >(
   cql: string,
   queryOptions?: Partial<UseInfiniteQueryOptions<ConfluenceSearchContentResponse, Error, TData>>,
@@ -37,10 +37,12 @@ export const useConfluenceSearchContentInfiniteQuery = <
     select: (data) => {
       const items = data.pages.flatMap((page) => processConfluenceSearchContentItems(page.results));
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
+      const totalCount = data.pages[0]?.totalCount || data.pages[0]?.totalSize || 0;
 
       return {
         items,
         hasMore,
+        totalCount,
       } as TData;
     },
     initialPageParam: 0,
@@ -123,7 +125,7 @@ export const useToggleFavorite = () => {
 };
 
 export const useConfluenceSearchUserInfiniteQuery = <
-  TData = { items: ProcessedConfluenceUserItem[]; hasMore: boolean },
+  TData = { items: ProcessedConfluenceUserItem[]; hasMore: boolean; totalCount: number },
 >(
   cql: string,
   queryOptions?: Partial<UseInfiniteQueryOptions<ConfluenceSearchResponse, Error, TData>>,
@@ -148,9 +150,12 @@ export const useConfluenceSearchUserInfiniteQuery = <
 
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
 
+      const totalCount = data.pages[0]?.totalCount || data.pages[0]?.totalSize || 0;
+
       return {
         items: processedUsers,
         hasMore,
+        totalCount,
       } as TData;
     },
     initialPageParam: 0,
@@ -165,7 +170,7 @@ export const useConfluenceSearchUserInfiniteQuery = <
 };
 
 export const useConfluenceSearchSpaceInfiniteQuery = <
-  TData = { items: ProcessedConfluenceSpaceItem[]; hasMore: boolean },
+  TData = { items: ProcessedConfluenceSpaceItem[]; hasMore: boolean; totalCount: number },
 >(
   cql: string,
   queryOptions?: Partial<UseInfiniteQueryOptions<ConfluenceSearchResponse, Error, TData>>,
@@ -189,10 +194,12 @@ export const useConfluenceSearchSpaceInfiniteQuery = <
       const processedSpaces = processConfluenceSearchSpaceItems(uniqueResults);
 
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
+      const totalCount = data.pages[0]?.totalCount || data.pages[0]?.totalSize || 0;
 
       return {
         items: processedSpaces,
         hasMore,
+        totalCount,
       } as TData;
     },
     initialPageParam: 0,

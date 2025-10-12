@@ -59,6 +59,8 @@ function ConfluenceSearchUser() {
 
   const isEmpty = !isLoading && searchText.length >= 2 && !results.length;
 
+  const searchTitle = `Results (${results.length}/${data?.totalCount})`;
+
   return (
     <List
       throttle
@@ -78,35 +80,37 @@ function ConfluenceSearchUser() {
           description="Try adjusting your search filters"
         />
       ) : (
-        results.map((user) => {
-          return (
-            <List.Item
-              key={user.renderKey}
-              icon={user.icon}
-              title={user.title}
-              subtitle={user.subtitle}
-              accessories={user.accessories}
-              actions={
-                <ActionPanel>
-                  <Action.OpenInBrowser title="Open in Browser" url={user.url} />
-                  <Action.CopyToClipboard
-                    title="Copy Link"
-                    content={user.url}
-                    shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                  />
-                  {!!user.userKey && <Action.CopyToClipboard title="Copy User Key" content={user.userKey} />}
-                  <Action
-                    title="Refresh"
-                    icon={Icon.ArrowClockwise}
-                    shortcut={{ modifiers: ["cmd"], key: "r" }}
-                    onAction={handleRefresh}
-                  />
-                  <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
-                </ActionPanel>
-              }
-            />
-          );
-        })
+        <List.Section title={searchTitle}>
+          {results.map((user) => {
+            return (
+              <List.Item
+                key={user.renderKey}
+                icon={user.icon}
+                title={user.title}
+                subtitle={user.subtitle}
+                accessories={user.accessories}
+                actions={
+                  <ActionPanel>
+                    <Action.OpenInBrowser title="Open in Browser" url={user.url} />
+                    <Action.CopyToClipboard
+                      title="Copy Link"
+                      content={user.url}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                    />
+                    {!!user.userKey && <Action.CopyToClipboard title="Copy User Key" content={user.userKey} />}
+                    <Action
+                      title="Refresh"
+                      icon={Icon.ArrowClockwise}
+                      shortcut={{ modifiers: ["cmd"], key: "r" }}
+                      onAction={handleRefresh}
+                    />
+                    <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
+                  </ActionPanel>
+                }
+              />
+            );
+          })}
+        </List.Section>
       )}
     </List>
   );
