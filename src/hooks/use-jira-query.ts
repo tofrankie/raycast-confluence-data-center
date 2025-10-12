@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, UseQueryOptions, UseInfiniteQueryOptions } from "@tanstack/react-query";
 
 import {
   searchJiraIssue,
@@ -6,19 +6,22 @@ import {
   getSelectedCustomFieldIds,
   processJiraFieldItem,
   getJiraField,
+  getJiraProject,
 } from "@/utils";
 import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
-import type { JiraSearchIssueResponse, JiraField, ProcessedJiraIssueItem, ProcessedJiraFieldItem } from "@/types";
+import type {
+  JiraSearchIssueResponse,
+  JiraField,
+  JiraProject,
+  ProcessedJiraIssueItem,
+  ProcessedJiraFieldItem,
+} from "@/types";
 
-export function useJiraSearchIssueInfiniteQuery(jql: string) {
-  return useInfiniteQuery<
-    JiraSearchIssueResponse,
-    Error,
-    {
-      issues: ProcessedJiraIssueItem[];
-      hasMore: boolean;
-    }
-  >({
+export function useJiraSearchIssueInfiniteQuery<TData = { issues: ProcessedJiraIssueItem[]; hasMore: boolean }>(
+  jql: string,
+  queryOptions?: Partial<UseInfiniteQueryOptions<JiraSearchIssueResponse, Error, TData>>,
+) {
+  return useInfiniteQuery<JiraSearchIssueResponse, Error, TData>({
     queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUE, { jql, pageSize: SEARCH_PAGE_SIZE }],
     queryFn: async ({ pageParam = 0 }) => {
       const customFieldIds = getSelectedCustomFieldIds();
@@ -27,6 +30,7 @@ export function useJiraSearchIssueInfiniteQuery(jql: string) {
         jql,
         startAt: pageParam as number,
         maxResults: SEARCH_PAGE_SIZE,
+        validateQuery: false,
         fields: [
           "summary",
           "status",
@@ -61,7 +65,7 @@ export function useJiraSearchIssueInfiniteQuery(jql: string) {
       return {
         issues: processedIssues,
         hasMore,
-      };
+      } as TData;
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
@@ -73,20 +77,33 @@ export function useJiraSearchIssueInfiniteQuery(jql: string) {
     enabled: jql.length >= 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
+    ...queryOptions,
   });
 }
 
-export function useJiraFieldQuery() {
-  return useQuery<JiraField[], Error, ProcessedJiraFieldItem[]>({
+export function useJiraFieldQuery<TData = ProcessedJiraFieldItem[]>(
+  queryOptions?: Partial<UseQueryOptions<JiraField[], Error, TData>>,
+) {
+  return useQuery<JiraField[], Error, TData>({
     queryKey: [COMMAND_NAME.JIRA_MANAGE_FIELD],
-    queryFn: async () => {
-      const fields = await getJiraField();
-      return fields;
-    },
+    queryFn: getJiraField,
     select: (data) => {
-      return data.map((field) => processJiraFieldItem(field, false));
+      return data.map((field) => processJiraFieldItem(field, false)) as TData;
     },
     staleTime: Infinity,
     gcTime: Infinity,
+    ...queryOptions,
+  });
+}
+
+export function useJiraProjectQuery<TData = JiraProject[]>(
+  queryOptions?: Partial<UseQueryOptions<JiraProject[], Error, TData>>,
+) {
+  return useQuery<JiraProject[], Error, TData>({
+    queryKey: ["jira-project"],
+    queryFn: getJiraProject,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    ...queryOptions,
   });
 }

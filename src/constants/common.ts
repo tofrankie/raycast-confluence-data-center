@@ -20,4 +20,5 @@ export const CONFLUENCE_API = {
 export const JIRA_API = {
   SEARCH: "/rest/api/2/search",
   FIELD: "/rest/api/2/field",
+  PROJECT: "/rest/api/2/project",
 } as const;

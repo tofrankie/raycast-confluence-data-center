@@ -11,11 +11,11 @@ import {
 
 const FETCH_CONFIG = {
   method: "GET",
-  endpoint: "/rest/api/content/search",
-  appType: "confluence",
+  endpoint: "/rest/api/2/project",
+  appType: APP_TYPE.JIRA as typeof APP_TYPE.JIRA | typeof APP_TYPE.CONFLUENCE,
 } as const;
 
-export function useFetchTest() {
+export function useApiTest() {
   useEffect(() => {
     const fetchData = async () => {
       const { endpoint, method, appType } = FETCH_CONFIG;

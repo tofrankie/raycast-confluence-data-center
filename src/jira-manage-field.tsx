@@ -27,7 +27,16 @@ function JiraManageFieldContent() {
 
   const { addedFieldsFiltered, systemFields, customFields } = useMemo(() => {
     const allFields = data ?? [];
-    const filteredFields = allFields.filter((item) => item.name.toLowerCase().includes(searchText.toLowerCase()));
+    const searchRegex = new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    const filteredFields = allFields.filter((item) => {
+      if (searchRegex.test(item.title)) {
+        return true;
+      }
+      if (item.keywords && item.keywords.some((keyword) => searchRegex.test(keyword))) {
+        return true;
+      }
+      return false;
+    });
 
     const addedFieldIds = addedFields.map((item) => item.id);
     const addedFieldsFiltered = filteredFields.filter((item) => addedFieldIds.includes(item.id));
@@ -87,7 +96,7 @@ function JiraManageFieldContent() {
   };
 
   return (
-    <List throttle isLoading={isLoading} onSearchTextChange={setSearchText} searchBarPlaceholder="Search field...">
+    <List throttle isLoading={isLoading} onSearchTextChange={setSearchText} searchBarPlaceholder="Search Field...">
       {isEmpty ? (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}
@@ -110,7 +119,7 @@ function JiraManageFieldContent() {
                 return (
                   <List.Item
                     key={item.renderKey}
-                    title={item.name}
+                    title={item.title}
                     subtitle={item.subtitle}
                     accessories={updatedAccessories}
                     keywords={item.keywords}

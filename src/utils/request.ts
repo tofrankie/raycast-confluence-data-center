@@ -1,50 +1,62 @@
 import {
+  APP_TYPE,
   CONFLUENCE_BASE_URL,
   CONFLUENCE_PERSONAL_ACCESS_TOKEN,
   JIRA_BASE_URL,
   JIRA_PERSONAL_ACCESS_TOKEN,
 } from "@/constants";
+import type { AppType } from "@/types";
 
 type Method = "GET" | "POST" | "PUT" | "DELETE";
+
+const SERVICE_CONFIGS = {
+  [APP_TYPE.CONFLUENCE]: {
+    baseUrl: CONFLUENCE_BASE_URL,
+    token: CONFLUENCE_PERSONAL_ACCESS_TOKEN,
+  },
+  [APP_TYPE.JIRA]: {
+    baseUrl: JIRA_BASE_URL,
+    token: JIRA_PERSONAL_ACCESS_TOKEN,
+  },
+} as const;
 
 export async function confluenceRequest<T>(
   method: Method,
   endpoint: string,
   params?: Record<string, unknown>,
 ): Promise<T> {
-  try {
-    const url = new URL(endpoint, CONFLUENCE_BASE_URL);
-
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.set(key, String(value));
-      });
-    }
-
-    const response = await fetch(url.toString(), {
-      method,
-      headers: getAuthHeaders(CONFLUENCE_PERSONAL_ACCESS_TOKEN),
-    });
-
-    if (!response.ok) {
-      handleHttpError(response, "Confluence");
-    }
-
-    // For PUT/DELETE requests, there may be no response body
-    if (response.status === 204 || response.headers.get("content-length") === "0") {
-      return undefined as T;
-    }
-
-    const result = (await response.json()) as T;
-    return result;
-  } catch (error) {
-    handleConnectionError(error, "Confluence");
-  }
+  return apiRequest({
+    appType: APP_TYPE.CONFLUENCE,
+    method,
+    endpoint,
+    params,
+  });
 }
 
 export async function jiraRequest<T>(method: Method, endpoint: string, params?: Record<string, unknown>): Promise<T> {
+  return apiRequest({
+    appType: APP_TYPE.JIRA,
+    method,
+    endpoint,
+    params,
+  });
+}
+
+export async function apiRequest<T>({
+  appType,
+  method,
+  endpoint,
+  params,
+}: {
+  appType: AppType;
+  method: Method;
+  endpoint: string;
+  params?: Record<string, unknown>;
+}): Promise<T> {
+  const config = SERVICE_CONFIGS[appType];
+
   try {
-    const url = new URL(endpoint, JIRA_BASE_URL);
+    const url = new URL(endpoint, config.baseUrl);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -56,14 +68,13 @@ export async function jiraRequest<T>(method: Method, endpoint: string, params?: 
 
     const response = await fetch(url.toString(), {
       method,
-      headers: getAuthHeaders(JIRA_PERSONAL_ACCESS_TOKEN),
+      headers: getAuthHeaders(config.token),
     });
 
     if (!response.ok) {
-      handleHttpError(response, "Jira");
+      handleHttpError(response, appType);
     }
 
-    // For PUT/DELETE requests, there may be no response body
     if (response.status === 204 || response.headers.get("content-length") === "0") {
       return undefined as T;
     }
@@ -71,8 +82,7 @@ export async function jiraRequest<T>(method: Method, endpoint: string, params?: 
     const result = (await response.json()) as T;
     return result;
   } catch (error) {
-    console.log("🚀 ~ jiraRequest ~ error:", error);
-    handleConnectionError(error, "Jira");
+    handleConnectionError(error, appType);
   }
 }
 
@@ -84,22 +94,22 @@ export function getAuthHeaders(token: string): Record<string, string> {
   };
 }
 
-function handleHttpError(response: Response, service: string = "Service"): never {
+function handleHttpError(response: Response, appType: AppType): never {
   switch (response.status) {
     case 401:
-      throw new Error(`Authentication failed. Please check your ${service} Personal Access Token`);
+      throw new Error(`Authentication failed. Please check your ${appType} Personal Access Token`);
     case 403:
-      throw new Error(`Access denied. Please check your ${service} permissions`);
+      throw new Error(`Access denied. Please check your ${appType} permissions`);
     case 404:
-      throw new Error(`${service} instance not found. Please check your instance`);
+      throw new Error(`${appType} instance not found. Please check your instance`);
     default:
       throw new Error(`HTTP error: ${response.status}`);
   }
 }
 
-function handleConnectionError(error: unknown, service: string): never {
+function handleConnectionError(error: unknown, appType: AppType): never {
   if (error instanceof Error) {
     throw error;
   }
-  throw new Error(`Failed to connect to ${service}`);
+  throw new Error(`Failed to connect to ${appType}`);
 }

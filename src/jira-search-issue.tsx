@@ -6,14 +6,15 @@ import QueryProvider from "@/query-provider";
 import { parseJQL, clearAllCacheWithToast } from "@/utils";
 import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import { SearchBarAccessory } from "@/components";
-import { useJiraSearchIssueInfiniteQuery } from "@/hooks";
+import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery } from "@/hooks";
 import type { SearchFilter } from "@/types";
 
 // for test: ORDER BY updated DESC
-const DEFAULT_JQL =
-  "assignee = currentUser() AND resolution = unresolved ORDER BY summary ASC, key ASC, priority DESC, created ASC";
+const DEFAULT_JQL = "assignee = currentUser() AND resolution = unresolved";
+const DEFAULT_ORDER_BY = "ORDER BY updated DESC, created DESC, summary ASC, key ASC, priority DESC";
 
 const ISSUE_KEY_REGEX = /^[A-Z][A-Z0-9_]+-\d+$/;
+const PURE_NUMBER_REGEX = /^\d+$/;
 
 export default function JiraSearchIssueProvider() {
   return (
@@ -27,6 +28,18 @@ function JiraSearchIssueContent() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 
+  const {
+    data: projectKeys,
+    isFetched: isJiraProjectFetched,
+    error: jiraProjectError,
+  } = useJiraProjectQuery({
+    select: (list) => list.map((item) => item.key),
+  });
+
+  const jiraIssueEnabled = useMemo(() => {
+    return isJiraProjectFetched || !!jiraProjectError;
+  }, [isJiraProjectFetched, jiraProjectError]);
+
   const jql = useMemo(() => {
     let query = searchText.trim();
 
@@ -36,28 +49,25 @@ function JiraSearchIssueContent() {
       const parsed = parseJQL(query);
       if (!parsed.isCQL) {
         if (ISSUE_KEY_REGEX.test(query)) {
-          query = `issuekey = "${query}" OR text ~ "${query}"`;
+          query = `key = "${query}" OR summary ~ "${query}"`;
+        } else if (PURE_NUMBER_REGEX.test(query) && projectKeys?.length) {
+          const issueKeys = projectKeys.map((key) => `${key}-${query}`).join(", ");
+          query = `summary ~ "${query}" OR key in (${issueKeys})`;
         } else {
-          query = `text ~ "${query}"`;
+          query = `summary ~ "${query}"`;
         }
       }
     }
 
-    if (filter && filter.query) {
-      if (query.includes("ORDER BY")) {
-        const orderByPart = query.match(/ORDER BY .+$/)?.[0] || "";
-        const baseQuery = query.replace(/ORDER BY .+$/, "").trim();
-        query = `${baseQuery} AND ${filter.query} ${orderByPart}`;
-      } else {
-        query = `${query} AND ${filter.query}`;
-      }
-    }
+    query = `${query} ${DEFAULT_ORDER_BY}`;
 
     return query;
-  }, [searchText, filter]);
+  }, [searchText, filter, projectKeys]);
 
   const { data, error, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
-    useJiraSearchIssueInfiniteQuery(jql);
+    useJiraSearchIssueInfiniteQuery(jql, {
+      enabled: jiraIssueEnabled && jql.length >= 2,
+    });
 
   const issues = data?.issues || [];
 

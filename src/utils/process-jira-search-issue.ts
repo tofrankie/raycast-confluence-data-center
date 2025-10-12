@@ -51,17 +51,8 @@ function buildSubtitle(
   const { key: issueKey, fields } = issue;
   const assignee = fields.assignee?.displayName || null;
   const reporter = fields.reporter?.displayName || null;
-  const parts = [];
 
-  if (issueKey) {
-    parts.push(issueKey);
-  }
-
-  if (assignee) {
-    parts.push(`@${assignee}`);
-  }
-
-  const subtitle = parts.join(" ");
+  const subtitle = `${issueKey}@${assignee}`;
 
   const tooltipParts = [];
   if (issueKey) {
