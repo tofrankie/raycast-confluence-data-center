@@ -3,7 +3,7 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { buildCQL, clearAllCacheWithToast, avatarExtractors } from "@/utils";
+import { buildCQL, clearAllCacheWithToast, avatarExtractors, getSectionTitle } from "@/utils";
 import { APP_TYPE, AVATAR_TYPE, COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import { SearchBarAccessory, CQLWrapper } from "@/components";
 import { useConfluenceSearchContentInfiniteQuery, useToggleFavorite, useAvatar } from "@/hooks";
@@ -24,9 +24,6 @@ function ConfluenceSearchContent() {
   const cql = useMemo(() => {
     const trimmedText = searchText.trim();
 
-    if (!trimmedText && !filter) {
-      return `id in recentlyViewedContent(${SEARCH_PAGE_SIZE}, 0)`;
-    }
     if (!trimmedText && filter?.autoQuery) {
       return filter.query;
     }
@@ -85,10 +82,10 @@ function ConfluenceSearchContent() {
 
   const isEmpty = !isLoading && searchText.length >= 2 && !results.length;
 
-  const sectionTitle =
-    !searchText && !filter && results.length
-      ? `Viewed Recently (${results.length})`
-      : `Results (${results.length}/${data?.totalCount})`;
+  const sectionTitle = getSectionTitle(filter, {
+    fetchedCount: results.length,
+    totalCount: data?.totalCount || 0,
+  });
 
   return (
     <List

@@ -4,7 +4,7 @@ import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { SearchBarAccessory } from "@/components";
-import { clearAllCacheWithToast, buildJQL } from "@/utils";
+import { clearAllCacheWithToast, buildJQL, getSectionTitle } from "@/utils";
 import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery } from "@/hooks";
 import type { SearchFilter } from "@/types";
@@ -105,7 +105,10 @@ function JiraSearchIssueContent() {
     }
   };
 
-  const sectionTitle = !searchText && issues.length ? `Results (${issues.length}/${data?.totalCount})` : undefined;
+  const sectionTitle = getSectionTitle(filter, {
+    fetchedCount: issues.length,
+    totalCount: data?.totalCount || 0,
+  });
 
   const isEmpty = isFetched && !issues.length && jql.length;
 

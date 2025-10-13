@@ -72,7 +72,7 @@ export async function apiRequest<T>({
     });
 
     if (!response.ok) {
-      handleHttpError(response, appType);
+      await handleHttpError(response, appType);
     }
 
     if (response.status === 204 || response.headers.get("content-length") === "0") {
@@ -94,16 +94,58 @@ export function getAuthHeaders(token: string): Record<string, string> {
   };
 }
 
-function handleHttpError(response: Response, appType: AppType): never {
-  switch (response.status) {
+async function handleHttpError(response: Response, appType: AppType): Promise<never> {
+  let errorMessage = "";
+
+  try {
+    const errorBody = await response.json();
+
+    if (errorBody.errorMessages && Array.isArray(errorBody.errorMessages)) {
+      errorMessage = errorBody.errorMessages.join("; ");
+    } else if (errorBody.message) {
+      errorMessage = errorBody.message;
+    } else if (errorBody.error) {
+      errorMessage =
+        typeof errorBody.error === "string"
+          ? errorBody.error
+          : errorBody.error.message || JSON.stringify(errorBody.error);
+    } else if (errorBody.errors && typeof errorBody.errors === "object") {
+      const errorDetails = Object.entries(errorBody.errors)
+        .map(([field, message]) => `${field}: ${message}`)
+        .join("; ");
+      errorMessage = errorDetails;
+    }
+  } catch {
+    // If we can't parse the response body, fall back to status-based messages
+  }
+
+  // Combine status-based message with detailed error message
+  const baseMessage = getBaseErrorMessage(response.status, appType);
+  const fullMessage = errorMessage ? `${baseMessage} Details: ${errorMessage}` : baseMessage;
+
+  throw new Error(fullMessage);
+}
+
+function getBaseErrorMessage(status: number, appType: AppType): string {
+  switch (status) {
+    case 400:
+      return `Bad request to ${appType}. Please check your request parameters`;
     case 401:
-      throw new Error(`Authentication failed. Please check your ${appType} Personal Access Token`);
+      return `Authentication failed. Please check your ${appType} Personal Access Token`;
     case 403:
-      throw new Error(`Access denied. Please check your ${appType} permissions`);
+      return `Access denied. Please check your ${appType} permissions`;
     case 404:
-      throw new Error(`${appType} instance not found. Please check your instance`);
+      return `${appType} instance not found. Please check your instance URL`;
+    case 429:
+      return `Rate limit exceeded for ${appType}. Please try again later`;
+    case 500:
+      return `${appType} server error. Please try again later`;
+    case 502:
+    case 503:
+    case 504:
+      return `${appType} service is temporarily unavailable. Please try again later`;
     default:
-      throw new Error(`HTTP error: ${response.status}`);
+      return `HTTP error ${status} from ${appType}`;
   }
 }
 

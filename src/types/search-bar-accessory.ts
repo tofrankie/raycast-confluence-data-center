@@ -12,8 +12,9 @@ export interface SearchBarAccessoryItem {
   /** Query string - CQL in Confluence, JQL in Jira */
   query: string;
   icon: DropdownItemIcon;
-  transform?: (processedQuery: string, context?: { userInput: string; filter: SearchFilter }) => string;
   autoQuery?: boolean;
+  transform?: (processedQuery: string, context?: { userInput: string; filter: SearchFilter }) => string;
+  sectionTitle?: string | ((params: { fetchedCount: number; totalCount: number }) => string);
 }
 
-export type SearchFilter = Pick<SearchBarAccessoryItem, "id" | "query" | "transform" | "autoQuery">;
+export type SearchFilter = Pick<SearchBarAccessoryItem, "id" | "query" | "transform" | "autoQuery" | "sectionTitle">;

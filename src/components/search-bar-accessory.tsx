@@ -20,8 +20,8 @@ export function SearchBarAccessory({ commandName, value, onChange }: SearchBarAc
 
     const filter = filters.find((item) => item.id === filterId);
     if (filter) {
-      const { id, query, transform, autoQuery } = filter;
-      onChange({ id, query, transform, autoQuery });
+      const { id, query, transform, autoQuery, sectionTitle } = filter;
+      onChange({ id, query, transform, autoQuery, sectionTitle });
     } else {
       onChange(null);
     }

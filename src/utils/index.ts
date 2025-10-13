@@ -14,3 +14,4 @@ export * from "./process-confluence-search-user";
 export * from "./process-confluence-search-space";
 export * from "./process-jira-search-issue";
 export * from "./process-jira-manage-field";
+export * from "./section-title";
