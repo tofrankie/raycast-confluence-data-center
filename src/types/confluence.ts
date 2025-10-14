@@ -1,4 +1,14 @@
-import type { ConfluenceIcon } from "@/types";
+import { CONFLUENCE_CONTENT_TYPE, CONFLUENCE_ENTITY_TYPE, CONFLUENCE_SPACE_TYPE } from "@/constants";
+
+export type ConfluenceEntityType = (typeof CONFLUENCE_ENTITY_TYPE)[keyof typeof CONFLUENCE_ENTITY_TYPE];
+
+export type ConfluenceContentType = (typeof CONFLUENCE_CONTENT_TYPE)[keyof typeof CONFLUENCE_CONTENT_TYPE];
+
+export type ConfluenceSpaceType = (typeof CONFLUENCE_SPACE_TYPE)[keyof typeof CONFLUENCE_SPACE_TYPE];
+
+export type ConfluenceIconType = ConfluenceEntityType | ConfluenceContentType;
+
+export type ConfluenceLabelType = ConfluenceEntityType | ConfluenceContentType;
 
 export interface ConfluencePreferences {
   confluenceBaseUrl: string;
@@ -169,7 +179,7 @@ export interface ConfluenceSearchResult {
     title: string;
     displayUrl: string;
   };
-  entityType: import("./common").ConfluenceEntityType;
+  entityType: ConfluenceEntityType;
   iconCssClass: string;
   lastModified: string;
   friendlyLastModified: string;
@@ -230,6 +240,13 @@ export interface ConfluenceSpace {
     retentionPolicy: string;
     homepage: string;
   };
+}
+
+export interface ConfluenceIcon {
+  path: string;
+  width: number;
+  height: number;
+  isDefault: boolean;
 }
 
 export interface ConfluenceSearchLinks {

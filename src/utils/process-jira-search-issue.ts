@@ -1,4 +1,4 @@
-import { JIRA_ISSUE_TYPE_ICONS } from "@/constants";
+import { JIRA_ISSUE_TYPE_ICON, JIRA_PRIORITY_ICON } from "@/constants";
 import { getJiraIssueUrl, getSelectedCustomFields } from "@/utils";
 import type { JiraIssue, JiraUser, ProcessedJiraIssueItem, ListItemAccessories, ListItemSubtitle } from "@/types";
 
@@ -10,8 +10,9 @@ export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, 
 
   const url = getJiraIssueUrl(key);
 
+  const issueTypeIcon = getIssueTypeIcon(issueType);
   const icon = {
-    value: JIRA_ISSUE_TYPE_ICONS[issueType as keyof typeof JIRA_ISSUE_TYPE_ICONS] || "icon-unknown.svg",
+    value: issueTypeIcon || "icon-unknown.svg",
     tooltip: `Issue Type: ${issueType}`,
   };
 
@@ -94,10 +95,19 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
   const accessories: ListItemAccessories = [];
 
   if (priority) {
-    accessories.push({
-      tag: priority,
-      tooltip: `Priority: ${priority}`,
-    });
+    const priorityIcon = getPriorityIcon(priority);
+
+    if (priorityIcon) {
+      accessories.push({
+        icon: priorityIcon,
+        tooltip: `Priority: ${priority}`,
+      });
+    } else {
+      accessories.push({
+        tag: priority,
+        tooltip: `Priority: ${priority}`,
+      });
+    }
   }
 
   if (status) {
@@ -138,4 +148,51 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
   });
 
   return accessories;
+}
+
+function getPriorityIcon(priority: string): string | undefined {
+  const normalizedPriority = priority.toUpperCase();
+
+  if (isBuiltInPriority(normalizedPriority)) {
+    return JIRA_PRIORITY_ICON[normalizedPriority];
+  }
+
+  const similarPriority = Object.keys(JIRA_PRIORITY_ICON).find((key) => key.includes(normalizedPriority));
+  if (similarPriority && isBuiltInPriority(similarPriority)) {
+    return JIRA_PRIORITY_ICON[similarPriority];
+  }
+
+  return undefined;
+}
+
+function isBuiltInPriority(priority: string): priority is keyof typeof JIRA_PRIORITY_ICON {
+  return priority in JIRA_PRIORITY_ICON;
+}
+
+function getIssueTypeIcon(issueType: string): string | undefined {
+  if (isBuiltInIssueType(issueType, JIRA_ISSUE_TYPE_ICON)) {
+    return JIRA_ISSUE_TYPE_ICON[issueType];
+  }
+
+  const issueTypeIconMap = {
+    ...JIRA_ISSUE_TYPE_ICON,
+    // custom issue type
+    TEST: "icon-flask.svg",
+  } as const;
+
+  const similarIssueType = Object.keys(issueTypeIconMap).find((key) =>
+    issueType.toLowerCase().includes(key.toLowerCase()),
+  );
+  if (similarIssueType && isBuiltInIssueType(similarIssueType, issueTypeIconMap)) {
+    return issueTypeIconMap[similarIssueType];
+  }
+
+  return undefined;
+}
+
+function isBuiltInIssueType<T extends Record<string, string>>(
+  issueType: string,
+  iconMap: T,
+): issueType is keyof T & string {
+  return issueType in iconMap;
 }

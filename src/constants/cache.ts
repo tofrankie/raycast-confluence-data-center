@@ -1,6 +1,8 @@
 import path from "node:path";
 import { environment } from "@raycast/api";
 
+import type { AvatarType } from "@/types";
+
 export const DEFAULT_AVATAR = "avatar-default.svg";
 
 export const AVATAR_TYPE = {
@@ -11,7 +13,7 @@ export const AVATAR_TYPE = {
 export const AVATAR_DIR = {
   [AVATAR_TYPE.CONFLUENCE_USER]: `${environment.supportPath}/avatar/confluence-user`,
   [AVATAR_TYPE.CONFLUENCE_SPACE]: `${environment.supportPath}/avatar/confluence-space`,
-} as const;
+} as const satisfies Record<AvatarType, string>;
 
 export const CACHE_DIRECTORY = {
   AVATAR: path.join(environment.supportPath, "avatar"),

@@ -3,8 +3,8 @@ import { Icon, Image } from "@raycast/api";
 import { avatarCache } from "@/utils";
 import {
   CONFLUENCE_ENTITY_TYPE,
-  SPACE_TYPE_LABELS,
-  TYPE_ICONS,
+  CONFLUENCE_SPACE_TYPE_LABEL,
+  CONFLUENCE_TYPE_ICON,
   DEFAULT_AVATAR,
   CONFLUENCE_BASE_URL,
 } from "@/constants";
@@ -36,14 +36,14 @@ function processConfluenceSearchSpaceItem(result: ConfluenceSearchResult): Proce
         source: avatar,
         mask: Image.Mask.Circle,
       }
-    : TYPE_ICONS[CONFLUENCE_ENTITY_TYPE.SPACE];
+    : CONFLUENCE_TYPE_ICON[CONFLUENCE_ENTITY_TYPE.SPACE];
 
   const description = space.description?.plain?.value || "";
   const subtitle = {
     value: description || spaceKey,
     tooltip: description ? `Space Description` : `Space Key`,
   };
-  const spaceTypeLabel = SPACE_TYPE_LABELS[spaceType as ConfluenceSpaceType] ?? spaceType;
+  const spaceTypeLabel = CONFLUENCE_SPACE_TYPE_LABEL[spaceType as ConfluenceSpaceType] ?? spaceType;
   const accessories = [
     ...(isFavourited
       ? [

@@ -1,8 +1,14 @@
 import { Icon, Image } from "@raycast/api";
 
 import { avatarCache } from "@/utils";
-import { CONFLUENCE_BASE_URL, CONFLUENCE_CONTENT_TYPE, DEFAULT_AVATAR, TYPE_ICONS, TYPE_LABELS } from "@/constants";
-import type { ConfluenceSearchContentResult, IconType, ProcessedConfluenceContentItem } from "@/types";
+import {
+  CONFLUENCE_BASE_URL,
+  CONFLUENCE_CONTENT_TYPE,
+  DEFAULT_AVATAR,
+  CONFLUENCE_TYPE_ICON,
+  CONFLUENCE_TYPE_LABEL,
+} from "@/constants";
+import type { ConfluenceSearchContentResult, ConfluenceIconType, ProcessedConfluenceContentItem } from "@/types";
 
 export function processConfluenceSearchContentItems(
   items: ConfluenceSearchContentResult[],
@@ -15,10 +21,10 @@ function processConfluenceSearchContentItem(item: ConfluenceSearchContentResult)
   const title = item.title;
   const spaceName = item.space?.name || "";
 
-  const iconType = item.type as IconType;
+  const iconType = item.type as ConfluenceIconType;
   const icon = {
-    value: TYPE_ICONS[iconType] ?? "icon-unknown.svg",
-    tooltip: TYPE_LABELS[iconType] ?? "Unknown",
+    value: CONFLUENCE_TYPE_ICON[iconType] ?? "icon-unknown.svg",
+    tooltip: CONFLUENCE_TYPE_LABEL[iconType] ?? "Unknown",
   };
 
   const baseUrl = CONFLUENCE_BASE_URL;

@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 
-import { getAuthHeaders, writeResponseFile } from "@/utils";
 import {
   APP_TYPE,
   CONFLUENCE_BASE_URL,
@@ -8,45 +7,47 @@ import {
   JIRA_BASE_URL,
   JIRA_PERSONAL_ACCESS_TOKEN,
 } from "@/constants";
+import { getAuthHeaders, writeResponseFile } from "@/utils";
+import type { AppType } from "@/types";
 
 const FETCH_CONFIG = {
   method: "GET",
-  endpoint: "/rest/api/2/jql/autocompletedata",
-  appType: APP_TYPE.JIRA as typeof APP_TYPE.JIRA | typeof APP_TYPE.CONFLUENCE,
+  endpoint: "/rest/api/2/status",
+  appType: APP_TYPE.JIRA as AppType,
 } as const;
 
 export function useApiTest() {
   useEffect(() => {
-    const fetchData = async () => {
-      const { endpoint, method, appType } = FETCH_CONFIG;
+    fetchApi();
+  }, []);
+}
 
-      if (!endpoint) return;
+async function fetchApi() {
+  const { endpoint, method, appType } = FETCH_CONFIG;
 
-      try {
-        const baseUrl = appType === APP_TYPE.CONFLUENCE ? CONFLUENCE_BASE_URL : JIRA_BASE_URL;
-        const token = appType === APP_TYPE.CONFLUENCE ? CONFLUENCE_PERSONAL_ACCESS_TOKEN : JIRA_PERSONAL_ACCESS_TOKEN;
+  if (!endpoint) return;
 
-        const url = new URL(endpoint, baseUrl);
+  try {
+    const baseUrl = appType === APP_TYPE.CONFLUENCE ? CONFLUENCE_BASE_URL : JIRA_BASE_URL;
+    const token = appType === APP_TYPE.CONFLUENCE ? CONFLUENCE_PERSONAL_ACCESS_TOKEN : JIRA_PERSONAL_ACCESS_TOKEN;
 
-        const requestOptions: RequestInit = {
-          method,
-          headers: getAuthHeaders(token),
-        };
+    const url = new URL(endpoint, baseUrl);
 
-        const response = await fetch(url.toString(), requestOptions);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
-        }
-
-        const result = await response.json();
-
-        writeResponseFile(JSON.stringify(result, null, 2), "test");
-      } catch (err) {
-        console.error("❌ Fetch Test Error:", err);
-      }
+    const requestOptions: RequestInit = {
+      method,
+      headers: getAuthHeaders(token),
     };
 
-    fetchData();
-  }, []);
+    const response = await fetch(url.toString(), requestOptions);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    writeResponseFile(JSON.stringify(result, null, 2), "test");
+  } catch (err) {
+    console.error("❌ Fetch Test Error:", err);
+  }
 }

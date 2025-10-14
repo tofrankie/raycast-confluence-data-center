@@ -1,4 +1,4 @@
-import type { ConfluenceSpaceType, IconType, LabelType, ListItemIcon } from "@/types";
+import type { ConfluenceSpaceType, ConfluenceIconType, ConfluenceLabelType, ListItemIcon } from "@/types";
 
 export const CONFLUENCE_USER_STATUS = {
   CURRENT: "current",
@@ -26,7 +26,7 @@ export const CONFLUENCE_SPACE_TYPE = {
   FAVOURITE: "favourite",
 } as const;
 
-export const TYPE_ICONS = {
+export const CONFLUENCE_TYPE_ICON = {
   [CONFLUENCE_ENTITY_TYPE.CONTENT]: "icon-content.svg",
   [CONFLUENCE_ENTITY_TYPE.SPACE]: "icon-space.svg",
   [CONFLUENCE_ENTITY_TYPE.USER]: "icon-user.svg",
@@ -35,9 +35,9 @@ export const TYPE_ICONS = {
   [CONFLUENCE_CONTENT_TYPE.BLOGPOST]: "icon-blogpost.svg",
   [CONFLUENCE_CONTENT_TYPE.ATTACHMENT]: "icon-attachment.svg",
   [CONFLUENCE_CONTENT_TYPE.COMMENT]: "icon-comment.svg",
-} as const satisfies Record<IconType, ListItemIcon>;
+} as const satisfies Record<ConfluenceIconType, ListItemIcon>;
 
-export const TYPE_LABELS = {
+export const CONFLUENCE_TYPE_LABEL = {
   [CONFLUENCE_ENTITY_TYPE.CONTENT]: "Content",
   [CONFLUENCE_ENTITY_TYPE.SPACE]: "Space",
   [CONFLUENCE_ENTITY_TYPE.USER]: "User",
@@ -46,9 +46,9 @@ export const TYPE_LABELS = {
   [CONFLUENCE_CONTENT_TYPE.BLOGPOST]: "Blog Post",
   [CONFLUENCE_CONTENT_TYPE.ATTACHMENT]: "Attachment",
   [CONFLUENCE_CONTENT_TYPE.COMMENT]: "Comment",
-} as const satisfies Record<LabelType, string>;
+} as const satisfies Record<ConfluenceLabelType, string>;
 
-export const SPACE_TYPE_LABELS = {
+export const CONFLUENCE_SPACE_TYPE_LABEL = {
   [CONFLUENCE_SPACE_TYPE.PERSONAL]: "Personal Space",
   [CONFLUENCE_SPACE_TYPE.GLOBAL]: "Global Space",
   [CONFLUENCE_SPACE_TYPE.FAVOURITE]: "Favourite",

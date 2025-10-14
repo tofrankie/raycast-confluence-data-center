@@ -183,8 +183,8 @@ const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
   },
 ];
 
-export const SEARCH_BAR_ACCESSORY_CONFIGS: Record<SearchBarAccessoryCommandName, SearchBarAccessoryItem[]> = {
+export const SEARCH_BAR_ACCESSORY_CONFIGS = {
   [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT]: CONFLUENCE_SEARCH_CONTENT_FILTERS,
   [COMMAND_NAME.CONFLUENCE_SEARCH_SPACE]: CONFLUENCE_SEARCH_SPACE_FILTERS,
   [COMMAND_NAME.JIRA_SEARCH_ISSUE]: JIRA_SEARCH_ISSUE_FILTERS,
-};
+} as const satisfies Record<SearchBarAccessoryCommandName, SearchBarAccessoryItem[]>;

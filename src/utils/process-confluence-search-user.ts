@@ -6,7 +6,7 @@ import {
   CONFLUENCE_ENTITY_TYPE,
   CONFLUENCE_USER_STATUS,
   DEFAULT_AVATAR,
-  TYPE_ICONS,
+  CONFLUENCE_TYPE_ICON,
 } from "@/constants";
 import type { ConfluenceSearchResult, ProcessedConfluenceUserItem } from "@/types";
 
@@ -31,7 +31,7 @@ function processConfluenceSearchUserItem(item: ConfluenceSearchResult): Processe
         source: avatar,
         mask: Image.Mask.Circle,
       }
-    : TYPE_ICONS[CONFLUENCE_ENTITY_TYPE.USER];
+    : CONFLUENCE_TYPE_ICON[CONFLUENCE_ENTITY_TYPE.USER];
 
   // TODO: 打开空间主页
   const url = `${CONFLUENCE_BASE_URL}${item.url}`;
