@@ -79,7 +79,7 @@ export async function writeResponseFile(content: string, commandName: string) {
     const filePath = path.join(CACHE_DIRECTORY.RESPONSE, filename);
 
     await fs.writeFile(filePath, content, "utf8");
-    console.log(`🚀 ~ Debug response written to: ${filePath}`);
+    // console.log(`🚀 ~ Debug response written to: ${filePath}`);
   } catch (error) {
     console.warn("🚀 ~ Failed to write response file:", error);
   }

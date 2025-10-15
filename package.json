@@ -1,10 +1,19 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "confluence-data-center",
+  "version": "1.0.0",
   "title": "Confluence Data Center",
   "description": "Search Confluence content with advanced filters and CQL syntax support",
   "icon": "logo-confluence.png",
   "author": "tofrankie",
+  "homepage": "https://github.com/tofrankie/raycast-confluence-data-center",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tofrankie/raycast-confluence-data-center.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tofrankie/raycast-confluence-data-center/issues"
+  },
   "platforms": [
     "macOS"
   ],
@@ -24,7 +33,9 @@
     "dev": "ray develop",
     "fix-lint": "ray lint --fix",
     "lint": "ray lint",
-    "publish": "ray publish"
+    "publish": "ray publish",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@raycast/api": "^1.103.2",
@@ -37,7 +48,8 @@
     "@types/react": "19.0.10",
     "eslint": "^9.22.0",
     "prettier": "^3.5.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^3.2.4"
   },
   "preferences": [
     {
@@ -86,6 +98,7 @@
       "title": "Debug Enable",
       "description": "Enable debug mode to write API responses to files for troubleshooting",
       "type": "checkbox",
+      "label": "Enable debug mode",
       "required": false,
       "default": false
     }

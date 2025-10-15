@@ -20,6 +20,7 @@ import type {
 export function useJiraSearchIssueInfiniteQuery<
   TData = { issues: ProcessedJiraIssueItem[]; hasMore: boolean; totalCount: number },
 >(jql: string, queryOptions?: Partial<UseInfiniteQueryOptions<JiraSearchIssueResponse, Error, TData>>) {
+  console.log("🚀 ~ useJiraSearchIssueInfiniteQuery ~ jql:", jql);
   return useInfiniteQuery<JiraSearchIssueResponse, Error, TData>({
     queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUE, { jql, pageSize: SEARCH_PAGE_SIZE }],
     queryFn: async ({ pageParam = 0 }) => {

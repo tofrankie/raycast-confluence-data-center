@@ -15,6 +15,13 @@ export interface SearchBarAccessoryItem {
   autoQuery?: boolean;
   transform?: (processedQuery: string, context?: { userInput: string; filter: SearchFilter }) => string;
   sectionTitle?: string | ((params: { fetchedCount: number; totalCount: number }) => string);
+  /** 逻辑运算符，用于连接用户输入和 filter 查询 */
+  logicOperator?: "AND" | "OR" | "NOT";
+  /** ORDER BY 子句 */
+  orderBy?: string;
 }
 
-export type SearchFilter = Pick<SearchBarAccessoryItem, "id" | "query" | "transform" | "autoQuery" | "sectionTitle">;
+export type SearchFilter = Pick<
+  SearchBarAccessoryItem,
+  "id" | "query" | "transform" | "autoQuery" | "sectionTitle" | "logicOperator" | "orderBy"
+>;

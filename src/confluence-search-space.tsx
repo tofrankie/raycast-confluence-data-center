@@ -3,9 +3,10 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { buildCQL, avatarExtractors, clearAllCacheWithToast } from "@/utils";
+import { avatarExtractors, clearAllCacheWithToast, processUserInputAndFilter, buildQuery } from "@/utils";
+import { IGNORE_FILTER, QUERY_TYPE } from "@/constants";
 import { APP_TYPE, AVATAR_TYPE, COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
-import { SearchBarAccessory, CQLWrapper } from "@/components";
+import { SearchBarAccessory, QueryWrapper } from "@/components";
 import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "@/hooks";
 import type { SearchFilter } from "@/types";
 
@@ -23,13 +24,27 @@ function ConfluenceSearchSpace() {
 
   const cql = useMemo(() => {
     if (!searchText) return "";
-    const extraFilter = {
-      id: "type",
-      label: "Space",
-      query: `type = space`,
-      // transform: (processedQuery: string) => processedQuery.replace("text ~ ", "space.title ~ "),
-    };
-    return buildCQL(searchText, filter ? [filter, extraFilter] : [extraFilter]);
+
+    const effectiveFilter = IGNORE_FILTER ? undefined : filter || undefined;
+    const result = processUserInputAndFilter({
+      userInput: searchText,
+      filter: effectiveFilter,
+      buildClauseFromText: (input) => `space.title ~ "${input}"`,
+      queryType: "CQL",
+    });
+
+    if (typeof result === "string") {
+      return result;
+    }
+
+    const finalResult = buildQuery({
+      ...result,
+      clauses: [...result.clauses, "type = space"],
+      orderBy: result.orderBy || "lastmodified DESC",
+      queryType: "CQL",
+    });
+
+    return finalResult;
   }, [searchText, filter]);
 
   const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =
@@ -89,7 +104,7 @@ function ConfluenceSearchSpace() {
         pageSize: SEARCH_PAGE_SIZE,
       }}
     >
-      <CQLWrapper query={searchText}>
+      <QueryWrapper query={searchText} queryType={QUERY_TYPE.CQL}>
         {isEmpty ? (
           <List.EmptyView
             icon={Icon.MagnifyingGlass}
@@ -140,7 +155,7 @@ function ConfluenceSearchSpace() {
             })}
           </List.Section>
         )}
-      </CQLWrapper>
+      </QueryWrapper>
     </List>
   );
 }

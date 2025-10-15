@@ -3,9 +3,15 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { buildCQL, clearAllCacheWithToast, avatarExtractors, getSectionTitle } from "@/utils";
-import { APP_TYPE, AVATAR_TYPE, COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
-import { SearchBarAccessory, CQLWrapper } from "@/components";
+import {
+  clearAllCacheWithToast,
+  avatarExtractors,
+  getSectionTitle,
+  processUserInputAndFilter,
+  buildQuery,
+} from "@/utils";
+import { IGNORE_FILTER, APP_TYPE, AVATAR_TYPE, COMMAND_NAME, SEARCH_PAGE_SIZE, QUERY_TYPE } from "@/constants";
+import { SearchBarAccessory, QueryWrapper } from "@/components";
 import { useConfluenceSearchContentInfiniteQuery, useToggleFavorite, useAvatar } from "@/hooks";
 import type { SearchFilter } from "@/types";
 
@@ -30,7 +36,24 @@ function ConfluenceSearchContent() {
     if (trimmedText.length < 2) {
       return "";
     }
-    return buildCQL(trimmedText, filter ? [filter] : []);
+
+    const effectiveFilter = IGNORE_FILTER ? undefined : filter || undefined;
+    const result = processUserInputAndFilter({
+      userInput: trimmedText,
+      filter: effectiveFilter,
+      buildClauseFromText: (input) => `text ~ "${input}"`,
+      queryType: "CQL",
+    });
+
+    if (typeof result === "string") {
+      return result;
+    }
+
+    return buildQuery({
+      ...result,
+      orderBy: result.orderBy || "lastmodified DESC",
+      queryType: "CQL",
+    });
   }, [searchText, filter]);
 
   const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =
@@ -106,7 +129,7 @@ function ConfluenceSearchContent() {
         pageSize: SEARCH_PAGE_SIZE,
       }}
     >
-      <CQLWrapper query={searchText}>
+      <QueryWrapper query={searchText} queryType={QUERY_TYPE.CQL}>
         {isEmpty ? (
           <List.EmptyView
             icon={Icon.MagnifyingGlass}
@@ -174,7 +197,7 @@ function ConfluenceSearchContent() {
             })}
           </List.Section>
         )}
-      </CQLWrapper>
+      </QueryWrapper>
     </List>
   );
 }

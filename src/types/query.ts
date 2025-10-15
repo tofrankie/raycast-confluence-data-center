@@ -1,19 +1,12 @@
-export interface CQLQuery {
-  raw: string;
-  isCQL: boolean;
-  parsed?: {
-    fields: string[];
-    operators: string[];
-    values: string[];
-  };
-}
+import { SearchFilter } from "./search-bar-accessory";
 
-export interface JQLQuery {
-  raw: string;
-  isJQL: boolean;
-  parsed?: {
-    fields: string[];
-    operators: string[];
-    values: string[];
-  };
+export type QueryType = "JQL" | "CQL";
+
+export type LogicOperator = "AND" | "OR" | "NOT";
+
+export interface ProcessUserInputParams {
+  userInput: string;
+  filter?: SearchFilter;
+  buildClauseFromText: (input: string) => string;
+  queryType: QueryType;
 }

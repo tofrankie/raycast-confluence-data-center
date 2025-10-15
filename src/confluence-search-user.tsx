@@ -78,6 +78,11 @@ function ConfluenceSearchUser() {
           icon={Icon.MagnifyingGlass}
           title="No Results"
           description="Try adjusting your search filters"
+          actions={
+            <ActionPanel>
+              <Action.CopyToClipboard title="Copy CQL" content={cql} />
+            </ActionPanel>
+          }
         />
       ) : (
         <List.Section title={searchTitle}>
