@@ -6,6 +6,7 @@ const preferences = getPreferenceValues<Preferences>();
 const DEFAULT_SEARCH_PAGE_SIZE = 20;
 export const SEARCH_PAGE_SIZE = formatSearchPageSize(preferences.searchPageSize) || DEFAULT_SEARCH_PAGE_SIZE;
 export const DEBUG_ENABLE = preferences.debugEnable;
+export const REPLACE_CURRENT_USER_IN_QUERY = preferences.replaceCurrentUserInQuery;
 
 // Confluence
 export const CONFLUENCE_BASE_URL = preferences.confluenceBaseUrl;

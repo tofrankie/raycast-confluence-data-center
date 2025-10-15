@@ -15,10 +15,12 @@ export const CONFLUENCE_API = {
   SEARCH: "/rest/api/search",
   SEARCH_CONTENT: "/rest/api/content/search",
   CONTENT_FAVOURITE: "/rest/experimental/relation/user/current/favourite/toContent/",
+  CURRENT_USER: "/rest/api/user/current",
 } as const;
 
 export const JIRA_API = {
   SEARCH: "/rest/api/2/search",
   FIELD: "/rest/api/2/field",
   PROJECT: "/rest/api/2/project",
+  CURRENT_USER: "/rest/api/2/myself",
 } as const;

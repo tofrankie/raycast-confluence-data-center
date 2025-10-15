@@ -1,6 +1,6 @@
 import { confluenceRequest, writeResponseFile } from "@/utils";
 import { CONFLUENCE_API, COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
-import type { ConfluenceSearchContentResponse, ConfluenceSearchResponse } from "@/types";
+import type { ConfluenceSearchContentResponse, ConfluenceSearchResponse, ConfluenceCurrentUser } from "@/types";
 
 export async function searchContent(cql: string, limit: number = SEARCH_PAGE_SIZE, start: number = 0) {
   const params = {
@@ -58,6 +58,16 @@ export async function searchSpace(cql: string, limit: number = SEARCH_PAGE_SIZE,
 
   if (data) {
     writeResponseFile(JSON.stringify(data, null, 2), COMMAND_NAME.CONFLUENCE_SEARCH_SPACE);
+  }
+
+  return data;
+}
+
+export async function getConfluenceCurrentUser(): Promise<ConfluenceCurrentUser> {
+  const data = await confluenceRequest<ConfluenceCurrentUser>("GET", CONFLUENCE_API.CURRENT_USER);
+
+  if (data) {
+    writeResponseFile(JSON.stringify(data, null, 2), "confluence-current-user");
   }
 
   return data;

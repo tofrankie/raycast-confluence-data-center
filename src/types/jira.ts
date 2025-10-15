@@ -4,6 +4,13 @@ export type JiraPriorityType = (typeof JIRA_PRIORITY)[keyof typeof JIRA_PRIORITY
 
 export type JiraIssueTypeName = (typeof JIRA_ISSUE_TYPE_NAME)[keyof typeof JIRA_ISSUE_TYPE_NAME];
 
+export interface JiraAvatarUrls {
+  "48x48": string;
+  "24x24": string;
+  "16x16": string;
+  "32x32": string;
+}
+
 export interface JiraPreferences {
   jiraBaseUrl: string;
   jiraPersonalAccessToken: string;
@@ -46,15 +53,32 @@ export interface JiraUser {
   name: string;
   key: string;
   emailAddress: string;
-  avatarUrls: {
-    "48x48": string;
-    "24x24": string;
-    "16x16": string;
-    "32x32": string;
-  };
+  avatarUrls: JiraAvatarUrls;
   displayName: string;
   active: boolean;
   timeZone: string;
+}
+
+export interface JiraCurrentUser {
+  self: string;
+  key: string;
+  name: string;
+  emailAddress: string;
+  avatarUrls: JiraAvatarUrls;
+  displayName: string;
+  active: boolean;
+  deleted: boolean;
+  timeZone: string;
+  locale: string;
+  groups: {
+    size: number;
+    items: unknown[];
+  };
+  applicationRoles: {
+    size: number;
+    items: unknown[];
+  };
+  expand: string;
 }
 
 export interface JiraProject {
@@ -63,12 +87,7 @@ export interface JiraProject {
   key: string;
   name: string;
   projectTypeKey: string;
-  avatarUrls: {
-    "48x48": string;
-    "24x24": string;
-    "16x16": string;
-    "32x32": string;
-  };
+  avatarUrls: JiraAvatarUrls;
   projectCategory?: {
     self: string;
     id: string;

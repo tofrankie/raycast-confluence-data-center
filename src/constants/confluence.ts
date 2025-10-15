@@ -53,23 +53,3 @@ export const CONFLUENCE_SPACE_TYPE_LABEL = {
   [CONFLUENCE_SPACE_TYPE.GLOBAL]: "Global Space",
   [CONFLUENCE_SPACE_TYPE.FAVOURITE]: "Favourite",
 } as const satisfies Record<ConfluenceSpaceType, string>;
-
-export const CQL_PATTERNS = [
-  // field operator
-  /^\s*\w+\s*[=~!<>]/,
-
-  // currentUser function
-  /currentUser\(\)/,
-
-  // now function
-  /now\(\)/,
-
-  // logical operators
-  /\b(AND|OR|NOT)\b/,
-
-  // official fields
-  /(ancestor|container|content|created|creator|contributor|favourite|id|label|lastModified|macro|mention|parent|space|text|title|type|watcher)\s*[=~!<>]/,
-
-  // entityType values
-  /type\s*=\s*["']?(content|page|blogpost|attachment|comment|space|user|group)["']?/i,
-] as const;

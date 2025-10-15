@@ -1,6 +1,6 @@
 import { jiraRequest, writeResponseFile } from "@/utils";
 import { JIRA_API, COMMAND_NAME, JIRA_BASE_URL } from "@/constants";
-import type { JiraSearchIssueResponse, JiraField, JiraProject } from "@/types";
+import type { JiraSearchIssueResponse, JiraField, JiraProject, JiraCurrentUser } from "@/types";
 
 type JiraSearchIssueParams = {
   jql: string;
@@ -39,6 +39,16 @@ export async function getJiraProject(): Promise<JiraProject[]> {
   }
 
   return data || [];
+}
+
+export async function getJiraCurrentUser(): Promise<JiraCurrentUser> {
+  const data = await jiraRequest<JiraCurrentUser>("GET", JIRA_API.CURRENT_USER);
+
+  if (data) {
+    writeResponseFile(JSON.stringify(data, null, 2), "jira-current-user");
+  }
+
+  return data;
 }
 
 export function getJiraIssueUrl(issueKey: string): string {

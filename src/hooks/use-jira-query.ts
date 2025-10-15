@@ -7,12 +7,14 @@ import {
   processJiraFieldItem,
   getJiraField,
   getJiraProject,
+  getJiraCurrentUser,
 } from "@/utils";
 import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import type {
   JiraSearchIssueResponse,
   JiraField,
   JiraProject,
+  JiraCurrentUser,
   ProcessedJiraIssueItem,
   ProcessedJiraFieldItem,
 } from "@/types";
@@ -105,6 +107,16 @@ export function useJiraProjectQuery<TData = JiraProject[]>(
     queryFn: getJiraProject,
     staleTime: Infinity,
     gcTime: Infinity,
+    ...queryOptions,
+  });
+}
+
+export function useJiraCurrentUserQuery<TData = JiraCurrentUser>(
+  queryOptions?: Partial<UseQueryOptions<JiraCurrentUser, Error, TData>>,
+) {
+  return useQuery<JiraCurrentUser, Error, TData>({
+    queryKey: ["jira-current-user"],
+    queryFn: getJiraCurrentUser,
     ...queryOptions,
   });
 }

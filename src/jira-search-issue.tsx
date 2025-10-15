@@ -11,9 +11,10 @@ import {
   buildQuery,
   isJQL,
   copyToClipboardWithToast,
+  replaceQueryCurrentUser,
 } from "@/utils";
 import { IGNORE_FILTER, COMMAND_NAME, SEARCH_PAGE_SIZE, QUERY_TYPE } from "@/constants";
-import { useApiTest, useJiraProjectQuery, useJiraSearchIssueInfiniteQuery } from "@/hooks";
+import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery, useJiraCurrentUserQuery } from "@/hooks";
 import type { ProcessedJiraIssueItem, SearchFilter } from "@/types";
 
 const ISSUE_KEY_REGEX = /^[A-Z][A-Z0-9_]+-\d+$/;
@@ -30,8 +31,6 @@ export default function JiraSearchIssueProvider() {
 function JiraSearchIssueContent() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
-
-  useApiTest();
 
   const {
     data: projectKeys,
@@ -88,6 +87,8 @@ function JiraSearchIssueContent() {
     useJiraSearchIssueInfiniteQuery(jql, {
       enabled: jiraIssueEnabled,
     });
+
+  const { data: currentUser } = useJiraCurrentUserQuery();
 
   const issues = data?.issues || [];
 
@@ -151,8 +152,13 @@ function JiraSearchIssueContent() {
       return filteredJQL;
     };
 
-    const finalJQL = !searchText || !PURE_NUMBER_REGEX.test(searchText) ? jql : getFinalJQL(issues);
-    await copyToClipboardWithToast(finalJQL, false);
+    let finalJQL = !searchText || !PURE_NUMBER_REGEX.test(searchText) ? jql : getFinalJQL(issues);
+
+    if (currentUser?.name) {
+      finalJQL = replaceQueryCurrentUser(finalJQL, currentUser.name);
+    }
+
+    await copyToClipboardWithToast(finalJQL);
   };
 
   const isEmpty = isFetched && !issues.length && jql.length;
@@ -184,7 +190,7 @@ function JiraSearchIssueContent() {
             description="Try adjusting your search filters or check your JQL syntax"
             actions={
               <ActionPanel>
-                <Action icon={Icon.CopyClipboard} title="Copy JQL" onAction={() => copyJQL()} />
+                <Action.CopyToClipboard title="Copy JQL" content={jql} />
               </ActionPanel>
             }
           />
@@ -215,7 +221,7 @@ function JiraSearchIssueContent() {
                       shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
                       content={item.summary}
                     />
-                    {jql && <Action icon={Icon.CopyClipboard} title="Copy JQL" onAction={() => copyJQL()} />}
+                    {jql && <Action title="Copy JQL" icon={Icon.CopyClipboard} onAction={() => copyJQL()} />}
                     <Action
                       title="Refresh"
                       icon={Icon.ArrowClockwise}

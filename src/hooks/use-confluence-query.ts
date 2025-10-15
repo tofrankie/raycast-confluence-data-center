@@ -1,5 +1,5 @@
-import type { InfiniteData, UseInfiniteQueryOptions } from "@tanstack/react-query";
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { InfiniteData, UseInfiniteQueryOptions, UseQueryOptions } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import {
@@ -8,6 +8,7 @@ import {
   searchSpace,
   addToFavorite,
   removeFromFavorite,
+  getConfluenceCurrentUser,
   processConfluenceSearchUserItems,
   processConfluenceSearchSpaceItems,
   processConfluenceSearchContentItems,
@@ -15,6 +16,7 @@ import {
 import type {
   ConfluenceSearchContentResponse,
   ConfluenceSearchResponse,
+  ConfluenceCurrentUser,
   ProcessedConfluenceContentItem,
   ProcessedConfluenceUserItem,
   ProcessedConfluenceSpaceItem,
@@ -212,3 +214,15 @@ export const useConfluenceSearchSpaceInfiniteQuery = <
     ...queryOptions,
   });
 };
+
+export function useConfluenceCurrentUserQuery<TData = ConfluenceCurrentUser>(
+  queryOptions?: Partial<UseQueryOptions<ConfluenceCurrentUser, Error, TData>>,
+) {
+  return useQuery<ConfluenceCurrentUser, Error, TData>({
+    queryKey: ["confluence-current-user"],
+    queryFn: getConfluenceCurrentUser,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    ...queryOptions,
+  });
+}

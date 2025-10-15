@@ -12,8 +12,8 @@ import type { AppType } from "@/types";
 
 const FETCH_CONFIG = {
   method: "GET",
-  endpoint: "/rest/api/2/status",
-  appType: APP_TYPE.JIRA as AppType,
+  endpoint: "/rest/api/user/current",
+  appType: APP_TYPE.CONFLUENCE as AppType,
 } as const;
 
 export function useApiTest() {

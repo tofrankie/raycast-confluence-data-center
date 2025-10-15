@@ -9,10 +9,17 @@ import {
   getSectionTitle,
   processUserInputAndFilter,
   buildQuery,
+  copyToClipboardWithToast,
+  replaceQueryCurrentUser,
 } from "@/utils";
 import { IGNORE_FILTER, APP_TYPE, AVATAR_TYPE, COMMAND_NAME, SEARCH_PAGE_SIZE, QUERY_TYPE } from "@/constants";
 import { SearchBarAccessory, QueryWrapper } from "@/components";
-import { useConfluenceSearchContentInfiniteQuery, useToggleFavorite, useAvatar } from "@/hooks";
+import {
+  useConfluenceSearchContentInfiniteQuery,
+  useToggleFavorite,
+  useAvatar,
+  useConfluenceCurrentUserQuery,
+} from "@/hooks";
 import type { SearchFilter } from "@/types";
 
 export default function ConfluenceSearchContentProvider() {
@@ -59,6 +66,8 @@ function ConfluenceSearchContent() {
   const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =
     useConfluenceSearchContentInfiniteQuery(cql);
 
+  const { data: currentUser } = useConfluenceCurrentUserQuery();
+
   const results = useMemo(() => data?.items ?? [], [data?.items]);
 
   const hasMore = data?.hasMore ?? false;
@@ -103,6 +112,16 @@ function ConfluenceSearchContent() {
     }
   };
 
+  const copyCQL = () => {
+    let finalCQL = cql;
+
+    if (currentUser?.username) {
+      finalCQL = replaceQueryCurrentUser(finalCQL, currentUser.username);
+    }
+
+    copyToClipboardWithToast(finalCQL);
+  };
+
   const isEmpty = !isLoading && searchText.length >= 2 && !results.length;
 
   const sectionTitle = getSectionTitle(filter, {
@@ -142,7 +161,7 @@ function ConfluenceSearchContent() {
                   title="Open CQL Documentation"
                   url="https://developer.atlassian.com/server/confluence/rest/v1010/intro/#advanced-searching-using-cql"
                 />
-                {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
+                <Action.CopyToClipboard title="Copy CQL" content={cql} />
               </ActionPanel>
             }
           />
@@ -182,7 +201,7 @@ function ConfluenceSearchContent() {
                           url={item.spaceUrl}
                         />
                       )}
-                      {cql && <Action.CopyToClipboard title="Copy CQL" content={cql} />}
+                      {cql && <Action title="Copy CQL" icon={Icon.CopyClipboard} onAction={() => copyCQL()} />}
                       <Action
                         title="Refresh"
                         icon={Icon.ArrowClockwise}

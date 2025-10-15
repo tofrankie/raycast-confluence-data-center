@@ -1,4 +1,12 @@
-import { CQL_OPERATORS, JQL_OPERATORS, CQL_FIELDS, JQL_FIELDS, QUERY_TYPE, MIN_CLAUSE_LENGTH } from "@/constants";
+import {
+  CQL_OPERATORS,
+  JQL_OPERATORS,
+  CQL_FIELDS,
+  JQL_FIELDS,
+  QUERY_TYPE,
+  MIN_CLAUSE_LENGTH,
+  REPLACE_CURRENT_USER_IN_QUERY,
+} from "@/constants";
 import type { QueryType, LogicOperator, ProcessUserInputParams } from "@/types";
 
 type ProcessUserInputResult =
@@ -175,4 +183,9 @@ export function parseQuery(input: string): { clause: string; orderBy: string } {
   }
 
   return { clause: normalizedInput, orderBy: "" };
+}
+
+export function replaceQueryCurrentUser(query: string, username: string): string {
+  if (!query || !username || !REPLACE_CURRENT_USER_IN_QUERY) return query;
+  return query.replace(/\bcurrentUser\(\)/gi, username);
 }

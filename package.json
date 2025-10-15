@@ -94,6 +94,15 @@
       "placeholder": "20"
     },
     {
+      "name": "replaceCurrentUserInQuery",
+      "title": "Replace currentUser() in Queries",
+      "description": "When copying CQL/JQL queries, replace currentUser() with actual username for better portability",
+      "type": "checkbox",
+      "label": "Replace currentUser() with username",
+      "required": false,
+      "default": true
+    },
+    {
       "name": "debugEnable",
       "title": "Debug Enable",
       "description": "Enable debug mode to write API responses to files for troubleshooting",
