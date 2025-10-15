@@ -3,9 +3,11 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { APP_TYPE, AVATAR_TYPE, SEARCH_PAGE_SIZE } from "@/constants";
+import { APP_TYPE, AVATAR_TYPE, PAGINATION_SIZE } from "@/constants";
 import { useConfluenceSearchUserInfiniteQuery, useAvatar } from "@/hooks";
 import { avatarExtractors, clearAllCacheWithToast } from "@/utils";
+
+const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
 
 export default function ConfluenceSearchUserProvider() {
   return (
@@ -23,14 +25,18 @@ function ConfluenceSearchUser() {
     return `user.fullname ~ "${searchText}" AND type = user`;
   }, [searchText]);
 
-  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =
-    useConfluenceSearchUserInfiniteQuery(cql);
-
-  const results = useMemo(() => data?.items ?? [], [data?.items]);
-  const hasMore = useMemo(() => data?.hasMore ?? false, [data?.hasMore]);
+  const {
+    data = EMPTY_INFINITE_DATA,
+    fetchNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isSuccess,
+    error,
+    refetch,
+  } = useConfluenceSearchUserInfiniteQuery(cql);
 
   useAvatar({
-    items: results,
+    items: data.items,
     appType: APP_TYPE.CONFLUENCE,
     avatarType: AVATAR_TYPE.CONFLUENCE_USER,
     extractAvatarData: avatarExtractors.confluenceUser,
@@ -38,28 +44,28 @@ function ConfluenceSearchUser() {
 
   useEffect(() => {
     if (error) {
-      showFailureToast(error, { title: "Search Failed" });
+      showFailureToast(error, { title: "Failed to Search User" });
     }
   }, [error]);
 
   const handleRefresh = async () => {
     try {
       await refetch();
-      showToast(Toast.Style.Success, "Refresh successful");
+      showToast(Toast.Style.Success, "Refreshed");
     } catch {
       // Error handling is done by useEffect
     }
   };
 
   const handleLoadMore = () => {
-    if (hasMore && !isFetchingNextPage) {
+    if (data.hasMore && !isFetchingNextPage) {
       fetchNextPage();
     }
   };
 
-  const isEmpty = !isLoading && searchText.length >= 2 && !results.length;
+  const isEmpty = isSuccess && !data.items.length;
 
-  const searchTitle = `Results (${results.length}/${data?.totalCount})`;
+  const searchTitle = `Results (${data.items.length}/${data?.totalCount})`;
 
   return (
     <List
@@ -68,9 +74,9 @@ function ConfluenceSearchUser() {
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search User..."
       pagination={{
-        hasMore,
+        hasMore: data.hasMore,
         onLoadMore: handleLoadMore,
-        pageSize: SEARCH_PAGE_SIZE,
+        pageSize: PAGINATION_SIZE,
       }}
     >
       {isEmpty ? (
@@ -86,7 +92,7 @@ function ConfluenceSearchUser() {
         />
       ) : (
         <List.Section title={searchTitle}>
-          {results.map((item) => {
+          {data.items.map((item) => {
             return (
               <List.Item
                 key={item.renderKey}

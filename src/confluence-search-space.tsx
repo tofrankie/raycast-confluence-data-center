@@ -5,10 +5,12 @@ import { showFailureToast } from "@raycast/utils";
 import QueryProvider from "@/query-provider";
 import { avatarExtractors, clearAllCacheWithToast, processUserInputAndFilter, buildQuery } from "@/utils";
 import { IGNORE_FILTER, QUERY_TYPE } from "@/constants";
-import { APP_TYPE, AVATAR_TYPE, COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
+import { APP_TYPE, AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
 import { SearchBarAccessory, QueryWrapper } from "@/components";
 import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "@/hooks";
 import type { SearchFilter } from "@/types";
+
+const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
 
 export default function ConfluenceSearchSpaceProvider() {
   return (
@@ -47,43 +49,47 @@ function ConfluenceSearchSpace() {
     return finalResult;
   }, [searchText, filter]);
 
-  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =
-    useConfluenceSearchSpaceInfiniteQuery(cql);
-
-  const results = useMemo(() => data?.items ?? [], [data?.items]);
-  const hasMore = useMemo(() => data?.hasMore ?? false, [data?.hasMore]);
+  const {
+    data = EMPTY_INFINITE_DATA,
+    fetchNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isSuccess,
+    error,
+    refetch,
+  } = useConfluenceSearchSpaceInfiniteQuery(cql);
 
   useEffect(() => {
     if (error) {
-      showFailureToast(error, { title: "Search Failed" });
+      showFailureToast(error, { title: "Failed to Search Space" });
     }
   }, [error]);
 
   const handleRefresh = async () => {
     try {
       await refetch();
-      showToast(Toast.Style.Success, "Refresh successful");
+      showToast(Toast.Style.Success, "Refreshed");
     } catch {
       // Error handling is done by useEffect
     }
   };
 
   useAvatar({
-    items: results,
+    items: data.items,
     appType: APP_TYPE.CONFLUENCE,
     avatarType: AVATAR_TYPE.CONFLUENCE_SPACE,
     extractAvatarData: avatarExtractors.confluenceSpace,
   });
 
   const handleLoadMore = () => {
-    if (hasMore && !isFetchingNextPage) {
+    if (data.hasMore && !isFetchingNextPage) {
       fetchNextPage();
     }
   };
 
-  const isEmpty = !isLoading && searchText.trim() && !results.length;
+  const isEmpty = isSuccess && !data.items.length;
 
-  const searchTitle = `Results (${results.length}/${data?.totalCount})`;
+  const searchTitle = `Results (${data.items.length}/${data?.totalCount})`;
 
   return (
     <List
@@ -99,9 +105,9 @@ function ConfluenceSearchSpace() {
         />
       }
       pagination={{
-        hasMore,
+        hasMore: data.hasMore,
         onLoadMore: handleLoadMore,
-        pageSize: SEARCH_PAGE_SIZE,
+        pageSize: PAGINATION_SIZE,
       }}
     >
       <QueryWrapper query={searchText} queryType={QUERY_TYPE.CQL}>
@@ -123,7 +129,7 @@ function ConfluenceSearchSpace() {
           />
         ) : (
           <List.Section title={searchTitle}>
-            {results.map((item) => {
+            {data.items.map((item) => {
               return (
                 <List.Item
                   key={item.renderKey}

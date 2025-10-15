@@ -13,12 +13,14 @@ import {
   copyToClipboardWithToast,
   replaceQueryCurrentUser,
 } from "@/utils";
-import { IGNORE_FILTER, COMMAND_NAME, SEARCH_PAGE_SIZE, QUERY_TYPE } from "@/constants";
+import { IGNORE_FILTER, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
 import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery, useJiraCurrentUserQuery } from "@/hooks";
 import type { ProcessedJiraIssueItem, SearchFilter } from "@/types";
 
 const ISSUE_KEY_REGEX = /^[A-Z][A-Z0-9_]+-\d+$/;
 const PURE_NUMBER_REGEX = /^\d+$/;
+
+const EMPTY_INFINITE_DATA = { issues: [], hasMore: false, totalCount: 0 };
 
 export default function JiraSearchIssueProvider() {
   return (
@@ -83,14 +85,20 @@ function JiraSearchIssueContent() {
     return (isJiraProjectFetched || !!jiraProjectError) && jql.length >= 2;
   }, [isJiraProjectFetched, jiraProjectError, jql]);
 
-  const { data, error, isLoading, isFetched, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
-    useJiraSearchIssueInfiniteQuery(jql, {
-      enabled: jiraIssueEnabled,
-    });
+  const {
+    data = EMPTY_INFINITE_DATA,
+    error,
+    isLoading,
+    isSuccess,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = useJiraSearchIssueInfiniteQuery(jql, {
+    enabled: jiraIssueEnabled,
+  });
 
-  const { data: currentUser } = useJiraCurrentUserQuery();
-
-  const issues = data?.issues || [];
+  const { data: currentUser, error: currentUserError } = useJiraCurrentUserQuery();
 
   const handleSearchTextChange = (text: string) => {
     setSearchText(text);
@@ -105,22 +113,34 @@ function JiraSearchIssueContent() {
   const hasMore = data?.hasMore || false;
 
   useEffect(() => {
+    if (currentUserError) {
+      showFailureToast(currentUserError, { title: "Failed to Load User" });
+    }
+  }, [currentUserError]);
+
+  useEffect(() => {
+    if (jiraProjectError) {
+      showFailureToast(jiraProjectError, { title: "Failed to Load Project" });
+    }
+  }, [jiraProjectError]);
+
+  useEffect(() => {
     if (error) {
-      showFailureToast(error, { title: "Search Failed" });
+      showFailureToast(error, { title: "Failed to Search Issue" });
     }
   }, [error]);
 
   const handleRefresh = async () => {
     try {
       await refetch();
-      showToast(Toast.Style.Success, "Refresh successful");
+      showToast(Toast.Style.Success, "Refreshed");
     } catch {
       // Error handling is done by useEffect
     }
   };
 
   const sectionTitle = getSectionTitle(filter, {
-    fetchedCount: issues.length,
+    fetchedCount: data.issues.length,
     totalCount: data?.totalCount || 0,
   });
 
@@ -152,7 +172,7 @@ function JiraSearchIssueContent() {
       return filteredJQL;
     };
 
-    let finalJQL = !searchText || !PURE_NUMBER_REGEX.test(searchText) ? jql : getFinalJQL(issues);
+    let finalJQL = !searchText || !PURE_NUMBER_REGEX.test(searchText) ? jql : getFinalJQL(data.issues);
 
     if (currentUser?.name) {
       finalJQL = replaceQueryCurrentUser(finalJQL, currentUser.name);
@@ -161,7 +181,7 @@ function JiraSearchIssueContent() {
     await copyToClipboardWithToast(finalJQL);
   };
 
-  const isEmpty = isFetched && !issues.length && jql.length;
+  const isEmpty = isSuccess && !data.issues.length;
 
   return (
     <List
@@ -179,7 +199,7 @@ function JiraSearchIssueContent() {
       pagination={{
         hasMore,
         onLoadMore: handleLoadMore,
-        pageSize: SEARCH_PAGE_SIZE,
+        pageSize: PAGINATION_SIZE,
       }}
     >
       <QueryWrapper query={searchText} queryType={QUERY_TYPE.JQL}>
@@ -196,7 +216,7 @@ function JiraSearchIssueContent() {
           />
         ) : (
           <List.Section title={sectionTitle}>
-            {issues.map((item) => (
+            {data.issues.map((item) => (
               <List.Item
                 key={item.renderKey}
                 title={item.summary}

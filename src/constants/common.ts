@@ -1,7 +1,13 @@
+import { environment } from "@raycast/api";
+
+const commandName = environment.commandName;
+
 export const APP_TYPE = {
   CONFLUENCE: "confluence",
   JIRA: "jira",
 } as const;
+
+export const CURRENT_APP_TYPE = commandName?.startsWith("jira-") ? APP_TYPE.JIRA : APP_TYPE.CONFLUENCE;
 
 export const COMMAND_NAME = {
   CONFLUENCE_SEARCH_CONTENT: "confluence-search-content",

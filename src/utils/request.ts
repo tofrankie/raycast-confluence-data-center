@@ -1,24 +1,6 @@
-import {
-  APP_TYPE,
-  CONFLUENCE_BASE_URL,
-  CONFLUENCE_PERSONAL_ACCESS_TOKEN,
-  JIRA_BASE_URL,
-  JIRA_PERSONAL_ACCESS_TOKEN,
-} from "@/constants";
-import type { AppType } from "@/types";
+import { CURRENT_BASE_URL, CURRENT_PAT, CURRENT_APP_TYPE } from "@/constants";
 
 type Method = "GET" | "POST" | "PUT" | "DELETE";
-
-const SERVICE_CONFIGS = {
-  [APP_TYPE.CONFLUENCE]: {
-    baseUrl: CONFLUENCE_BASE_URL,
-    token: CONFLUENCE_PERSONAL_ACCESS_TOKEN,
-  },
-  [APP_TYPE.JIRA]: {
-    baseUrl: JIRA_BASE_URL,
-    token: JIRA_PERSONAL_ACCESS_TOKEN,
-  },
-} as const;
 
 export async function confluenceRequest<T>(
   method: Method,
@@ -26,7 +8,6 @@ export async function confluenceRequest<T>(
   params?: Record<string, unknown>,
 ): Promise<T> {
   return apiRequest({
-    appType: APP_TYPE.CONFLUENCE,
     method,
     endpoint,
     params,
@@ -35,7 +16,6 @@ export async function confluenceRequest<T>(
 
 export async function jiraRequest<T>(method: Method, endpoint: string, params?: Record<string, unknown>): Promise<T> {
   return apiRequest({
-    appType: APP_TYPE.JIRA,
     method,
     endpoint,
     params,
@@ -43,20 +23,18 @@ export async function jiraRequest<T>(method: Method, endpoint: string, params?: 
 }
 
 export async function apiRequest<T>({
-  appType,
   method,
   endpoint,
   params,
 }: {
-  appType: AppType;
   method: Method;
   endpoint: string;
   params?: Record<string, unknown>;
 }): Promise<T> {
-  const config = SERVICE_CONFIGS[appType];
+  const appType = CURRENT_APP_TYPE;
 
   try {
-    const url = new URL(endpoint, config.baseUrl);
+    const url = new URL(endpoint, CURRENT_BASE_URL);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -68,7 +46,7 @@ export async function apiRequest<T>({
 
     const response = await fetch(url.toString(), {
       method,
-      headers: getAuthHeaders(config.token),
+      headers: getAuthHeaders(CURRENT_PAT),
     });
 
     if (!response.ok) {
@@ -82,6 +60,10 @@ export async function apiRequest<T>({
     const result = (await response.json()) as T;
     return result;
   } catch (error) {
+    if (error instanceof TypeError && error.message.includes("Invalid URL")) {
+      throw new Error(`Invalid ${appType} Base URL format. Please check your Atlassian Data Center preferences`);
+    }
+
     handleConnectionError(error, appType);
   }
 }
@@ -94,7 +76,7 @@ export function getAuthHeaders(token: string): Record<string, string> {
   };
 }
 
-async function handleHttpError(response: Response, appType: AppType): Promise<never> {
+async function handleHttpError(response: Response, appType: string): Promise<never> {
   let errorMessage = "";
 
   try {
@@ -126,32 +108,58 @@ async function handleHttpError(response: Response, appType: AppType): Promise<ne
   throw new Error(fullMessage);
 }
 
-function getBaseErrorMessage(status: number, appType: AppType): string {
+function getBaseErrorMessage(status: number, appType: string): string {
   switch (status) {
     case 400:
-      return `Bad request to ${appType}. Please check your request parameters`;
+      return `Invalid request to ${appType}. Please check your search query or request parameters`;
     case 401:
-      return `Authentication failed. Please check your ${appType} Personal Access Token`;
+      return `Authentication failed. Please check your ${appType} Personal Access Token in Atlassian Data Center preferences`;
     case 403:
-      return `Access denied. Please check your ${appType} permissions`;
+      return `Access denied. Please check your ${appType} permissions or contact your administrator`;
     case 404:
-      return `${appType} instance not found. Please check your instance URL`;
+      return `${appType} endpoint not found. Please check your ${appType} Base URL in Atlassian Data Center preferences`;
     case 429:
-      return `Rate limit exceeded for ${appType}. Please try again later`;
+      return `Rate limit exceeded for ${appType}. Please wait a moment and try again`;
     case 500:
-      return `${appType} server error. Please try again later`;
+      return `${appType} server error. Please try again later or contact your administrator`;
     case 502:
     case 503:
     case 504:
       return `${appType} service is temporarily unavailable. Please try again later`;
     default:
-      return `HTTP error ${status} from ${appType}`;
+      return `HTTP error ${status} from ${appType}. Please check your preferences and try again`;
   }
 }
 
-function handleConnectionError(error: unknown, appType: AppType): never {
+function handleConnectionError(error: unknown, appType: string): never {
   if (error instanceof Error) {
-    throw error;
+    console.log("🚀 ~ handleConnectionError ~ error.message:", error.message);
+    // Handle specific network errors
+    if (error.message.includes("ENOTFOUND") || error.message.includes("getaddrinfo")) {
+      throw new Error(
+        `Cannot resolve hostname for ${appType}. Please check your ${appType} Base URL in Atlassian Data Center preferences. Make sure the URL is correct and accessible.`,
+      );
+    }
+
+    if (error.message.includes("ECONNREFUSED")) {
+      throw new Error(
+        `Connection refused to ${appType}. Please check if the ${appType} server is running and the URL is correct.`,
+      );
+    }
+
+    if (error.message.includes("ETIMEDOUT") || error.message.includes("timeout")) {
+      throw new Error(`Connection timeout to ${appType}. Please check your network connection and try again.`);
+    }
+
+    if (error.message.includes("fetch failed")) {
+      throw new Error(
+        `Network error connecting to ${appType}. Please check your ${appType} Base URL in Atlassian Data Center preferences and network connection.`,
+      );
+    }
+
+    // For other errors, include the original error message
+    throw new Error(`Failed to connect to ${appType}: ${error.message}`);
   }
+
   throw new Error(`Failed to connect to ${appType}`);
 }

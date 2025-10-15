@@ -6,16 +6,16 @@ A comprehensive Raycast extension for Atlassian Data Center products, providing 
 
 On first use, you'll need to provide:
 
-- **Confluence Base URL**: e.g., `https://wiki.yourcompany.com`
-- **Confluence Personal Access Token**: Create it from Confluence → Profile → Personal Access Tokens → Create token
-- **Jira Base URL**: e.g., `https://jira.yourcompany.com`
-- **Jira Personal Access Token**: Create it from Jira → Profile → Personal Access Tokens → Create token
+- **Confluence Base URL**: e.g., `https://wiki.example.com`
+- **Confluence PAT**: Create it from Confluence → Profile → Personal Access Tokens → Create token
+- **Jira Base URL**: e.g., `https://jira.example.com`
+- **Jira PAT**: Create it from Jira → Profile → Personal Access Tokens → Create token
 - **Results Per Page**: Number of search results to display per page (default: `20`)
 
 > 💡
 >
 > - Keep your access token secure and don't share it with anyone.
-> - Pagination Tip: If pagination doesn't work properly, try increasing the page size to ensure results exceed the Raycast window height.
+> - Pagination Tip: If pagination doesn't work properly, try increasing the pagination size to ensure results exceed the Raycast window height.
 
 ## ✨ Features
 

@@ -1,8 +1,10 @@
 import { JIRA_ISSUE_TYPE_NAME, JIRA_PRIORITY } from "@/constants";
 
-export type JiraPriorityType = (typeof JIRA_PRIORITY)[keyof typeof JIRA_PRIORITY];
+import type { ValueOf } from "./common";
 
-export type JiraIssueTypeName = (typeof JIRA_ISSUE_TYPE_NAME)[keyof typeof JIRA_ISSUE_TYPE_NAME];
+export type JiraPriorityType = ValueOf<typeof JIRA_PRIORITY>;
+
+export type JiraIssueTypeName = ValueOf<typeof JIRA_ISSUE_TYPE_NAME>;
 
 export interface JiraAvatarUrls {
   "48x48": string;
@@ -14,7 +16,7 @@ export interface JiraAvatarUrls {
 export interface JiraPreferences {
   jiraBaseUrl: string;
   jiraPersonalAccessToken: string;
-  searchPageSize: number;
+  paginationSize: number;
 }
 
 export interface JiraSearchIssueResponse {

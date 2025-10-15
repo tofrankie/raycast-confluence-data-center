@@ -7,6 +7,8 @@ import { useJiraFieldQuery } from "@/hooks";
 import { getSelectedCustomFields, addCustomField, removeCustomField, clearAllCacheWithToast } from "@/utils";
 import type { JiraField, ProcessedJiraFieldItem } from "@/types";
 
+const EMPTY_FIELDS: ProcessedJiraFieldItem[] = [];
+
 export default function JiraManageFieldProvider() {
   return (
     <QueryProvider>
@@ -19,7 +21,7 @@ function JiraManageFieldContent() {
   const [searchText, setSearchText] = useState("");
   const [addedFields, setAddedFields] = useState<JiraField[]>([]);
 
-  const { data, isLoading, error, refetch } = useJiraFieldQuery();
+  const { data = EMPTY_FIELDS, isLoading, isSuccess, error, refetch } = useJiraFieldQuery();
 
   useEffect(() => {
     setAddedFields(getSelectedCustomFields());
@@ -78,18 +80,26 @@ function JiraManageFieldContent() {
     return (field: ProcessedJiraFieldItem) => field.schema?.type === "user";
   }, []);
 
-  const isEmpty = !isLoading && searchText.length && !data?.length;
+  const noFieldsAvailable = isSuccess && !data.length;
+
+  const noFilteredResults =
+    isSuccess &&
+    data.length &&
+    searchText.length > 0 &&
+    !addedFieldsFiltered.length &&
+    !systemFields.length &&
+    !customFields.length;
 
   useEffect(() => {
     if (error) {
-      showFailureToast(error, { title: "Failed to load fields" });
+      showFailureToast(error, { title: "Failed to Load Fields" });
     }
   }, [error]);
 
   const handleRefresh = async () => {
     try {
       await refetch();
-      showToast(Toast.Style.Success, "Refresh successful");
+      showToast(Toast.Style.Success, "Refreshed");
     } catch {
       // Error handling is done by useEffect
     }
@@ -97,11 +107,11 @@ function JiraManageFieldContent() {
 
   return (
     <List throttle isLoading={isLoading} onSearchTextChange={setSearchText} searchBarPlaceholder="Search Field...">
-      {isEmpty ? (
+      {noFieldsAvailable || noFilteredResults ? (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}
-          title="No Results"
-          description="Try adjusting your search filters"
+          title={noFieldsAvailable ? "No Fields Available" : "No Results"}
+          description={noFilteredResults ? "Try adjusting your search filters" : undefined}
         />
       ) : (
         <>

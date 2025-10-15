@@ -3,6 +3,14 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
+import { SearchBarAccessory, QueryWrapper } from "@/components";
+import { IGNORE_FILTER, APP_TYPE, AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
+import {
+  useConfluenceSearchContentInfiniteQuery,
+  useToggleFavorite,
+  useAvatar,
+  useConfluenceCurrentUserQuery,
+} from "@/hooks";
 import {
   clearAllCacheWithToast,
   avatarExtractors,
@@ -12,15 +20,10 @@ import {
   copyToClipboardWithToast,
   replaceQueryCurrentUser,
 } from "@/utils";
-import { IGNORE_FILTER, APP_TYPE, AVATAR_TYPE, COMMAND_NAME, SEARCH_PAGE_SIZE, QUERY_TYPE } from "@/constants";
-import { SearchBarAccessory, QueryWrapper } from "@/components";
-import {
-  useConfluenceSearchContentInfiniteQuery,
-  useToggleFavorite,
-  useAvatar,
-  useConfluenceCurrentUserQuery,
-} from "@/hooks";
+
 import type { SearchFilter } from "@/types";
+
+const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
 
 export default function ConfluenceSearchContentProvider() {
   return (
@@ -63,14 +66,17 @@ function ConfluenceSearchContent() {
     });
   }, [searchText, filter]);
 
-  const { data, fetchNextPage, isFetchingNextPage, isLoading, error, refetch } =
-    useConfluenceSearchContentInfiniteQuery(cql);
+  const {
+    data = EMPTY_INFINITE_DATA,
+    fetchNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isSuccess,
+    error,
+    refetch,
+  } = useConfluenceSearchContentInfiniteQuery(cql);
 
-  const { data: currentUser } = useConfluenceCurrentUserQuery();
-
-  const results = useMemo(() => data?.items ?? [], [data?.items]);
-
-  const hasMore = data?.hasMore ?? false;
+  const { data: currentUser, error: currentUserError } = useConfluenceCurrentUserQuery();
 
   const toggleFavorite = useToggleFavorite();
 
@@ -80,34 +86,40 @@ function ConfluenceSearchContent() {
 
   useEffect(() => {
     if (toggleFavorite.error) {
-      showFailureToast(toggleFavorite.error, { title: "Failed to Update Favorite Status" });
+      showFailureToast(toggleFavorite.error, { title: "Failed to Update Favorite" });
     }
   }, [toggleFavorite.error]);
 
   useAvatar({
-    items: results,
+    items: data.items,
     appType: APP_TYPE.CONFLUENCE,
     avatarType: AVATAR_TYPE.CONFLUENCE_USER,
     extractAvatarData: avatarExtractors.confluenceContentCreator,
   });
 
   useEffect(() => {
+    if (currentUserError) {
+      showFailureToast(currentUserError, { title: "Failed to Load User" });
+    }
+  }, [currentUserError]);
+
+  useEffect(() => {
     if (error) {
-      showFailureToast(error, { title: "Search Failed" });
+      showFailureToast(error, { title: "Failed to Search Content" });
     }
   }, [error]);
 
   const handleRefresh = async () => {
     try {
       await refetch();
-      showToast(Toast.Style.Success, "Refresh successful");
+      showToast(Toast.Style.Success, "Refreshed");
     } catch {
       // Error handling is done by useEffect
     }
   };
 
   const handleLoadMore = () => {
-    if (hasMore && !isFetchingNextPage) {
+    if (data.hasMore && !isFetchingNextPage) {
       fetchNextPage();
     }
   };
@@ -122,10 +134,10 @@ function ConfluenceSearchContent() {
     copyToClipboardWithToast(finalCQL);
   };
 
-  const isEmpty = !isLoading && searchText.length >= 2 && !results.length;
+  const isEmpty = isSuccess && !data.items.length;
 
   const sectionTitle = getSectionTitle(filter, {
-    fetchedCount: results.length,
+    fetchedCount: data.items.length,
     totalCount: data?.totalCount || 0,
   });
 
@@ -143,9 +155,9 @@ function ConfluenceSearchContent() {
         />
       }
       pagination={{
-        hasMore,
+        hasMore: data.hasMore,
         onLoadMore: handleLoadMore,
-        pageSize: SEARCH_PAGE_SIZE,
+        pageSize: PAGINATION_SIZE,
       }}
     >
       <QueryWrapper query={searchText} queryType={QUERY_TYPE.CQL}>
@@ -167,7 +179,7 @@ function ConfluenceSearchContent() {
           />
         ) : (
           <List.Section title={sectionTitle}>
-            {results.map((item) => {
+            {data.items.map((item) => {
               return (
                 <List.Item
                   key={item.renderKey}

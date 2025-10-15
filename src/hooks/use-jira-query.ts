@@ -1,5 +1,7 @@
-import { useInfiniteQuery, useQuery, UseQueryOptions, UseInfiniteQueryOptions } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import type { UseQueryOptions, UseInfiniteQueryOptions } from "@tanstack/react-query";
 
+import { COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
 import {
   searchJiraIssue,
   processJiraSearchIssue,
@@ -9,7 +11,6 @@ import {
   getJiraProject,
   getJiraCurrentUser,
 } from "@/utils";
-import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
 import type {
   JiraSearchIssueResponse,
   JiraField,
@@ -22,16 +23,15 @@ import type {
 export function useJiraSearchIssueInfiniteQuery<
   TData = { issues: ProcessedJiraIssueItem[]; hasMore: boolean; totalCount: number },
 >(jql: string, queryOptions?: Partial<UseInfiniteQueryOptions<JiraSearchIssueResponse, Error, TData>>) {
-  console.log("🚀 ~ useJiraSearchIssueInfiniteQuery ~ jql:", jql);
   return useInfiniteQuery<JiraSearchIssueResponse, Error, TData>({
-    queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUE, { jql, pageSize: SEARCH_PAGE_SIZE }],
+    queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUE, { jql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam = 0 }) => {
       const customFieldIds = getSelectedCustomFieldIds();
 
       const params = {
         jql,
         startAt: pageParam as number,
-        maxResults: SEARCH_PAGE_SIZE,
+        maxResults: PAGINATION_SIZE,
         validateQuery: false,
         fields: [
           "summary",

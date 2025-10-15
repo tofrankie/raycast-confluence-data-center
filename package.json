@@ -54,61 +54,61 @@
   },
   "preferences": [
     {
+      "type": "textfield",
       "name": "confluenceBaseUrl",
       "title": "Confluence Base URL",
-      "description": "Your Confluence Data Center instance URL (e.g., https://wiki.yourcompany.com)",
-      "type": "textfield",
+      "description": "Your Confluence Data Center instance URL (e.g. https://wiki.example.com)",
       "required": true,
-      "placeholder": "https://wiki.yourcompany.com"
+      "placeholder": "e.g. https://wiki.example.com"
     },
     {
-      "name": "confluencePersonalAccessToken",
-      "title": "Confluence Personal Access Token",
-      "description": "Your Confluence Personal Access Token for API authentication. Create it from: Profile → Personal Access Tokens → Create token",
       "type": "password",
+      "name": "confluencePAT",
+      "title": "Confluence PAT",
+      "description": "Your Confluence Personal Access Token for API authentication. Create it from: Profile → Personal Access Tokens → Create token",
       "required": true,
-      "placeholder": "Enter your Confluence Personal Access Token"
+      "placeholder": "Your Confluence Personal Access Token"
     },
     {
+      "type": "textfield",
       "name": "jiraBaseUrl",
       "title": "Jira Base URL",
-      "description": "Your Jira Data Center instance URL (e.g., https://jira.yourcompany.com)",
-      "type": "textfield",
+      "description": "Your Jira Data Center instance URL (e.g. https://jira.example.com)",
       "required": true,
-      "placeholder": "https://jira.yourcompany.com"
+      "placeholder": "e.g. https://jira.example.com"
     },
     {
-      "name": "jiraPersonalAccessToken",
-      "title": "Jira Personal Access Token",
-      "description": "Your Jira Personal Access Token for API authentication. Create it from: Profile → Personal Access Tokens → Create token",
       "type": "password",
+      "name": "jiraPAT",
+      "title": "Jira PAT",
+      "description": "Your Jira Personal Access Token for API authentication. Create it from: Profile → Personal Access Tokens → Create token",
       "required": true,
-      "placeholder": "Enter your Jira Personal Access Token"
+      "placeholder": "Your Jira Personal Access Token"
     },
     {
-      "name": "searchPageSize",
-      "title": "Search Results Per Page",
-      "description": "Number of search results to display per page (default: 20). Increase if pagination doesn't work properly.",
       "type": "textfield",
+      "name": "paginationSize",
+      "title": "Results Per Page",
+      "description": "Number of search results per page (default: 20)",
       "required": true,
       "default": "20",
       "placeholder": "20"
     },
     {
-      "name": "replaceCurrentUserInQuery",
-      "title": "Replace currentUser in Queries",
-      "description": "When copying CQL/JQL queries, replace currentUser() with actual username for better portability",
       "type": "checkbox",
-      "label": "Replace currentUser with username",
+      "name": "replaceCurrentUser",
+      "title": "Replace currentUser",
+      "description": "Replace currentUser() with username when copying CQL/JQL",
+      "label": "Replace currentUser() with username when copying CQL/JQL",
       "required": true,
       "default": true
     },
     {
-      "name": "debugEnable",
-      "title": "Debug Enable",
-      "description": "Enable debug mode to write API responses to files for troubleshooting",
       "type": "checkbox",
-      "label": "Enable debug mode",
+      "name": "debugEnable",
+      "title": "Enable Debug",
+      "description": "Enable debug mode for troubleshooting",
+      "label": "Enable debug mode for troubleshooting",
       "required": true,
       "default": false
     }

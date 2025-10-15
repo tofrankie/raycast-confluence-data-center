@@ -5,7 +5,7 @@ import {
   JQL_FIELDS,
   QUERY_TYPE,
   MIN_CLAUSE_LENGTH,
-  REPLACE_CURRENT_USER_IN_QUERY,
+  REPLACE_CURRENT_USER,
 } from "@/constants";
 import type { QueryType, LogicOperator, ProcessUserInputParams } from "@/types";
 
@@ -77,7 +77,7 @@ export function combineClauses(params: CombineClausesParams): string {
   const { clauses, logicOperator } = params;
   const validClauses = clauses.filter((clause) => clause.trim());
 
-  if (validClauses.length === 0) {
+  if (!validClauses.length) {
     return "";
   }
 
@@ -186,6 +186,6 @@ export function parseQuery(input: string): { clause: string; orderBy: string } {
 }
 
 export function replaceQueryCurrentUser(query: string, username: string): string {
-  if (!query || !username || !REPLACE_CURRENT_USER_IN_QUERY) return query;
+  if (!query || !username || !REPLACE_CURRENT_USER) return query;
   return query.replace(/\bcurrentUser\(\)/gi, username);
 }

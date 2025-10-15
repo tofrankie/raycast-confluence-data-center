@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
 
-import { APP_TYPE, CONFLUENCE_PERSONAL_ACCESS_TOKEN, JIRA_PERSONAL_ACCESS_TOKEN } from "@/constants";
+import { CURRENT_PAT } from "@/constants";
 import { avatarCache, downloadAvatar } from "@/utils";
 import type { AvatarList, AppType, AvatarType } from "@/types";
 
@@ -16,8 +16,6 @@ export function useAvatar<T>({
   avatarType: AvatarType;
   extractAvatarData: (items: T[]) => AvatarList;
 }) {
-  const token = appType === APP_TYPE.CONFLUENCE ? CONFLUENCE_PERSONAL_ACCESS_TOKEN : JIRA_PERSONAL_ACCESS_TOKEN;
-
   const avatarList = useMemo(() => extractAvatarData(items), [items, extractAvatarData]);
 
   const uniqueList = useMemo(() => {
@@ -31,7 +29,7 @@ export function useAvatar<T>({
       queryKey: [`${appType}-avatar`, { url: item.url }],
       queryFn: async () => {
         return downloadAvatar({
-          token,
+          token: CURRENT_PAT,
           type: avatarType,
           url: item.url,
           key: item.key,
@@ -40,7 +38,7 @@ export function useAvatar<T>({
       staleTime: Infinity,
       gcTime: Infinity,
     }));
-  }, [uniqueList, appType, token]);
+  }, [uniqueList, appType]);
 
   useQueries({ queries });
 }

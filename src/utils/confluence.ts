@@ -1,8 +1,8 @@
 import { confluenceRequest, writeResponseFile } from "@/utils";
-import { CONFLUENCE_API, COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
+import { CONFLUENCE_API, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
 import type { ConfluenceSearchContentResponse, ConfluenceSearchResponse, ConfluenceCurrentUser } from "@/types";
 
-export async function searchContent(cql: string, limit: number = SEARCH_PAGE_SIZE, start: number = 0) {
+export async function searchContent(cql: string, limit: number = PAGINATION_SIZE, start: number = 0) {
   const params = {
     cql,
     start,
@@ -29,7 +29,7 @@ export async function removeFromFavorite(contentId: string): Promise<void> {
   await confluenceRequest<void>("DELETE", endpoint);
 }
 
-export async function searchUser(cql: string, limit: number = SEARCH_PAGE_SIZE, start: number = 0) {
+export async function searchUser(cql: string, limit: number = PAGINATION_SIZE, start: number = 0) {
   const params = {
     cql,
     start,
@@ -46,7 +46,7 @@ export async function searchUser(cql: string, limit: number = SEARCH_PAGE_SIZE, 
   return data;
 }
 
-export async function searchSpace(cql: string, limit: number = SEARCH_PAGE_SIZE, start: number = 0) {
+export async function searchSpace(cql: string, limit: number = PAGINATION_SIZE, start: number = 0) {
   const params = {
     cql,
     start,

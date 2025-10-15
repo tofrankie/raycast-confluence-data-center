@@ -1,7 +1,7 @@
-import type { InfiniteData, UseInfiniteQueryOptions, UseQueryOptions } from "@tanstack/react-query";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { InfiniteData, UseInfiniteQueryOptions, UseQueryOptions } from "@tanstack/react-query";
 
-import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
+import { COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
 import {
   searchContent,
   searchUser,
@@ -30,10 +30,10 @@ export const useConfluenceSearchContentInfiniteQuery = <
 ) => {
   return useInfiniteQuery<ConfluenceSearchContentResponse, Error, TData>({
     enabled: cql.length >= 2,
-    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT, { cql, pageSize: SEARCH_PAGE_SIZE }],
+    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchContent(cql, SEARCH_PAGE_SIZE, start);
+      const response = await searchContent(cql, PAGINATION_SIZE, start);
       return response;
     },
     select: (data) => {
@@ -50,7 +50,7 @@ export const useConfluenceSearchContentInfiniteQuery = <
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       const hasNextLink = !!lastPage._links?.next;
-      const nextPageParam = hasNextLink ? allPages.length * SEARCH_PAGE_SIZE : undefined;
+      const nextPageParam = hasNextLink ? allPages.length * PAGINATION_SIZE : undefined;
       return nextPageParam;
     },
     staleTime: 60 * 1000,
@@ -134,10 +134,10 @@ export const useConfluenceSearchUserInfiniteQuery = <
 ) => {
   return useInfiniteQuery<ConfluenceSearchResponse, Error, TData>({
     enabled: cql.length >= 2,
-    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_USER, { cql, pageSize: SEARCH_PAGE_SIZE }],
+    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_USER, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchUser(cql, SEARCH_PAGE_SIZE, start);
+      const response = await searchUser(cql, PAGINATION_SIZE, start);
       return response;
     },
     select: (data) => {
@@ -163,7 +163,7 @@ export const useConfluenceSearchUserInfiniteQuery = <
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       const hasNextLink = !!lastPage._links?.next;
-      const nextPageParam = hasNextLink ? allPages.length * SEARCH_PAGE_SIZE : undefined;
+      const nextPageParam = hasNextLink ? allPages.length * PAGINATION_SIZE : undefined;
       return nextPageParam;
     },
     staleTime: 60 * 1000,
@@ -179,10 +179,10 @@ export const useConfluenceSearchSpaceInfiniteQuery = <
 ) => {
   return useInfiniteQuery<ConfluenceSearchResponse, Error, TData>({
     enabled: cql.length >= 2,
-    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_SPACE, { cql, pageSize: SEARCH_PAGE_SIZE }],
+    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_SPACE, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchSpace(cql, SEARCH_PAGE_SIZE, start);
+      const response = await searchSpace(cql, PAGINATION_SIZE, start);
       return response;
     },
     select: (data) => {
@@ -207,7 +207,7 @@ export const useConfluenceSearchSpaceInfiniteQuery = <
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       const hasNextLink = !!lastPage._links?.next;
-      const nextPageParam = hasNextLink ? allPages.length * SEARCH_PAGE_SIZE : undefined;
+      const nextPageParam = hasNextLink ? allPages.length * PAGINATION_SIZE : undefined;
       return nextPageParam;
     },
     staleTime: 60 * 1000,

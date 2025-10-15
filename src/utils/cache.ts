@@ -13,7 +13,7 @@ export const customFieldCache = createCache();
 
 export async function clearAllCacheWithToast() {
   await clearAllCache();
-  showToast(Toast.Style.Success, "All cache cleared successfully");
+  showToast(Toast.Style.Success, "Cache Cleared");
 }
 
 /**

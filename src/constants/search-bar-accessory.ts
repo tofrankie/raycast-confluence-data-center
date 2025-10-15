@@ -1,6 +1,6 @@
 import { Icon } from "@raycast/api";
 
-import { COMMAND_NAME, SEARCH_PAGE_SIZE } from "@/constants";
+import { COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
 
 import type { SearchBarAccessoryItem, SearchBarAccessoryCommandName } from "@/types";
 
@@ -14,7 +14,7 @@ const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
   {
     id: "viewed_recently",
     title: "Viewed Recently",
-    query: `id in recentlyViewedContent(${SEARCH_PAGE_SIZE}, 0)`,
+    query: `id in recentlyViewedContent(${PAGINATION_SIZE}, 0)`,
     icon: Icon.Eye,
     autoQuery: true,
     logicOperator: "AND",

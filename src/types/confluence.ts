@@ -1,10 +1,11 @@
 import { CONFLUENCE_CONTENT_TYPE, CONFLUENCE_ENTITY_TYPE, CONFLUENCE_SPACE_TYPE } from "@/constants";
+import type { ValueOf } from "@/types";
 
-export type ConfluenceEntityType = (typeof CONFLUENCE_ENTITY_TYPE)[keyof typeof CONFLUENCE_ENTITY_TYPE];
+export type ConfluenceEntityType = ValueOf<typeof CONFLUENCE_ENTITY_TYPE>;
 
-export type ConfluenceContentType = (typeof CONFLUENCE_CONTENT_TYPE)[keyof typeof CONFLUENCE_CONTENT_TYPE];
+export type ConfluenceContentType = ValueOf<typeof CONFLUENCE_CONTENT_TYPE>;
 
-export type ConfluenceSpaceType = (typeof CONFLUENCE_SPACE_TYPE)[keyof typeof CONFLUENCE_SPACE_TYPE];
+export type ConfluenceSpaceType = ValueOf<typeof CONFLUENCE_SPACE_TYPE>;
 
 export type ConfluenceIconType = ConfluenceEntityType | ConfluenceContentType;
 
@@ -13,7 +14,7 @@ export type ConfluenceLabelType = ConfluenceEntityType | ConfluenceContentType;
 export interface ConfluencePreferences {
   confluenceBaseUrl: string;
   confluencePersonalAccessToken: string;
-  searchPageSize: number;
+  paginationSize: number;
 }
 
 export interface ConfluenceSearchContentResponse {
