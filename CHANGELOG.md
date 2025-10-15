@@ -1,3 +1,3 @@
-# Confluence Data Center Changelog
+# Atlassian Data Center Changelog
 
 ## [Initial Release] - {PR_MERGE_DATE}

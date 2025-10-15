@@ -1,6 +1,6 @@
-# Confluence Data Center
+# Atlassian Data Center
 
-A powerful Raycast extension for searching Confluence Data Center and Jira Data Center content with advanced filters and CQL/JQL syntax support.
+A comprehensive Raycast extension for Atlassian Data Center products, providing powerful search and management capabilities for both Confluence and Jira with advanced filters and CQL/JQL syntax support.
 
 ## ⚙️ Setup Required
 

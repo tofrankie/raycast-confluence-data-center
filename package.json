@@ -1,18 +1,18 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "confluence-data-center",
+  "name": "atlassian-data-center",
   "version": "1.0.0",
-  "title": "Confluence Data Center",
-  "description": "Search Confluence content with advanced filters and CQL syntax support",
+  "title": "Atlassian Data Center",
+  "description": "Search and manage Confluence and Jira Data Center with advanced filters and query syntax support",
   "icon": "logo-confluence.png",
   "author": "tofrankie",
-  "homepage": "https://github.com/tofrankie/raycast-confluence-data-center",
+  "homepage": "https://github.com/tofrankie/raycast-atlassian-data-center",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tofrankie/raycast-confluence-data-center.git"
+    "url": "https://github.com/tofrankie/raycast-atlassian-data-center.git"
   },
   "bugs": {
-    "url": "https://github.com/tofrankie/raycast-confluence-data-center/issues"
+    "url": "https://github.com/tofrankie/raycast-atlassian-data-center/issues"
   },
   "platforms": [
     "macOS"
@@ -22,9 +22,10 @@
   ],
   "keywords": [
     "atlassian",
+    "atlassian data center",
     "confluence",
-    "jira",
     "confluence data center",
+    "jira",
     "jira data center"
   ],
   "license": "MIT",
@@ -95,11 +96,11 @@
     },
     {
       "name": "replaceCurrentUserInQuery",
-      "title": "Replace currentUser() in Queries",
+      "title": "Replace currentUser in Queries",
       "description": "When copying CQL/JQL queries, replace currentUser() with actual username for better portability",
       "type": "checkbox",
-      "label": "Replace currentUser() with username",
-      "required": false,
+      "label": "Replace currentUser with username",
+      "required": true,
       "default": true
     },
     {
@@ -108,7 +109,7 @@
       "description": "Enable debug mode to write API responses to files for troubleshooting",
       "type": "checkbox",
       "label": "Enable debug mode",
-      "required": false,
+      "required": true,
       "default": false
     }
   ],
