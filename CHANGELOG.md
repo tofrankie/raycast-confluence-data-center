@@ -1,3 +1,3 @@
 # Atlassian Data Center Changelog
 
-## [Initial Release] - {PR_MERGE_DATE}
+## [v1.0.0] - {PR_MERGE_DATE}

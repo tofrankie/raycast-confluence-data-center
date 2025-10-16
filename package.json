@@ -3,8 +3,8 @@
   "name": "atlassian-data-center",
   "version": "1.0.0",
   "title": "Atlassian Data Center",
-  "description": "Search and manage Confluence and Jira Data Center with advanced filters and query syntax support",
-  "icon": "logo-confluence.png",
+  "description": "Search Confluence and Jira Data Center with CQL/JQL syntax support",
+  "icon": "logo-atlassian.png",
   "author": "tofrankie",
   "homepage": "https://github.com/tofrankie/raycast-atlassian-data-center",
   "repository": {
@@ -57,9 +57,9 @@
       "type": "textfield",
       "name": "confluenceBaseUrl",
       "title": "Confluence Base URL",
-      "description": "Your Confluence Data Center instance URL (e.g. https://wiki.example.com)",
+      "description": "Base URL of your Confluence Data Center instance (e.g. https://confluence.example.com)",
       "required": true,
-      "placeholder": "e.g. https://wiki.example.com"
+      "placeholder": "e.g. https://confluence.example.com"
     },
     {
       "type": "password",
@@ -73,7 +73,7 @@
       "type": "textfield",
       "name": "jiraBaseUrl",
       "title": "Jira Base URL",
-      "description": "Your Jira Data Center instance URL (e.g. https://jira.example.com)",
+      "description": "Base URL of your Jira Data Center instance (e.g. https://jira.example.com)",
       "required": true,
       "placeholder": "e.g. https://jira.example.com"
     },

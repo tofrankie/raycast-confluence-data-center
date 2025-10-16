@@ -1,45 +1,40 @@
 # Atlassian Data Center
 
-A comprehensive Raycast extension for Atlassian Data Center products, providing powerful search and management capabilities for both Confluence and Jira with advanced filters and CQL/JQL syntax support.
+A Raycast extension for Atlassian Data Center products, providing search capabilities for Confluence and Jira with CQL/JQL syntax support.
 
 ## ⚙️ Setup Required
 
+This extension integrates with your Atlassian applications using Personal Access Tokens (PATs), which are a secure way to authenticate external applications. [Learn more](https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html)
+
+> [!IMPORTANT]
+> Keep your Personal Access Token secure. If compromised, revoke it immediately.
+
 On first use, you'll need to provide:
 
-- **Confluence Base URL**: e.g., `https://wiki.example.com`
+- **Confluence Base URL**: Base URL of your Confluence Data Center instance, e.g., `https://confluence.example.com`
 - **Confluence PAT**: Create it from Confluence → Profile → Personal Access Tokens → Create token
-- **Jira Base URL**: e.g., `https://jira.example.com`
+- **Jira Base URL**: Base URL of your Jira Data Center instance, e.g., `https://jira.example.com`
 - **Jira PAT**: Create it from Jira → Profile → Personal Access Tokens → Create token
-- **Results Per Page**: Number of search results to display per page (default: `20`)
-
-> 💡
->
-> - Keep your access token secure and don't share it with anyone.
-> - Pagination Tip: If pagination doesn't work properly, try increasing the pagination size to ensure results exceed the Raycast window height.
 
 ## ✨ Features
 
 ### 📚 Confluence
 
-- **🔍 Advanced Search** - Search Confluence content with intelligent filters
-- **🎯 Smart Filters** - Filter by creator, contributor, favourites, mentions, and more
-- **📝 CQL Support** - Use Confluence Query Language for advanced searches
-- **⚡ Fast Results** - Quick access to pages, blog posts, and attachments
-- **👥 User Search** - Find Confluence users by name
-- **📁 Space Search** - Discover and browse Confluence spaces
+- **Content Search** - Search pages, blog posts, and attachments
+- **Space Search** - Discover spaces
+- **User Search** - Find users by name
+- **CQL Support** - Use [Confluence Query Language](https://developer.atlassian.com/server/confluence/rest/v1020/intro/#advanced-searching-using-cql) for advanced searches
+- **Common Filters** - Viewed Recently, Created by Me, Contributed by Me, Mentions Me, My Favourites, Watched by Me
 
-### 🎫 Jira
+### 🐛 Jira
 
-- **🎫 Issue Search** - Search Jira issues with advanced filters
-- **🔍 JQL Support** - Use Jira Query Language for complex searches
-- **📊 Smart Filters** - Filter by assignee, reporter, status, priority, and more
-- **⚡ Quick Access** - Fast navigation to issues, projects, and users
+- **Issue Search** - Search issues
+- **JQL Support** - Use [Jira Query Language](https://confluence.atlassian.com/jiracoreserver/advanced-searching-939937709.html) for complex searches
+- **Common Filters** - My Open Issues, Open Issues, Assigned to Me, Reported by Me, Created Recently, Updated Recently, Resolved Recently, Viewed Recently, Watched by Me
 
-### 🛠️ General
+## 🔧 Troubleshooting
 
-- **🔗 Direct Actions** - Open, edit, copy links, and manage favourites
-- **📄 Smart Pagination** - Seamless infinite scroll with configurable page size (default: 20 results per page)
-- **⚙️ Customizable Settings** - Adjust results per page to optimize your workflow
+- If pagination doesn't work properly, try increasing the pagination size to ensure results exceed the Raycast window height.
 
 ## 📄 License
 
