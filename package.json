@@ -15,7 +15,8 @@
     "url": "https://github.com/tofrankie/raycast-atlassian-data-center/issues"
   },
   "platforms": [
-    "macOS"
+    "macOS",
+    "Windows"
   ],
   "categories": [
     "Productivity"
