@@ -36,6 +36,11 @@ export async function apiRequest<T>({ method, endpoint, params }: RequestParams)
       throw await createHttpError(response, errorContext);
     }
 
+    const contentType = response.headers.get("content-type") || "";
+    if (response.status === 200 && contentType.includes("text/html")) {
+      throw await createHttpError(response, errorContext);
+    }
+
     if (response.status === 204) {
       return null;
     }
@@ -104,8 +109,19 @@ async function createHttpError(response: Response, context: ErrorContext): Promi
 
   let errorMessage = "";
   try {
-    const errorBody = await response.json();
-    errorMessage = extractErrorMessage(errorBody);
+    const contentType = response.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      const errorBody = await response.json();
+      errorMessage = extractErrorMessage(errorBody);
+    } else if (contentType.includes("text/html")) {
+      // For HTML error pages (like 404), use status-based message
+      errorMessage = `Server returned HTML instead of JSON (likely a ${response.status} error page)`;
+    } else {
+      // For other content types, try to get text content
+      const textContent = await response.text();
+      errorMessage = textContent.substring(0, 200);
+    }
   } catch {
     // If we can't parse the response body, fall back to status-based messages
   }

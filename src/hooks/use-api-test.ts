@@ -10,7 +10,7 @@ type RequestParams = {
 
 const CONFIG: RequestParams = {
   method: "GET",
-  endpoint: "/rest/api/2/myself",
+  endpoint: "/rest/api/2/issuetype",
 } as const;
 
 export function useApiTest() {

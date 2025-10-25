@@ -33,7 +33,7 @@ function JiraManageFieldContent() {
     const allFields = data ?? [];
     const searchRegex = new RegExp(trimmedText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
     const filteredFields = allFields.filter((item) => {
-      if (searchRegex.test(item.title)) {
+      if (searchRegex.test(item.name)) {
         return true;
       }
       if (item.keywords && item.keywords.some((keyword) => searchRegex.test(keyword))) {

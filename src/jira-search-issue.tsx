@@ -224,7 +224,7 @@ function JiraSearchIssueContent() {
             {data.issues.map((item) => (
               <List.Item
                 key={item.renderKey}
-                title={item.summary}
+                title={item.title}
                 subtitle={item.subtitle}
                 icon={item.icon}
                 accessories={item.accessories}

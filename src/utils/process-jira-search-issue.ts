@@ -5,8 +5,9 @@ import type { JiraIssue, JiraUser, ProcessedJiraIssueItem, ListItemAccessories, 
 export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, string>): ProcessedJiraIssueItem {
   const { fields, key, id } = issue;
 
-  const summary = fields.summary || "No Summary";
-  const issueType = fields.issuetype?.name || "Task";
+  const summary = fields.summary;
+  const title = { value: summary, tooltip: summary };
+  const issueType = fields.issuetype.name;
 
   const url = getJiraIssueUrl(key);
   const editUrl = getJiraIssueEditUrl(id);
@@ -35,7 +36,7 @@ export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, 
 
   return {
     renderKey: id,
-    title: summary,
+    title,
     key,
     summary,
     icon,
@@ -144,7 +145,7 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
     timeTooltipParts.push(`Logged Time: ${timeTracking.timeSpent}`);
   }
 
-  accessories.push({
+  accessories.unshift({
     date: updated ?? created,
     tooltip: timeTooltipParts.join("\n"),
   });

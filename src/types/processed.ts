@@ -1,8 +1,8 @@
-import type { ListItemIcon, ListItemSubtitle, ListItemAccessories } from "@/types";
+import type { ListItemIcon, ListItemSubtitle, ListItemAccessories, ListItemTitle } from "@/types";
 
 export interface BaseProcessedItem {
   renderKey: string;
-  title: string;
+  title: ListItemTitle;
 }
 
 export interface ProcessedConfluenceContentItem extends BaseProcessedItem {

@@ -5,17 +5,20 @@ export function getIssueTypeIcon(issueType: string): string | undefined {
     return JIRA_ISSUE_TYPE_ICON[issueType];
   }
 
-  const issueTypeIconMap = {
+  const iconMap = {
+    // built-in issue type
     ...JIRA_ISSUE_TYPE_ICON,
+
     // custom issue type
     TEST: "icon-flask.svg",
+    SUGGESTION: "icon-story.svg",
+    IMPROVEMENT: "icon-improvement.svg",
+    "NEW FEATURE": "icon-new-feature.svg",
   } as const;
 
-  const similarIssueType = Object.keys(issueTypeIconMap).find((key) =>
-    issueType.toLowerCase().includes(key.toLowerCase()),
-  );
-  if (similarIssueType && isBuiltInIssueType(similarIssueType, issueTypeIconMap)) {
-    return issueTypeIconMap[similarIssueType];
+  const similarType = Object.keys(iconMap).find((key) => issueType.toLowerCase().includes(key.toLowerCase()));
+  if (similarType && isBuiltInIssueType(similarType, iconMap)) {
+    return iconMap[similarType];
   }
 
   return undefined;

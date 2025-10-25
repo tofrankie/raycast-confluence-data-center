@@ -18,7 +18,7 @@ export function processConfluenceSearchContentItems(
 
 function processConfluenceSearchContentItem(item: ConfluenceSearchContentResult): ProcessedConfluenceContentItem {
   const id = item.id;
-  const title = item.title;
+  const title = { value: item.title, tooltip: item.title };
   const spaceName = item.space?.name || "";
 
   const iconType = item.type as ConfluenceIconType;
