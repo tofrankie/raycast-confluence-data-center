@@ -174,6 +174,14 @@
           "placeholder": "8"
         }
       ]
+    },
+    {
+      "name": "jira-board",
+      "title": "Board",
+      "subtitle": "Jira Data Center",
+      "description": "View active sprint issues",
+      "mode": "view",
+      "icon": "logo-jira.png"
     }
   ]
 }

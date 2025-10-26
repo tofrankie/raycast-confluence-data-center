@@ -8,6 +8,10 @@ import type {
   JiraWorklog,
   JiraIssue,
   JiraTransitionResponse,
+  JiraBoardResponse,
+  JiraSprintResponse,
+  JiraBoardConfiguration,
+  JiraBoardIssueResponse,
 } from "@/types";
 
 type JiraSearchIssueParams = {
@@ -120,5 +124,81 @@ export async function transitionJiraIssue(issueKey: string, transitionId: string
     method: "POST",
     endpoint,
     params,
+  });
+}
+
+export async function getJiraBoards(): Promise<JiraBoardResponse> {
+  const data = await jiraRequest<JiraBoardResponse>({ method: "GET", endpoint: JIRA_API.BOARD });
+
+  return handleApiResponse({
+    data,
+    fileName: COMMAND_NAME.JIRA_BOARD,
+    defaultValue: {
+      maxResults: 50,
+      startAt: 0,
+      total: 0,
+      isLast: true,
+      values: [],
+    },
+  });
+}
+
+export async function getJiraBoardSprints(boardId: number): Promise<JiraSprintResponse> {
+  const endpoint = JIRA_API.BOARD_SPRINT.replace("{boardId}", boardId.toString());
+  const data = await jiraRequest<JiraSprintResponse>({ method: "GET", endpoint, params: { state: "active" } });
+
+  return handleApiResponse({
+    data,
+    fileName: "jira-board-sprints",
+    defaultValue: {
+      maxResults: 50,
+      startAt: 0,
+      isLast: true,
+      values: [],
+    },
+  });
+}
+
+export async function getJiraBoardConfiguration(boardId: number): Promise<JiraBoardConfiguration> {
+  const endpoint = JIRA_API.BOARD_CONFIGURATION.replace("{boardId}", boardId.toString());
+  const data = await jiraRequest<JiraBoardConfiguration>({ method: "GET", endpoint });
+
+  return handleApiResponse({
+    data,
+    fileName: "jira-board-configuration",
+    defaultValue: {
+      id: boardId,
+      name: "",
+      type: "scrum",
+      self: "",
+      filter: { id: "", self: "" },
+      columnConfig: { columns: [], constraintType: "none" },
+      estimation: { type: "", field: { fieldId: "", displayName: "" } },
+      ranking: { rankCustomFieldId: 0 },
+    },
+  });
+}
+
+export async function getJiraBoardSprintIssues(boardId: number, sprintId: number): Promise<JiraBoardIssueResponse> {
+  const endpoint = JIRA_API.BOARD_SPRINT_ISSUE.replace("{boardId}", boardId.toString()).replace(
+    "{sprintId}",
+    sprintId.toString(),
+  );
+  const data = await jiraRequest<JiraBoardIssueResponse>({
+    method: "GET",
+    endpoint,
+    params: { jql: "order by priority DESC, updated DESC, created DESC" },
+  });
+
+  return handleApiResponse({
+    data,
+    fileName: "jira-board-sprint-issues",
+    defaultValue: {
+      expand: "schema,names",
+      startAt: 0,
+      maxResults: 50,
+      total: 0,
+      issues: [],
+    },
   });
 }

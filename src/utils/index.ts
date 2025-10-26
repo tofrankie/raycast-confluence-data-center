@@ -13,5 +13,6 @@ export * from "./process-confluence-search-space";
 export * from "./process-jira-search-issue";
 export * from "./process-jira-manage-field";
 export * from "./process-jira-worklog";
+export * from "./process-jira-board";
 export * from "./section-title";
 export * from "./query";

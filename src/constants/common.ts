@@ -16,6 +16,7 @@ export const COMMAND_NAME = {
   JIRA_SEARCH_ISSUE: "jira-search-issue",
   JIRA_MANAGE_FIELD: "jira-manage-field",
   JIRA_WORKLOG: "jira-worklog",
+  JIRA_BOARD: "jira-board",
 } as const;
 
 export const CONFLUENCE_API = {
@@ -33,4 +34,8 @@ export const JIRA_API = {
   WORKLOG: "/rest/tempo-timesheets/4/worklogs/search",
   ISSUE: "/rest/api/2/issue/{issueIdOrKey}",
   ISSUE_TRANSITIONS: "/rest/api/2/issue/{issueIdOrKey}/transitions",
+  BOARD: "/rest/agile/1.0/board",
+  BOARD_SPRINT: "/rest/agile/1.0/board/{boardId}/sprint",
+  BOARD_SPRINT_ISSUE: "/rest/agile/1.0/board/{boardId}/sprint/{sprintId}/issue",
+  BOARD_CONFIGURATION: "/rest/agile/1.0/board/{boardId}/configuration",
 } as const;

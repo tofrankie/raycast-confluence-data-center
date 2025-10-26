@@ -240,7 +240,7 @@ function JiraSearchIssueContent() {
                     <Action.Push
                       title="Transition Status"
                       target={<JiraIssueTransition issueKey={item.key} onUpdate={handleRefresh} />}
-                      icon={Icon.ArrowRight}
+                      icon={Icon.Switch}
                       shortcut={{ modifiers: ["cmd"], key: "t" }}
                     />
                     <Action.CopyToClipboard

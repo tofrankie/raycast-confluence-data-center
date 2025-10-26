@@ -1,4 +1,23 @@
-import { JIRA_BASE_URL, JIRA_ISSUE_TYPE_ICON } from "@/constants";
+import { JIRA_BASE_URL, JIRA_ISSUE_TYPE_ICON, JIRA_PRIORITY_ICON } from "@/constants";
+
+export function getPriorityIcon(priority: string): string | undefined {
+  const normalizedPriority = priority.toUpperCase();
+
+  if (isBuiltInPriority(normalizedPriority)) {
+    return JIRA_PRIORITY_ICON[normalizedPriority];
+  }
+
+  const similarPriority = Object.keys(JIRA_PRIORITY_ICON).find((key) => key.includes(normalizedPriority));
+  if (similarPriority && isBuiltInPriority(similarPriority)) {
+    return JIRA_PRIORITY_ICON[similarPriority];
+  }
+
+  return undefined;
+}
+
+function isBuiltInPriority(priority: string): priority is keyof typeof JIRA_PRIORITY_ICON {
+  return priority in JIRA_PRIORITY_ICON;
+}
 
 export function getIssueTypeIcon(issueType: string): string | undefined {
   if (isBuiltInIssueType(issueType, JIRA_ISSUE_TYPE_ICON)) {

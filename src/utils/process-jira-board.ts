@@ -1,62 +1,47 @@
-import {
-  getIssueTypeIcon,
-  getJiraIssueEditUrl,
-  getJiraIssueUrl,
-  getPriorityIcon,
-  getSelectedCustomFields,
-} from "@/utils";
-import type { JiraIssue, JiraUser, ProcessedJiraIssueItem, ListItemAccessories, ListItemSubtitle } from "@/types";
+import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, getPriorityIcon } from "@/utils";
+import type {
+  JiraIssue,
+  JiraBoardColumn,
+  ProcessedJiraIssueItem,
+  ListItemAccessories,
+  ListItemSubtitle,
+} from "@/types";
 
-export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, string>): ProcessedJiraIssueItem {
-  const { fields, key, id } = issue;
+export function processJiraBoardIssues(issues: JiraIssue[]): ProcessedJiraIssueItem[] {
+  return issues.map((issue) => {
+    const { fields, key, id } = issue;
 
-  const summary = fields.summary;
-  const title = { value: summary, tooltip: summary };
-  const issueType = fields.issuetype.name;
+    const summary = fields.summary;
+    const title = { value: summary, tooltip: summary };
+    const issueType = fields.issuetype.name;
 
-  const url = getJiraIssueUrl(key);
-  const editUrl = getJiraIssueEditUrl(id);
+    const url = getJiraIssueUrl(key);
+    const editUrl = getJiraIssueEditUrl(id);
 
-  const issueTypeIcon = getIssueTypeIcon(issueType);
-  const icon = {
-    value: issueTypeIcon || "icon-unknown.svg",
-    tooltip: `Issue Type: ${issueType}`,
-  };
+    const issueTypeIcon = getIssueTypeIcon(issueType);
+    const icon = {
+      value: issueTypeIcon || "icon-unknown.svg",
+      tooltip: `Issue Type: ${issueType}`,
+    };
 
-  const selectedCustomFields = getSelectedCustomFields();
+    const subtitle = buildSubtitle(issue);
+    const accessories = buildAccessories(issue);
 
-  const customFieldValue = selectedCustomFields.reduce(
-    (acc, field) => {
-      const value = issue.fields[field.id];
-      if (value !== undefined && value !== null) {
-        acc[field.id] = value as JiraUser;
-      }
-      return acc;
-    },
-    {} as Record<string, JiraUser>,
-  );
-
-  const subtitle = buildSubtitle(issue, customFieldValue, names);
-  const accessories = buildAccessories(issue);
-
-  return {
-    renderKey: id,
-    title,
-    key,
-    summary,
-    icon,
-    subtitle,
-    accessories,
-    url,
-    editUrl,
-  };
+    return {
+      renderKey: id,
+      title,
+      key,
+      summary,
+      icon,
+      subtitle,
+      accessories,
+      url,
+      editUrl,
+    };
+  });
 }
 
-function buildSubtitle(
-  issue: JiraIssue,
-  customFieldValue?: Record<string, JiraUser>,
-  names?: Record<string, string>,
-): ListItemSubtitle {
+function buildSubtitle(issue: JiraIssue): ListItemSubtitle {
   const { key: issueKey, fields } = issue;
   const assignee = fields.assignee?.displayName || "Unassigned";
   const reporter = fields.reporter?.displayName || null;
@@ -72,14 +57,6 @@ function buildSubtitle(
   }
   if (assignee) {
     tooltipParts.push(`Assignee: ${assignee}`);
-  }
-
-  // TODO: Support more types of custom fields
-  if (customFieldValue) {
-    Object.entries(customFieldValue).forEach(([fieldId, value]) => {
-      const fieldName = names?.[fieldId] || fieldId;
-      tooltipParts.push(`${fieldName}: ${value.displayName}`);
-    });
   }
 
   return {
@@ -156,4 +133,32 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
   });
 
   return accessories;
+}
+
+export function groupIssuesByColumn(
+  issues: ProcessedJiraIssueItem[],
+  columns: JiraBoardColumn[],
+  originalIssues: JiraIssue[],
+): Record<string, ProcessedJiraIssueItem[]> {
+  const grouped: Record<string, ProcessedJiraIssueItem[]> = {};
+
+  // Initialize all columns with empty arrays
+  columns.forEach((column) => {
+    grouped[column.name] = [];
+  });
+
+  // Group issues by their status
+  issues.forEach((processedIssue, index) => {
+    const originalIssue = originalIssues[index];
+    const statusId = originalIssue.fields.status.id;
+
+    // Find which column this status belongs to
+    const column = columns.find((col) => col.statuses.some((status) => status.id === statusId));
+
+    if (column) {
+      grouped[column.name].push(processedIssue);
+    }
+  });
+
+  return grouped;
 }
