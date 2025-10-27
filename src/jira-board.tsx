@@ -49,7 +49,7 @@ function JiraBoardContent() {
     if (!boardConfiguration?.columnConfig.columns || !sprintIssues?.issues) {
       return {};
     }
-    return processAndGroupIssues(sprintIssues.issues, boardConfiguration.columnConfig.columns);
+    return processAndGroupIssues(sprintIssues.issues, boardConfiguration);
   }, [sprintIssues, boardConfiguration]);
 
   useEffect(() => {

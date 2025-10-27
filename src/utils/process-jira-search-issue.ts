@@ -1,13 +1,18 @@
-import {
-  getIssueTypeIcon,
-  getJiraIssueEditUrl,
-  getJiraIssueUrl,
-  getIssuePriorityIcon,
-  getSelectedCustomFields,
-} from "@/utils";
-import type { JiraSearchIssue, JiraUser, ProcessedJiraIssueItem, ListItemAccessories, ListItemSubtitle } from "@/types";
+import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, getIssuePriorityIcon } from "@/utils";
+import type {
+  JiraSearchIssue,
+  JiraUser,
+  ProcessedJiraIssueItem,
+  ListItemAccessories,
+  ListItemSubtitle,
+  JiraField,
+} from "@/types";
 
-export function processJiraSearchIssue(issue: JiraSearchIssue, names?: Record<string, string>): ProcessedJiraIssueItem {
+export function processJiraSearchIssue(
+  issue: JiraSearchIssue,
+  selectedCustomFields: JiraField[],
+  fieldsNameMap?: Record<string, string>,
+): ProcessedJiraIssueItem {
   const { fields, key, id } = issue;
 
   const summary = fields.summary;
@@ -23,8 +28,6 @@ export function processJiraSearchIssue(issue: JiraSearchIssue, names?: Record<st
     tooltip: `Issue Type: ${issueType}`,
   };
 
-  const selectedCustomFields = getSelectedCustomFields();
-
   const customFieldValue = selectedCustomFields.reduce(
     (acc, field) => {
       const value = issue.fields[field.id];
@@ -36,7 +39,7 @@ export function processJiraSearchIssue(issue: JiraSearchIssue, names?: Record<st
     {} as Record<string, JiraUser>,
   );
 
-  const subtitle = buildSubtitle(issue, customFieldValue, names);
+  const subtitle = buildSubtitle(issue, customFieldValue, fieldsNameMap);
   const accessories = buildAccessories(issue);
 
   return {
@@ -55,7 +58,7 @@ export function processJiraSearchIssue(issue: JiraSearchIssue, names?: Record<st
 function buildSubtitle(
   issue: JiraSearchIssue,
   customFieldValue?: Record<string, JiraUser>,
-  names?: Record<string, string>,
+  fieldsNameMap?: Record<string, string>,
 ): ListItemSubtitle {
   const { key: issueKey, fields } = issue;
   const assignee = fields.assignee?.displayName || "Unassigned";
@@ -77,7 +80,7 @@ function buildSubtitle(
   // TODO: Support more types of custom fields
   if (customFieldValue) {
     Object.entries(customFieldValue).forEach(([fieldId, value]) => {
-      const fieldName = names?.[fieldId] || fieldId;
+      const fieldName = fieldsNameMap?.[fieldId] ?? fieldId;
       tooltipParts.push(`${fieldName}: ${value.displayName}`);
     });
   }

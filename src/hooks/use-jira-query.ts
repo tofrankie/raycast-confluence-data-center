@@ -12,6 +12,7 @@ import {
   getJiraCurrentUser,
   getJiraWorklog,
   processJiraWorklog,
+  getSelectedCustomFields,
 } from "@/utils";
 import type {
   JiraSearchIssueResponse,
@@ -46,9 +47,12 @@ export function useJiraSearchIssueInfiniteQuery<
     },
     select: (data) => {
       const allIssue = data.pages.flatMap((page) => page.issues);
-      const names = data.pages[0]?.names;
+      const fieldsNameMap = data.pages[0]?.names;
       const totalCount = data.pages[0]?.total;
-      const processedIssues: ProcessedJiraIssueItem[] = allIssue.map((issue) => processJiraSearchIssue(issue, names));
+      const selectedCustomFields = getSelectedCustomFields();
+      const processedIssues: ProcessedJiraIssueItem[] = allIssue.map((issue) =>
+        processJiraSearchIssue(issue, selectedCustomFields, fieldsNameMap),
+      );
 
       const hasMore =
         data.pages.length > 0

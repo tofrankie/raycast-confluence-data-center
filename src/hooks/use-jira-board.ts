@@ -9,6 +9,7 @@ import {
   processActiveSprint,
   processBoards,
   transformURL,
+  getSelectedCustomFieldIds,
 } from "@/utils";
 
 export function useJiraBoards() {
@@ -53,10 +54,11 @@ export function useJiraBoardSprintIssues(boardId: number, sprintId: number) {
   return useQuery({
     queryKey: ["jira-board-sprint-issues", boardId, sprintId],
     queryFn: () => {
+      const customFieldIds = getSelectedCustomFieldIds();
       const endpoint = transformURL(JIRA_API.BOARD_SPRINT_ISSUE, { boardId, sprintId });
       const params = {
         jql: "order by priority DESC, updated DESC, created DESC",
-        fields: [...JIRA_BOARD_ISSUE_FIELDS],
+        fields: [...JIRA_BOARD_ISSUE_FIELDS, ...customFieldIds],
       };
       return getJiraBoardSprintIssues(endpoint, params);
     },

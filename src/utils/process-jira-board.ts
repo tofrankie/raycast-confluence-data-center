@@ -1,7 +1,12 @@
-import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, getIssuePriorityIcon } from "@/utils";
+import {
+  getIssueTypeIcon,
+  getJiraIssueEditUrl,
+  getJiraIssueUrl,
+  getIssuePriorityIcon,
+  getSelectedCustomFields,
+} from "@/utils";
 import type {
   JiraBoardIssue,
-  JiraBoardColumn,
   ProcessedJiraBoardIssueItem,
   ListItemAccessories,
   ListItemSubtitle,
@@ -10,10 +15,13 @@ import type {
   JiraBoardResponse,
   JiraBoard,
   JiraBoardConfiguration,
+  JiraField,
+  JiraUser,
 } from "@/types";
 
 export function processJiraBoardIssues(
   issues: JiraBoardIssue[],
+  selectedCustomFields: JiraField[],
   boardConfiguration?: JiraBoardConfiguration,
 ): ProcessedJiraBoardIssueItem[] {
   return issues.map((issue) => {
@@ -32,7 +40,7 @@ export function processJiraBoardIssues(
       tooltip: `Issue Type: ${issueTypeName}`,
     };
 
-    const subtitle = buildSubtitle(issue);
+    const subtitle = buildSubtitle(issue, selectedCustomFields);
     const accessories = buildAccessories(issue);
     const keywords = buildKeywords(issue, boardConfiguration);
 
@@ -51,7 +59,7 @@ export function processJiraBoardIssues(
   });
 }
 
-function buildSubtitle(issue: JiraBoardIssue): ListItemSubtitle {
+function buildSubtitle(issue: JiraBoardIssue, selectedCustomFields: JiraField[]): ListItemSubtitle {
   const { key: issueKey, fields } = issue;
   const assignee = fields.assignee?.displayName || "Unassigned";
   const reporter = fields.reporter?.displayName || null;
@@ -67,6 +75,25 @@ function buildSubtitle(issue: JiraBoardIssue): ListItemSubtitle {
   }
   if (assignee) {
     tooltipParts.push(`Assignee: ${assignee}`);
+  }
+
+  // Add custom field values
+  const customFieldValue = selectedCustomFields.reduce(
+    (acc, field) => {
+      const value = issue.fields[field.id];
+      if (value !== undefined && value !== null) {
+        acc[field.id] = value as JiraUser;
+      }
+      return acc;
+    },
+    {} as Record<string, JiraUser>,
+  );
+
+  if (customFieldValue) {
+    Object.entries(customFieldValue).forEach(([fieldId, value]) => {
+      const fieldName = selectedCustomFields.find((f) => f.id === fieldId)?.name || fieldId;
+      tooltipParts.push(`${fieldName}: ${value.displayName}`);
+    });
   }
 
   return {
@@ -141,11 +168,13 @@ function buildKeywords(issue: JiraBoardIssue, boardConfiguration?: JiraBoardConf
 
 export function processAndGroupIssues(
   issues: JiraBoardIssue[],
-  columns: JiraBoardColumn[],
+  boardConfiguration: JiraBoardConfiguration,
 ): Record<string, ProcessedJiraBoardIssueItem[]> {
-  const processedIssues = processJiraBoardIssues(issues);
+  const selectedCustomFields = getSelectedCustomFields();
+  const processedIssues = processJiraBoardIssues(issues, selectedCustomFields, boardConfiguration);
 
   const grouped: Record<string, ProcessedJiraBoardIssueItem[]> = {};
+  const columns = boardConfiguration.columnConfig.columns;
 
   columns.forEach((column) => {
     grouped[column.name] = [];
