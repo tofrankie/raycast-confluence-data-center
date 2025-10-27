@@ -7,7 +7,7 @@ import { DebugActions } from "@/components";
 import { JiraIssueTransition } from "@/pages";
 import { CACHE_KEY } from "@/constants";
 import { useJiraBoards, useJiraBoardActiveSprint, useJiraBoardConfiguration, useJiraBoardSprintIssues } from "@/hooks";
-import { clearAllCacheWithToast, processJiraBoardIssues, groupIssuesByColumn, copyToClipboardWithToast } from "@/utils";
+import { clearAllCacheWithToast, processAndGroupIssues, copyToClipboardWithToast } from "@/utils";
 
 export default function JiraBoardProvider() {
   return (
@@ -45,19 +45,12 @@ function JiraBoardContent() {
     refetch: refetchIssues,
   } = useJiraBoardSprintIssues(cachedBoardId, cachedSprintId);
 
-  const processedIssues = useMemo(() => {
-    if (!sprintIssues?.issues || !boardConfiguration?.columnConfig.columns) {
-      return [];
-    }
-    return processJiraBoardIssues(sprintIssues.issues, boardConfiguration);
-  }, [sprintIssues, boardConfiguration]);
-
   const groupedIssues = useMemo(() => {
     if (!boardConfiguration?.columnConfig.columns || !sprintIssues?.issues) {
       return {};
     }
-    return groupIssuesByColumn(processedIssues, boardConfiguration.columnConfig.columns, sprintIssues.issues);
-  }, [processedIssues, boardConfiguration, sprintIssues]);
+    return processAndGroupIssues(sprintIssues.issues, boardConfiguration.columnConfig.columns);
+  }, [sprintIssues, boardConfiguration]);
 
   useEffect(() => {
     if (boardsSuccess && boards) {
@@ -177,6 +170,7 @@ function JiraBoardContent() {
     <List
       throttle
       isLoading={isLoading}
+      searchBarPlaceholder="Filter issues by summary, key, assignee, epic, status..."
       searchBarAccessory={
         <List.Dropdown tooltip="Select Board" value={selectedBoardId} onChange={onBoardChange} storeValue>
           {boards?.map((board) => (
@@ -185,7 +179,7 @@ function JiraBoardContent() {
         </List.Dropdown>
       }
     >
-      {!processedIssues.length ? (
+      {Object.values(groupedIssues).flat().length === 0 ? (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}
           title="No Issues"

@@ -11,7 +11,7 @@ export function processJiraSearchIssue(issue: JiraSearchIssue, names?: Record<st
   const { fields, key, id } = issue;
 
   const summary = fields.summary;
-  const title = { value: summary, tooltip: summary };
+  const title = { value: summary, tooltip: `Summary: ${summary}` };
   const issueType = fields.issuetype.name;
 
   const url = getJiraIssueUrl(key);
@@ -90,8 +90,6 @@ function buildSubtitle(
 
 function buildAccessories(issue: JiraSearchIssue): ListItemAccessories {
   const { fields } = issue;
-  const status = fields.status?.name || "Unknown";
-  const priority = fields.priority?.name || "Unknown";
   const created = fields.created ? new Date(fields.created) : null;
   const updated = fields.updated ? new Date(fields.updated) : null;
   const dueDate = fields.duedate ? new Date(fields.duedate) : null;
@@ -102,6 +100,7 @@ function buildAccessories(issue: JiraSearchIssue): ListItemAccessories {
   };
   const accessories: ListItemAccessories = [];
 
+  const priority = fields.priority?.name;
   if (priority) {
     const priorityIcon = getIssuePriorityIcon(priority);
 
@@ -118,6 +117,7 @@ function buildAccessories(issue: JiraSearchIssue): ListItemAccessories {
     }
   }
 
+  const status = fields.status?.name;
   if (status) {
     accessories.push({
       tag: status,

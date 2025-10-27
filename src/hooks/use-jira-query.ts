@@ -121,8 +121,7 @@ export function useJiraWorklogQuery<TData = WorklogGroup[]>(
     queryKey: [COMMAND_NAME.JIRA_WORKLOG, { userKey, from, to }],
     queryFn: async () => {
       if (!userKey) return [];
-      const data = await getJiraWorklog({ from, to, worker: [userKey] });
-      return data;
+      return await getJiraWorklog({ from, to, worker: [userKey] });
     },
     enabled: !!userKey,
     select: (data) => processJiraWorklog(data) as TData,

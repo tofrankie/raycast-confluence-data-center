@@ -194,7 +194,7 @@ function JiraSearchIssueContent() {
       throttle
       isLoading={isLoading}
       onSearchTextChange={handleSearchTextChange}
-      searchBarPlaceholder="Search Issues..."
+      searchBarPlaceholder="Search issues by summary, key..."
       searchBarAccessory={
         <SearchBarAccessory
           commandName={COMMAND_NAME.JIRA_SEARCH_ISSUE}

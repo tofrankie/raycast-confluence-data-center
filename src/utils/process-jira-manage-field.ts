@@ -34,7 +34,7 @@ export function processJiraFieldItem(field: JiraField, isAdded: boolean): Proces
   const schemaType = field.schema?.type || "Unknown";
   const subtitle = {
     value: field.id,
-    tooltip: "Field ID",
+    tooltip: `Field ID: ${field.id}`,
   };
 
   const accessories: ListItemAccessories = [
@@ -48,11 +48,11 @@ export function processJiraFieldItem(field: JiraField, isAdded: boolean): Proces
       : []),
     {
       text: schemaType,
-      tooltip: "Field Schema Type",
+      tooltip: `Field Schema Type: ${schemaType}`,
     },
     {
       text: field.custom ? "Custom" : "System",
-      tooltip: "Field Type",
+      tooltip: `Field Type: ${field.custom ? "Custom" : "System"}`,
     },
   ];
 

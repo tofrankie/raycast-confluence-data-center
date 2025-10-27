@@ -20,7 +20,7 @@ export function processJiraBoardIssues(
     const { fields, key, id } = issue;
 
     const summary = fields.summary;
-    const title = { value: summary, tooltip: summary };
+    const title = { value: summary, tooltip: `Summary: ${summary}` };
     const issueTypeName = fields.issuetype.name;
 
     const url = getJiraIssueUrl(key);
@@ -77,18 +77,9 @@ function buildSubtitle(issue: JiraBoardIssue): ListItemSubtitle {
 
 function buildAccessories(issue: JiraBoardIssue): ListItemAccessories {
   const { fields } = issue;
-  const status = fields.status?.name || "Unknown";
-  const priority = fields.priority?.name || "Unknown";
-  const created = fields.created ? new Date(fields.created) : null;
-  const updated = fields.updated ? new Date(fields.updated) : null;
-  const dueDate = fields.duedate ? new Date(fields.duedate) : null;
-  const timeTracking = {
-    originalEstimate: fields.timetracking?.originalEstimate || null,
-    remainingEstimate: fields.timetracking?.remainingEstimate || null,
-    timeSpent: fields.timetracking?.timeSpent || null,
-  };
   const accessories: ListItemAccessories = [];
 
+  const priority = fields.priority?.name;
   if (priority) {
     const priorityIcon = getIssuePriorityIcon(priority);
 
@@ -105,6 +96,7 @@ function buildAccessories(issue: JiraBoardIssue): ListItemAccessories {
     }
   }
 
+  const status = fields.status?.name;
   if (status) {
     accessories.push({
       tag: status,
@@ -112,34 +104,9 @@ function buildAccessories(issue: JiraBoardIssue): ListItemAccessories {
     });
   }
 
-  const timeTooltipParts = [];
-  if (created) {
-    timeTooltipParts.push(`Created at ${created.toLocaleString()}`);
-  }
-
-  if (updated) {
-    timeTooltipParts.push(`Updated at ${updated.toLocaleString()}`);
-  }
-
-  if (dueDate) {
-    timeTooltipParts.push(`Due at ${dueDate.toLocaleString()}`);
-  }
-
-  if (timeTracking.originalEstimate) {
-    timeTooltipParts.push(`Estimate Time: ${timeTracking.originalEstimate}`);
-  }
-
-  if (timeTracking.remainingEstimate) {
-    timeTooltipParts.push(`Remaining Time: ${timeTracking.remainingEstimate}`);
-  }
-
-  if (timeTracking.timeSpent) {
-    timeTooltipParts.push(`Logged Time: ${timeTracking.timeSpent}`);
-  }
-
   accessories.unshift({
-    date: updated ?? created,
-    tooltip: timeTooltipParts.join("\n"),
+    text: fields.epic?.name || "No Epic",
+    tooltip: fields.epic?.name ? `Epic: ${fields.epic.name}` : "Issue not linked to Epic",
   });
 
   return accessories;
@@ -153,9 +120,7 @@ function buildKeywords(issue: JiraBoardIssue, boardConfiguration?: JiraBoardConf
     keywords.push(fields.assignee.displayName);
   }
 
-  if (fields.epic?.name) {
-    keywords.push(fields.epic.name);
-  }
+  keywords.push(fields.epic?.name || "No Epic");
 
   if (fields.status?.name) {
     keywords.push(fields.status.name);
@@ -174,21 +139,24 @@ function buildKeywords(issue: JiraBoardIssue, boardConfiguration?: JiraBoardConf
   return keywords;
 }
 
-export function groupIssuesByColumn(
-  issues: ProcessedJiraBoardIssueItem[],
+export function processAndGroupIssues(
+  issues: JiraBoardIssue[],
   columns: JiraBoardColumn[],
-  originalIssues: JiraBoardIssue[],
 ): Record<string, ProcessedJiraBoardIssueItem[]> {
+  const processedIssues = processJiraBoardIssues(issues);
+
   const grouped: Record<string, ProcessedJiraBoardIssueItem[]> = {};
 
-  // Initialize all columns with empty arrays
   columns.forEach((column) => {
     grouped[column.name] = [];
   });
 
-  // Group issues by their status
-  issues.forEach((processedIssue, index) => {
-    const originalIssue = originalIssues[index];
+  // Initialize Unmapped Statuses column
+  grouped["Unmapped"] = [];
+
+  // Group processed issues by their status
+  processedIssues.forEach((processedIssue, index) => {
+    const originalIssue = issues[index];
     const statusId = originalIssue.fields.status.id;
 
     // Find which column this status belongs to
@@ -196,6 +164,9 @@ export function groupIssuesByColumn(
 
     if (column) {
       grouped[column.name].push(processedIssue);
+    } else {
+      // If status is not mapped to any column, add to Unmapped
+      grouped["Unmapped"].push(processedIssue);
     }
   });
 

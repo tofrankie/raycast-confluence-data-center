@@ -22,6 +22,9 @@ export interface ProcessedConfluenceContentItem extends BaseProcessedItem {
 }
 
 export interface ProcessedConfluenceUserItem extends BaseProcessedItem {
+  /**
+   * Anonymous user may not have userKey, use username as fallback
+   */
   userKey: string;
   displayName: string;
   icon: ListItemIcon;
