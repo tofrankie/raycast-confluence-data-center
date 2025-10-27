@@ -3,9 +3,9 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast, useCachedState } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { QueryWrapper, DebugActions } from "@/components";
+import { DebugActions } from "@/components";
 import { JiraIssueTransition } from "@/pages";
-import { QUERY_TYPE, CACHE_KEY } from "@/constants";
+import { CACHE_KEY } from "@/constants";
 import { useJiraBoards, useJiraBoardActiveSprint, useJiraBoardConfiguration, useJiraBoardSprintIssues } from "@/hooks";
 import { clearAllCacheWithToast, processJiraBoardIssues, groupIssuesByColumn, copyToClipboardWithToast } from "@/utils";
 
@@ -26,16 +26,16 @@ function JiraBoardContent() {
   const { data: boards, isLoading: boardsLoading, error: boardsError, isSuccess: boardsSuccess } = useJiraBoards();
 
   const {
-    activeSprint,
+    data: activeSprint,
     isLoading: sprintLoading,
     error: sprintError,
     isSuccess: sprintSuccess,
   } = useJiraBoardActiveSprint(cachedBoardId);
 
   const {
-    data: configuration,
-    isLoading: configLoading,
-    error: configError,
+    data: boardConfiguration,
+    isLoading: isBoardConfigurationLoading,
+    error: boardConfigurationError,
   } = useJiraBoardConfiguration(cachedBoardId);
 
   const {
@@ -46,22 +46,22 @@ function JiraBoardContent() {
   } = useJiraBoardSprintIssues(cachedBoardId, cachedSprintId);
 
   const processedIssues = useMemo(() => {
-    if (!sprintIssues?.issues || !configuration?.columnConfig.columns) {
+    if (!sprintIssues?.issues || !boardConfiguration?.columnConfig.columns) {
       return [];
     }
-    return processJiraBoardIssues(sprintIssues.issues);
-  }, [sprintIssues, configuration]);
+    return processJiraBoardIssues(sprintIssues.issues, boardConfiguration);
+  }, [sprintIssues, boardConfiguration]);
 
   const groupedIssues = useMemo(() => {
-    if (!configuration?.columnConfig.columns || !sprintIssues?.issues) {
+    if (!boardConfiguration?.columnConfig.columns || !sprintIssues?.issues) {
       return {};
     }
-    return groupIssuesByColumn(processedIssues, configuration.columnConfig.columns, sprintIssues.issues);
-  }, [processedIssues, configuration, sprintIssues]);
+    return groupIssuesByColumn(processedIssues, boardConfiguration.columnConfig.columns, sprintIssues.issues);
+  }, [processedIssues, boardConfiguration, sprintIssues]);
 
   useEffect(() => {
-    if (boardsSuccess && boards?.values) {
-      const boardExists = boards.values.some((board) => board.id === cachedBoardId);
+    if (boardsSuccess && boards) {
+      const boardExists = boards.some((board) => board.id === cachedBoardId);
       if (!boardExists) {
         setCachedBoardId(-1);
         setCachedSprintId(-1);
@@ -69,7 +69,7 @@ function JiraBoardContent() {
         setSelectedBoardId(cachedBoardId.toString());
       }
     }
-  }, [boardsSuccess, boards, selectedBoardId]);
+  }, [boardsSuccess, boards, cachedBoardId]);
 
   useEffect(() => {
     if (sprintSuccess && activeSprint && activeSprint.id !== cachedSprintId) {
@@ -93,7 +93,7 @@ function JiraBoardContent() {
     await copyToClipboardWithToast(sprintInfo);
   };
 
-  const isLoading = boardsLoading || sprintLoading || configLoading || issuesLoading;
+  const isLoading = boardsLoading || sprintLoading || isBoardConfigurationLoading || issuesLoading;
 
   useEffect(() => {
     if (boardsError) {
@@ -108,10 +108,10 @@ function JiraBoardContent() {
   }, [sprintError]);
 
   useEffect(() => {
-    if (configError) {
-      showFailureToast(configError, { title: "Failed to Load Board Configuration" });
+    if (boardConfigurationError) {
+      showFailureToast(boardConfigurationError, { title: "Failed to Load Board Configuration" });
     }
-  }, [configError]);
+  }, [boardConfigurationError]);
 
   useEffect(() => {
     if (issuesError) {
@@ -124,14 +124,14 @@ function JiraBoardContent() {
     setCachedBoardId(newValue ? parseInt(newValue) : -1);
   };
 
-  if (!cachedBoardId && boards?.values.length) {
+  if (!cachedBoardId && boards?.length) {
     return (
       <List
         isLoading={boardsLoading}
         searchBarPlaceholder="Select Board"
         searchBarAccessory={
           <List.Dropdown tooltip="Select Board" value={selectedBoardId} onChange={onBoardChange} storeValue>
-            {boards.values.map((board) => (
+            {boards.map((board) => (
               <List.Dropdown.Item key={board.id} title={board.name} value={board.id.toString()} />
             ))}
           </List.Dropdown>
@@ -139,7 +139,7 @@ function JiraBoardContent() {
       >
         <List.EmptyView
           icon={Icon.List}
-          title="Select a Board"
+          title="Select Board"
           description="Choose a board from the dropdown to view its active sprint issues"
         />
       </List>
@@ -152,7 +152,7 @@ function JiraBoardContent() {
         isLoading={isLoading}
         searchBarAccessory={
           <List.Dropdown tooltip="Select Board" value={selectedBoardId} onChange={onBoardChange} storeValue>
-            {boards?.values.map((board) => (
+            {boards?.map((board) => (
               <List.Dropdown.Item key={board.id} title={board.name} value={board.id.toString()} />
             ))}
           </List.Dropdown>
@@ -175,87 +175,87 @@ function JiraBoardContent() {
 
   return (
     <List
+      throttle
       isLoading={isLoading}
       searchBarAccessory={
         <List.Dropdown tooltip="Select Board" value={selectedBoardId} onChange={onBoardChange} storeValue>
-          {boards?.values.map((board) => (
+          {boards?.map((board) => (
             <List.Dropdown.Item key={board.id} title={board.name} value={board.id.toString()} />
           ))}
         </List.Dropdown>
       }
     >
-      <QueryWrapper query="" queryType={QUERY_TYPE.JQL}>
-        {!processedIssues.length ? (
-          <List.EmptyView
-            icon={Icon.MagnifyingGlass}
-            title="No Issues"
-            description="This sprint has no issues"
-            actions={
-              <ActionPanel>
-                <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={handleRefresh} />
-                <DebugActions />
-              </ActionPanel>
-            }
-          />
-        ) : (
-          <>
-            {Object.entries(groupedIssues).map(([columnName, issues]) => (
-              <List.Section key={columnName} title={`${columnName} (${issues.length})`}>
-                {issues.map((item) => (
-                  <List.Item
-                    key={item.renderKey}
-                    title={item.title}
-                    subtitle={item.subtitle}
-                    icon={item.icon}
-                    accessories={item.accessories}
-                    actions={
-                      <ActionPanel>
-                        <Action.OpenInBrowser title="Open in Browser" url={item.url} />
-                        <Action.OpenInBrowser
-                          icon={Icon.Pencil}
-                          title="Edit in Browser"
-                          url={item.editUrl}
-                          shortcut={{ modifiers: ["cmd"], key: "e" }}
-                        />
-                        <Action.Push
-                          title="Transition Status"
-                          target={<JiraIssueTransition issueKey={item.key} onUpdate={handleRefresh} />}
-                          icon={Icon.Switch}
-                          shortcut={{ modifiers: ["cmd"], key: "t" }}
-                        />
-                        <Action.CopyToClipboard
-                          title="Copy URL"
-                          shortcut={{ modifiers: ["cmd"], key: "c" }}
-                          content={item.url}
-                        />
-                        <Action.CopyToClipboard
-                          title="Copy Key"
-                          shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                          content={item.key}
-                        />
-                        <Action.CopyToClipboard
-                          title="Copy Summary"
-                          shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
-                          content={item.summary}
-                        />
-                        <Action title="Copy Sprint Info" icon={Icon.CopyClipboard} onAction={copySprintInfo} />
-                        <Action
-                          title="Refresh"
-                          icon={Icon.ArrowClockwise}
-                          shortcut={{ modifiers: ["cmd"], key: "r" }}
-                          onAction={handleRefresh}
-                        />
-                        <DebugActions />
-                        <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
-                      </ActionPanel>
-                    }
-                  />
-                ))}
-              </List.Section>
-            ))}
-          </>
-        )}
-      </QueryWrapper>
+      {!processedIssues.length ? (
+        <List.EmptyView
+          icon={Icon.MagnifyingGlass}
+          title="No Issues"
+          description="This sprint has no issues"
+          actions={
+            <ActionPanel>
+              <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={handleRefresh} />
+              <DebugActions />
+            </ActionPanel>
+          }
+        />
+      ) : (
+        <>
+          {Object.entries(groupedIssues).map(([columnName, issues]) => (
+            <List.Section key={columnName} title={`${columnName} (${issues.length})`}>
+              {issues.map((item) => (
+                <List.Item
+                  key={item.renderKey}
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  icon={item.icon}
+                  accessories={item.accessories}
+                  keywords={item.keywords}
+                  actions={
+                    <ActionPanel>
+                      <Action.OpenInBrowser title="Open in Browser" url={item.url} />
+                      <Action.OpenInBrowser
+                        icon={Icon.Pencil}
+                        title="Edit in Browser"
+                        url={item.editUrl}
+                        shortcut={{ modifiers: ["cmd"], key: "e" }}
+                      />
+                      <Action.Push
+                        title="Transition Status"
+                        target={<JiraIssueTransition issueKey={item.key} onUpdate={handleRefresh} />}
+                        icon={Icon.Switch}
+                        shortcut={{ modifiers: ["cmd"], key: "t" }}
+                      />
+                      <Action.CopyToClipboard
+                        title="Copy URL"
+                        shortcut={{ modifiers: ["cmd"], key: "c" }}
+                        content={item.url}
+                      />
+                      <Action.CopyToClipboard
+                        title="Copy Key"
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                        content={item.key}
+                      />
+                      <Action.CopyToClipboard
+                        title="Copy Summary"
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
+                        content={item.summary}
+                      />
+                      <Action title="Copy Sprint Info" icon={Icon.CopyClipboard} onAction={copySprintInfo} />
+                      <Action
+                        title="Refresh"
+                        icon={Icon.ArrowClockwise}
+                        shortcut={{ modifiers: ["cmd"], key: "r" }}
+                        onAction={handleRefresh}
+                      />
+                      <DebugActions />
+                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
+                    </ActionPanel>
+                  }
+                />
+              ))}
+            </List.Section>
+          ))}
+        </>
+      )}
     </List>
   );
 }

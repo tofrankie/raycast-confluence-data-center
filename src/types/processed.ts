@@ -66,6 +66,17 @@ export interface ProcessedJiraIssueItem extends BaseProcessedItem {
   editUrl: string;
 }
 
+export interface ProcessedJiraBoardIssueItem extends BaseProcessedItem {
+  key: string;
+  summary: string;
+  icon: ListItemIcon;
+  subtitle: ListItemSubtitle;
+  accessories: ListItemAccessories;
+  url: string;
+  editUrl: string;
+  keywords: string[];
+}
+
 export interface ProcessedWorklogItem extends BaseProcessedItem {
   keywords: string[];
   subtitle: string;

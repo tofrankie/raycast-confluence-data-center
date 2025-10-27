@@ -47,6 +47,8 @@ export interface JiraIssueFields {
   updated: string | null;
   timetracking?: JiraTimeTracking;
   status: JiraStatus;
+  // TODO:
+  epic?: JiraEpic;
   [key: string]: unknown; // TODO: custom field
 }
 
@@ -140,6 +142,18 @@ export interface JiraPriority {
   iconUrl: string;
   name: string;
   id: string;
+}
+
+export interface JiraEpic {
+  id: number;
+  key: string;
+  self: string;
+  name: string;
+  summary: string;
+  color: {
+    key: string;
+  };
+  done: boolean;
 }
 
 export interface JiraField {

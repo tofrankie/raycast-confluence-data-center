@@ -91,7 +91,7 @@ function buildSubtitle(
 function buildAccessories(issue: JiraIssue): ListItemAccessories {
   const { fields } = issue;
   const status = fields.status?.name || "Unknown";
-  const priority = fields.priority?.name || "Medium";
+  const priority = fields.priority?.name || "Unknown";
   const created = fields.created ? new Date(fields.created) : null;
   const updated = fields.updated ? new Date(fields.updated) : null;
   const dueDate = fields.duedate ? new Date(fields.duedate) : null;

@@ -5,21 +5,15 @@ import {
   getJiraBoardConfiguration,
   getJiraBoardSprintIssues,
 } from "@/utils/request-jira";
+import { processActiveSprint, processBoards } from "@/utils/process-jira-board";
 
 export function useJiraBoards() {
   return useQuery({
     queryKey: ["jira-boards"],
     queryFn: getJiraBoards,
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useJiraBoardSprints(boardId: number) {
-  return useQuery({
-    queryKey: ["jira-board-sprints", boardId],
-    queryFn: () => getJiraBoardSprints(boardId),
-    enabled: boardId > -1,
-    staleTime: 2 * 60 * 1000,
+    select: processBoards,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 
@@ -28,7 +22,19 @@ export function useJiraBoardConfiguration(boardId: number) {
     queryKey: ["jira-board-configuration", boardId],
     queryFn: () => getJiraBoardConfiguration(boardId),
     enabled: boardId > -1,
-    staleTime: 10 * 60 * 1000,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+}
+
+export function useJiraBoardActiveSprint(boardId: number) {
+  return useQuery({
+    queryKey: ["jira-board-sprints", boardId],
+    queryFn: () => getJiraBoardSprints(boardId),
+    select: processActiveSprint,
+    enabled: boardId > -1,
+    staleTime: 1 * 60 * 1000,
+    gcTime: 2 * 60 * 1000,
   });
 }
 
@@ -38,16 +44,6 @@ export function useJiraBoardSprintIssues(boardId: number, sprintId: number) {
     queryFn: () => getJiraBoardSprintIssues(boardId, sprintId),
     enabled: boardId > -1 && sprintId > -1,
     staleTime: 1 * 60 * 1000,
+    gcTime: 2 * 60 * 1000,
   });
-}
-
-export function useJiraBoardActiveSprint(boardId: number) {
-  const { data: sprints, ...rest } = useJiraBoardSprints(boardId);
-
-  const activeSprint = sprints?.values.find((sprint) => sprint.state === "active") || null;
-
-  return {
-    activeSprint,
-    ...rest,
-  };
 }

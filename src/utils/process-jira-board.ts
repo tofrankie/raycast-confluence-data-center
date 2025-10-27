@@ -2,12 +2,20 @@ import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, getPriorityIcon
 import type {
   JiraIssue,
   JiraBoardColumn,
-  ProcessedJiraIssueItem,
+  ProcessedJiraBoardIssueItem,
   ListItemAccessories,
   ListItemSubtitle,
+  JiraSprintResponse,
+  JiraSprint,
+  JiraBoardResponse,
+  JiraBoard,
+  JiraBoardConfiguration,
 } from "@/types";
 
-export function processJiraBoardIssues(issues: JiraIssue[]): ProcessedJiraIssueItem[] {
+export function processJiraBoardIssues(
+  issues: JiraIssue[],
+  boardConfiguration?: JiraBoardConfiguration,
+): ProcessedJiraBoardIssueItem[] {
   return issues.map((issue) => {
     const { fields, key, id } = issue;
 
@@ -26,6 +34,7 @@ export function processJiraBoardIssues(issues: JiraIssue[]): ProcessedJiraIssueI
 
     const subtitle = buildSubtitle(issue);
     const accessories = buildAccessories(issue);
+    const keywords = buildKeywords(issue, boardConfiguration);
 
     return {
       renderKey: id,
@@ -37,6 +46,7 @@ export function processJiraBoardIssues(issues: JiraIssue[]): ProcessedJiraIssueI
       accessories,
       url,
       editUrl,
+      keywords,
     };
   });
 }
@@ -68,7 +78,7 @@ function buildSubtitle(issue: JiraIssue): ListItemSubtitle {
 function buildAccessories(issue: JiraIssue): ListItemAccessories {
   const { fields } = issue;
   const status = fields.status?.name || "Unknown";
-  const priority = fields.priority?.name || "Medium";
+  const priority = fields.priority?.name || "Unknown";
   const created = fields.created ? new Date(fields.created) : null;
   const updated = fields.updated ? new Date(fields.updated) : null;
   const dueDate = fields.duedate ? new Date(fields.duedate) : null;
@@ -135,12 +145,41 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
   return accessories;
 }
 
+function buildKeywords(issue: JiraIssue, boardConfiguration?: JiraBoardConfiguration): string[] {
+  const { key: issueKey, fields } = issue;
+  const keywords: string[] = [issueKey, ...issueKey.split("-")[1]];
+
+  if (fields.assignee?.displayName) {
+    keywords.push(fields.assignee.displayName);
+  }
+
+  if (fields.epic?.name) {
+    keywords.push(fields.epic.name);
+  }
+
+  if (fields.status?.name) {
+    keywords.push(fields.status.name);
+  }
+
+  // Add column name from boardConfiguration
+  if (boardConfiguration?.columnConfig?.columns && fields.status?.id) {
+    const column = boardConfiguration.columnConfig.columns.find((col) =>
+      col.statuses.some((status) => status.id === fields.status.id),
+    );
+    if (column?.name) {
+      keywords.push(column.name);
+    }
+  }
+
+  return keywords;
+}
+
 export function groupIssuesByColumn(
-  issues: ProcessedJiraIssueItem[],
+  issues: ProcessedJiraBoardIssueItem[],
   columns: JiraBoardColumn[],
   originalIssues: JiraIssue[],
-): Record<string, ProcessedJiraIssueItem[]> {
-  const grouped: Record<string, ProcessedJiraIssueItem[]> = {};
+): Record<string, ProcessedJiraBoardIssueItem[]> {
+  const grouped: Record<string, ProcessedJiraBoardIssueItem[]> = {};
 
   // Initialize all columns with empty arrays
   columns.forEach((column) => {
@@ -161,4 +200,13 @@ export function groupIssuesByColumn(
   });
 
   return grouped;
+}
+
+export function processActiveSprint(sprintResponse: JiraSprintResponse): JiraSprint | null {
+  // TODO: Handle multiple active sprints
+  return sprintResponse.values?.[0] || null;
+}
+
+export function processBoards(boardResponse: JiraBoardResponse): JiraBoard[] {
+  return boardResponse.values || [];
 }
