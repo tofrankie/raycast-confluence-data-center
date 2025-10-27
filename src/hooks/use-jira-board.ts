@@ -26,8 +26,8 @@ export function useJiraBoardConfiguration(boardId: number) {
   return useQuery({
     queryKey: ["jira-board-configuration", boardId],
     queryFn: () => {
-      const endpoint = transformURL(JIRA_API.BOARD_CONFIGURATION, { boardId });
-      return getJiraBoardConfiguration(endpoint);
+      const url = transformURL(JIRA_API.BOARD_CONFIGURATION, { boardId });
+      return getJiraBoardConfiguration(url);
     },
     enabled: boardId > -1,
     staleTime: Infinity,
@@ -39,9 +39,9 @@ export function useJiraBoardActiveSprint(boardId: number) {
   return useQuery({
     queryKey: ["jira-board-sprints", boardId],
     queryFn: () => {
-      const endpoint = transformURL(JIRA_API.BOARD_SPRINT, { boardId });
+      const url = transformURL(JIRA_API.BOARD_SPRINT, { boardId });
       const params = { state: "active" };
-      return getJiraBoardSprints(endpoint, params);
+      return getJiraBoardSprints(url, params);
     },
     select: processActiveSprint,
     enabled: boardId > -1,
@@ -55,12 +55,12 @@ export function useJiraBoardSprintIssues(boardId: number, sprintId: number) {
     queryKey: ["jira-board-sprint-issues", boardId, sprintId],
     queryFn: () => {
       const customFieldIds = getSelectedCustomFieldIds();
-      const endpoint = transformURL(JIRA_API.BOARD_SPRINT_ISSUE, { boardId, sprintId });
+      const url = transformURL(JIRA_API.BOARD_SPRINT_ISSUE, { boardId, sprintId });
       const params = {
         jql: "order by priority DESC, updated DESC, created DESC",
         fields: [...JIRA_BOARD_ISSUE_FIELDS, ...customFieldIds],
       };
-      return getJiraBoardSprintIssues(endpoint, params);
+      return getJiraBoardSprintIssues(url, params);
     },
     enabled: boardId > -1 && sprintId > -1,
     staleTime: 1 * 60 * 1000,

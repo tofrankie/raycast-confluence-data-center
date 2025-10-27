@@ -1,7 +1,7 @@
 export const CONFLUENCE_API = {
   SEARCH: "/rest/api/search",
   SEARCH_CONTENT: "/rest/api/content/search",
-  CONTENT_FAVOURITE: "/rest/experimental/relation/user/current/favourite/toContent/",
+  CONTENT_FAVOURITE: "/rest/experimental/relation/user/current/favourite/toContent/{contentId}",
   CURRENT_USER: "/rest/api/user/current",
 } as const;
 

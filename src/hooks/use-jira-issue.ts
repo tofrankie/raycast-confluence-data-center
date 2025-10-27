@@ -12,8 +12,8 @@ export function useJiraIssueQuery<TData = JiraSearchIssue>(
   return useQuery<JiraSearchIssue, Error, TData>({
     queryKey: ["jira-issue", issueKey],
     queryFn: () => {
-      const endpoint = transformURL(JIRA_API.ISSUE, { issueIdOrKey: issueKey });
-      return getJiraIssue(endpoint);
+      const url = transformURL(JIRA_API.ISSUE, { issueIdOrKey: issueKey });
+      return getJiraIssue(url);
     },
     enabled: !!issueKey,
     staleTime: 0,
@@ -29,8 +29,8 @@ export function useJiraIssueTransitionsQuery<TData = JiraTransitionResponse>(
   return useQuery<JiraTransitionResponse, Error, TData>({
     queryKey: ["jira-issue-transitions", issueKey],
     queryFn: () => {
-      const endpoint = transformURL(JIRA_API.ISSUE_TRANSITIONS, { issueIdOrKey: issueKey });
-      return getJiraIssueTransitions(endpoint);
+      const url = transformURL(JIRA_API.ISSUE_TRANSITIONS, { issueIdOrKey: issueKey });
+      return getJiraIssueTransitions(url);
     },
     enabled: !!issueKey,
     staleTime: 0,
@@ -46,9 +46,9 @@ export function useJiraIssueTransitionMutation(
 
   return useMutation<void, Error, { issueKey: string; transitionId: string }>({
     mutationFn: async ({ issueKey, transitionId }) => {
-      const endpoint = transformURL(JIRA_API.ISSUE_TRANSITIONS, { issueIdOrKey: issueKey });
+      const url = transformURL(JIRA_API.ISSUE_TRANSITIONS, { issueIdOrKey: issueKey });
       const params = { transition: { id: transitionId } };
-      await transitionJiraIssue(endpoint, params);
+      await transitionJiraIssue(url, params);
     },
     onSuccess: (_, { issueKey }) => {
       queryClient.invalidateQueries({ queryKey: ["jira-issue", issueKey] });

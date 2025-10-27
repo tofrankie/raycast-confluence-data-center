@@ -1,12 +1,14 @@
+import ky, { type KyInstance } from "ky";
+
 import { CURRENT_BASE_URL, CURRENT_PAT, CURRENT_APP_TYPE } from "@/constants";
-import { AppType } from "@/types";
 import { writeResponseFile } from "@/utils";
+import type { AppType } from "@/types";
 
 type Method = "GET" | "POST" | "PUT" | "DELETE";
 
 type RequestParams = {
   method: Method;
-  endpoint: string;
+  url: string;
   params?: Record<string, unknown>;
 };
 
@@ -18,45 +20,76 @@ export async function jiraRequest<T>(params: RequestParams): Promise<T | null> {
   return apiRequest(params);
 }
 
-type ErrorContext = {
-  appType: AppType;
-  method: Method;
-  endpoint: string;
-};
+function createKyInstance(baseURL: string, appType: AppType): KyInstance {
+  return ky.create({
+    prefixUrl: baseURL,
+    timeout: 30000,
+    retry: 0,
+    headers: {
+      Authorization: `Bearer ${CURRENT_PAT}`,
+      Accept: "application/json",
+    },
+    hooks: {
+      beforeRequest: [
+        (request) => {
+          console.log("🚀 ~ Request:", request.method, request.url);
+        },
+      ],
+      afterResponse: [
+        async (_request, _options, response) => {
+          if (!response.ok) {
+            let errorMessage = "";
+            try {
+              const contentType = response.headers.get("content-type") || "";
+              if (contentType.includes("application/json")) {
+                const errorBody = await response.json();
+                errorMessage = extractErrorMessage(errorBody);
+              }
+            } catch {
+              // Ignore parsing errors
+            }
 
-export async function apiRequest<T>({ method, endpoint, params }: RequestParams): Promise<T | null> {
-  const appType = CURRENT_APP_TYPE;
-  const errorContext: ErrorContext = { appType, method, endpoint };
+            const statusMessages = {
+              400: `Invalid request to ${appType}. Please check your search query or request parameters`,
+              401: `Authentication failed. Please check your ${appType} Personal Access Token`,
+              403: `Access denied. Please check your ${appType} permissions`,
+              404: `${appType} endpoint not found. Please check your ${appType} Base URL`,
+              429: `Rate limit exceeded. Please wait a moment and try again`,
+              500: `${appType} server error. Please try again later`,
+            };
 
-  try {
-    const { url, body, headers } = buildRequest(method, endpoint, params);
-    const response = await fetch(url, { method, headers, ...(body && { body }) });
+            const baseMessage =
+              statusMessages[response.status as keyof typeof statusMessages] ||
+              `HTTP error ${response.status} from ${appType}`;
 
-    if (!response.ok) {
-      throw await createHttpError(response, errorContext);
-    }
+            const fullMessage = errorMessage ? `${baseMessage}. Details: ${errorMessage}` : baseMessage;
+            throw new Error(fullMessage);
+          }
 
-    const contentType = response.headers.get("content-type") || "";
-    if (response.status === 200 && contentType.includes("text/html")) {
-      throw await createHttpError(response, errorContext);
-    }
+          return response;
+        },
+      ],
+    },
+  });
+}
 
-    if (response.status === 204) {
-      return null;
-    }
+const kyInstance = createKyInstance(CURRENT_BASE_URL, CURRENT_APP_TYPE);
 
-    return (await response.json()) as T;
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("Invalid URL")) {
-      throw new Error(`Invalid ${appType} Base URL format. Please check your Atlassian Data Center preferences`);
-    }
+export async function apiRequest<T>({ method, url, params }: RequestParams): Promise<T | null> {
+  const cleanUrl = url.startsWith("/") ? url.slice(1) : url;
 
-    if (error instanceof Error) {
-      throw error; // Re-throw HTTP errors
-    }
+  const response = await kyInstance(cleanUrl, {
+    method,
+    ...(method === "GET" || method === "DELETE"
+      ? { searchParams: params as Record<string, string | number | boolean> }
+      : { json: params }),
+  });
 
-    throw createConnectionError(error, errorContext);
+  if (response.status === 204) {
+    return null;
   }
+
+  return (await response.json()) as T;
 }
 
 type HandleApiResponseParams<T> = {
@@ -72,30 +105,6 @@ export function handleApiResponse<T>({ data, fileName, defaultValue }: HandleApi
   return data;
 }
 
-function buildRequest(method: Method, endpoint: string, params?: Record<string, unknown>) {
-  const url = new URL(endpoint, CURRENT_BASE_URL);
-  let body: string | undefined;
-
-  if (params) {
-    if (method === "GET" || method === "DELETE") {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          url.searchParams.set(key, String(value));
-        }
-      });
-    } else {
-      body = JSON.stringify(params);
-    }
-  }
-
-  const headers = getAuthHeaders(CURRENT_PAT);
-  if (body) {
-    headers["Content-Type"] = "application/json";
-  }
-
-  return { url: url.toString(), body, headers };
-}
-
 export function getAuthHeaders(token: string): Record<string, string> {
   return {
     Authorization: `Bearer ${token}`,
@@ -103,48 +112,12 @@ export function getAuthHeaders(token: string): Record<string, string> {
   };
 }
 
-async function createHttpError(response: Response, context: ErrorContext): Promise<Error> {
-  const { appType, method, endpoint } = context;
-  const requestInfo = `${method} ${endpoint}`;
-
-  let errorMessage = "";
-  try {
-    const contentType = response.headers.get("content-type") || "";
-
-    if (contentType.includes("application/json")) {
-      const errorBody = await response.json();
-      errorMessage = extractErrorMessage(errorBody);
-    } else if (contentType.includes("text/html")) {
-      // For HTML error pages (like 404), use status-based message
-      errorMessage = `Server returned HTML instead of JSON (likely a ${response.status} error page)`;
-    } else {
-      // For other content types, try to get text content
-      const textContent = await response.text();
-      errorMessage = textContent.substring(0, 200);
-    }
-  } catch {
-    // If we can't parse the response body, fall back to status-based messages
-  }
-
-  const baseMessage = getHttpErrorMessage(response.status, appType, requestInfo);
-  const fullMessage = errorMessage ? `${baseMessage} Details: ${errorMessage}` : baseMessage;
-
-  return new Error(fullMessage);
-}
-
-type ErrorResponse = {
-  errorMessages?: string[];
-  message?: string;
-  error?: string | { message?: string };
-  errors?: Record<string, unknown>;
-};
-
 function extractErrorMessage(errorBody: unknown): string {
-  if (!isObject(errorBody)) {
+  if (typeof errorBody !== "object" || !errorBody) {
     return "";
   }
 
-  const body = errorBody as ErrorResponse;
+  const body = errorBody as Record<string, unknown>;
 
   // Jira/Atlassian API error format
   if (body.errorMessages && Array.isArray(body.errorMessages)) {
@@ -161,77 +134,10 @@ function extractErrorMessage(errorBody: unknown): string {
     if (typeof body.error === "string") {
       return body.error;
     }
-    if (isObject(body.error) && "message" in body.error) {
+    if (typeof body.error === "object" && body.error && "message" in body.error) {
       return String(body.error.message);
     }
   }
 
-  // Field validation errors
-  if (body.errors && isObject(body.errors)) {
-    return Object.entries(body.errors)
-      .map(([field, message]) => `${field}: ${String(message)}`)
-      .join("; ");
-  }
-
   return "";
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function getHttpErrorMessage(status: number, appType: AppType, requestInfo: string): string {
-  const errorMap: Record<number, string> = {
-    400: `Invalid request to ${appType} (${requestInfo}). Please check your search query or request parameters`,
-    401: `Authentication failed or insufficient permissions for ${requestInfo}. Please check your ${appType} Personal Access Token in Atlassian Data Center preferences and ensure you have the required permissions`,
-    403: `Access denied for ${requestInfo}. Please check your ${appType} permissions or contact your administrator`,
-    404: `${appType} endpoint not found (${requestInfo}). Please check your ${appType} Base URL in Atlassian Data Center preferences`,
-    429: `Rate limit exceeded for ${appType} (${requestInfo}). Please wait a moment and try again`,
-    500: `${appType} server error for ${requestInfo}. Please try again later or contact your administrator`,
-    502: `${appType} service is temporarily unavailable for ${requestInfo}. Please try again later`,
-    503: `${appType} service is temporarily unavailable for ${requestInfo}. Please try again later`,
-    504: `${appType} service is temporarily unavailable for ${requestInfo}. Please try again later`,
-  };
-
-  return (
-    errorMap[status] ||
-    `HTTP error ${status} from ${appType} for ${requestInfo}. Please check your preferences and try again`
-  );
-}
-
-function createConnectionError(error: unknown, context: ErrorContext): Error {
-  const { appType, method, endpoint } = context;
-  const requestInfo = `${method} ${endpoint}`;
-
-  if (error instanceof Error) {
-    console.log("🚀 ~ createConnectionError ~ error.message:", error.message);
-
-    if (error.message.includes("ENOTFOUND") || error.message.includes("getaddrinfo")) {
-      return new Error(
-        `Cannot resolve hostname for ${appType} while calling ${requestInfo}. Please check your ${appType} Base URL in Atlassian Data Center preferences. Make sure the URL is correct and accessible.`,
-      );
-    }
-
-    if (error.message.includes("ECONNREFUSED")) {
-      return new Error(
-        `Connection refused to ${appType} while calling ${requestInfo}. Please check if the ${appType} server is running and the URL is correct.`,
-      );
-    }
-
-    if (error.message.includes("ETIMEDOUT") || error.message.includes("timeout")) {
-      return new Error(
-        `Connection timeout to ${appType} while calling ${requestInfo}. Please check your network connection and try again.`,
-      );
-    }
-
-    if (error.message.includes("fetch failed")) {
-      return new Error(
-        `Network error connecting to ${appType} while calling ${requestInfo}. Please check your ${appType} Base URL in Atlassian Data Center preferences and network connection.`,
-      );
-    }
-
-    return new Error(`Failed to connect to ${appType} while calling ${requestInfo}: ${error.message}`);
-  }
-
-  return new Error(`Failed to connect to ${appType} while calling ${requestInfo}`);
 }

@@ -24,7 +24,7 @@ type JiraSearchIssueParams = {
 };
 
 export async function searchJiraIssue(params: JiraSearchIssueParams): Promise<JiraSearchIssueResponse> {
-  const data = await jiraRequest<JiraSearchIssueResponse>({ method: "GET", endpoint: JIRA_API.SEARCH, params });
+  const data = await jiraRequest<JiraSearchIssueResponse>({ method: "GET", url: JIRA_API.SEARCH, params });
 
   return handleApiResponse({
     data,
@@ -41,7 +41,7 @@ export async function searchJiraIssue(params: JiraSearchIssueParams): Promise<Ji
 }
 
 export async function getJiraField(): Promise<JiraField[]> {
-  const data = await jiraRequest<JiraField[]>({ method: "GET", endpoint: JIRA_API.FIELD });
+  const data = await jiraRequest<JiraField[]>({ method: "GET", url: JIRA_API.FIELD });
 
   return handleApiResponse({
     data,
@@ -51,7 +51,7 @@ export async function getJiraField(): Promise<JiraField[]> {
 }
 
 export async function getJiraProject(): Promise<JiraProject[]> {
-  const data = await jiraRequest<JiraProject[]>({ method: "GET", endpoint: JIRA_API.PROJECT });
+  const data = await jiraRequest<JiraProject[]>({ method: "GET", url: JIRA_API.PROJECT });
 
   return handleApiResponse({
     data,
@@ -61,7 +61,7 @@ export async function getJiraProject(): Promise<JiraProject[]> {
 }
 
 export async function getJiraCurrentUser(): Promise<JiraCurrentUser | null> {
-  const data = await jiraRequest<JiraCurrentUser>({ method: "GET", endpoint: JIRA_API.CURRENT_USER });
+  const data = await jiraRequest<JiraCurrentUser>({ method: "GET", url: JIRA_API.CURRENT_USER });
 
   return handleApiResponse({
     data,
@@ -77,7 +77,7 @@ type JiraWorklogParams = {
 };
 
 export async function getJiraWorklog(params: JiraWorklogParams): Promise<JiraWorklog[]> {
-  const data = await jiraRequest<JiraWorklog[]>({ method: "POST", endpoint: JIRA_API.WORKLOG, params });
+  const data = await jiraRequest<JiraWorklog[]>({ method: "POST", url: JIRA_API.WORKLOG, params });
 
   return handleApiResponse({
     data,
@@ -86,8 +86,8 @@ export async function getJiraWorklog(params: JiraWorklogParams): Promise<JiraWor
   });
 }
 
-export async function getJiraIssue(endpoint: string): Promise<JiraSearchIssue> {
-  const data = await jiraRequest<JiraSearchIssue>({ method: "GET", endpoint });
+export async function getJiraIssue(url: string): Promise<JiraSearchIssue> {
+  const data = await jiraRequest<JiraSearchIssue>({ method: "GET", url });
 
   return handleApiResponse({
     data,
@@ -96,8 +96,8 @@ export async function getJiraIssue(endpoint: string): Promise<JiraSearchIssue> {
   });
 }
 
-export async function getJiraIssueTransitions(endpoint: string): Promise<JiraTransitionResponse> {
-  const data = await jiraRequest<JiraTransitionResponse>({ method: "GET", endpoint });
+export async function getJiraIssueTransitions(url: string): Promise<JiraTransitionResponse> {
+  const data = await jiraRequest<JiraTransitionResponse>({ method: "GET", url });
 
   return handleApiResponse({
     data,
@@ -117,16 +117,16 @@ type JiraIssueTransitionParams = {
   };
 };
 
-export async function transitionJiraIssue(endpoint: string, params: JiraIssueTransitionParams): Promise<void> {
+export async function transitionJiraIssue(url: string, params: JiraIssueTransitionParams): Promise<void> {
   await jiraRequest<void>({
     method: "POST",
-    endpoint,
+    url,
     params,
   });
 }
 
 export async function getJiraBoards(): Promise<JiraBoardResponse> {
-  const data = await jiraRequest<JiraBoardResponse>({ method: "GET", endpoint: JIRA_API.BOARD });
+  const data = await jiraRequest<JiraBoardResponse>({ method: "GET", url: JIRA_API.BOARD });
 
   return handleApiResponse({
     data,
@@ -148,11 +148,8 @@ type JiraBoardSprintParams = {
   state?: string;
 };
 
-export async function getJiraBoardSprints(
-  endpoint: string,
-  params: JiraBoardSprintParams,
-): Promise<JiraSprintResponse> {
-  const data = await jiraRequest<JiraSprintResponse>({ method: "GET", endpoint, params });
+export async function getJiraBoardSprints(url: string, params: JiraBoardSprintParams): Promise<JiraSprintResponse> {
+  const data = await jiraRequest<JiraSprintResponse>({ method: "GET", url, params });
 
   return handleApiResponse({
     data,
@@ -166,8 +163,8 @@ export async function getJiraBoardSprints(
   });
 }
 
-export async function getJiraBoardConfiguration(endpoint: string): Promise<JiraBoardConfiguration> {
-  const data = await jiraRequest<JiraBoardConfiguration>({ method: "GET", endpoint });
+export async function getJiraBoardConfiguration(url: string): Promise<JiraBoardConfiguration> {
+  const data = await jiraRequest<JiraBoardConfiguration>({ method: "GET", url });
 
   return handleApiResponse({
     data,
@@ -195,12 +192,12 @@ type JiraBoardSprintIssueParams = {
 };
 
 export async function getJiraBoardSprintIssues(
-  endpoint: string,
+  url: string,
   params: JiraBoardSprintIssueParams,
 ): Promise<JiraBoardIssueResponse> {
   const data = await jiraRequest<JiraBoardIssueResponse>({
     method: "GET",
-    endpoint,
+    url,
     params,
   });
 

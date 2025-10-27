@@ -43,7 +43,8 @@
     "@raycast/api": "^1.103.2",
     "@raycast/utils": "^1.17.0",
     "@tanstack/react-query": "^5.90.2",
-    "dayjs": "^1.11.18"
+    "dayjs": "^1.11.18",
+    "ky": "^1.13.0"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.0.4",
