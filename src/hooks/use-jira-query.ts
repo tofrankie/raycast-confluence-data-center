@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import type { UseQueryOptions, UseInfiniteQueryOptions } from "@tanstack/react-query";
 
-import { COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
+import { COMMAND_NAME, PAGINATION_SIZE, JIRA_SEARCH_ISSUE_FIELDS } from "@/constants";
 import {
   searchJiraIssue,
   processJiraSearchIssue,
@@ -18,11 +18,11 @@ import type {
   JiraField,
   JiraProject,
   JiraCurrentUser,
+  JiraWorklog,
   ProcessedJiraIssueItem,
   ProcessedJiraFieldItem,
   WorklogGroup,
 } from "@/types";
-import type { JiraWorklog } from "@/types/jira";
 
 export function useJiraSearchIssueInfiniteQuery<
   TData = { issues: ProcessedJiraIssueItem[]; hasMore: boolean; totalCount: number },
@@ -37,19 +37,7 @@ export function useJiraSearchIssueInfiniteQuery<
         startAt: pageParam as number,
         maxResults: PAGINATION_SIZE,
         validateQuery: false,
-        fields: [
-          "summary",
-          "status",
-          "priority",
-          "issuetype",
-          "assignee",
-          "reporter",
-          "created",
-          "updated",
-          "duedate",
-          "timetracking",
-          ...customFieldIds,
-        ],
+        fields: [...JIRA_SEARCH_ISSUE_FIELDS, ...customFieldIds],
         expand: ["names"],
       };
 

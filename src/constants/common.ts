@@ -19,23 +19,3 @@ export const COMMAND_NAME = {
   JIRA_BOARD: "jira-board",
 } as const;
 
-export const CONFLUENCE_API = {
-  SEARCH: "/rest/api/search",
-  SEARCH_CONTENT: "/rest/api/content/search",
-  CONTENT_FAVOURITE: "/rest/experimental/relation/user/current/favourite/toContent/",
-  CURRENT_USER: "/rest/api/user/current",
-} as const;
-
-export const JIRA_API = {
-  SEARCH: "/rest/api/2/search",
-  FIELD: "/rest/api/2/field",
-  PROJECT: "/rest/api/2/project",
-  CURRENT_USER: "/rest/api/2/myself",
-  WORKLOG: "/rest/tempo-timesheets/4/worklogs/search",
-  ISSUE: "/rest/api/2/issue/{issueIdOrKey}",
-  ISSUE_TRANSITIONS: "/rest/api/2/issue/{issueIdOrKey}/transitions",
-  BOARD: "/rest/agile/1.0/board",
-  BOARD_SPRINT: "/rest/agile/1.0/board/{boardId}/sprint",
-  BOARD_SPRINT_ISSUE: "/rest/agile/1.0/board/{boardId}/sprint/{sprintId}/issue",
-  BOARD_CONFIGURATION: "/rest/agile/1.0/board/{boardId}/configuration",
-} as const;

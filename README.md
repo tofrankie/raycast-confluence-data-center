@@ -11,9 +11,9 @@ This extension integrates with your Atlassian applications using Personal Access
 
 On first use, you'll need to provide:
 
-- **Confluence Base URL**: Base URL of your Confluence Data Center instance, e.g., `https://confluence.example.com`
+- **Confluence Base URL**: Base URL of your Confluence Data Center instance, e.g. `https://confluence.example.com`
 - **Confluence PAT**: Create it from Confluence → Profile → Personal Access Tokens → Create token
-- **Jira Base URL**: Base URL of your Jira Data Center instance, e.g., `https://jira.example.com`
+- **Jira Base URL**: Base URL of your Jira Data Center instance, e.g. `https://jira.example.com`
 - **Jira PAT**: Create it from Jira → Profile → Personal Access Tokens → Create token
 
 ## ✨ Features

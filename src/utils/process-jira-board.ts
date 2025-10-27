@@ -1,6 +1,6 @@
-import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, getPriorityIcon } from "@/utils";
+import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, getIssuePriorityIcon } from "@/utils";
 import type {
-  JiraIssue,
+  JiraBoardIssue,
   JiraBoardColumn,
   ProcessedJiraBoardIssueItem,
   ListItemAccessories,
@@ -13,7 +13,7 @@ import type {
 } from "@/types";
 
 export function processJiraBoardIssues(
-  issues: JiraIssue[],
+  issues: JiraBoardIssue[],
   boardConfiguration?: JiraBoardConfiguration,
 ): ProcessedJiraBoardIssueItem[] {
   return issues.map((issue) => {
@@ -21,15 +21,15 @@ export function processJiraBoardIssues(
 
     const summary = fields.summary;
     const title = { value: summary, tooltip: summary };
-    const issueType = fields.issuetype.name;
+    const issueTypeName = fields.issuetype.name;
 
     const url = getJiraIssueUrl(key);
     const editUrl = getJiraIssueEditUrl(id);
 
-    const issueTypeIcon = getIssueTypeIcon(issueType);
+    const issueTypeIcon = getIssueTypeIcon(issueTypeName);
     const icon = {
       value: issueTypeIcon || "icon-unknown.svg",
-      tooltip: `Issue Type: ${issueType}`,
+      tooltip: `Issue Type: ${issueTypeName}`,
     };
 
     const subtitle = buildSubtitle(issue);
@@ -51,7 +51,7 @@ export function processJiraBoardIssues(
   });
 }
 
-function buildSubtitle(issue: JiraIssue): ListItemSubtitle {
+function buildSubtitle(issue: JiraBoardIssue): ListItemSubtitle {
   const { key: issueKey, fields } = issue;
   const assignee = fields.assignee?.displayName || "Unassigned";
   const reporter = fields.reporter?.displayName || null;
@@ -75,7 +75,7 @@ function buildSubtitle(issue: JiraIssue): ListItemSubtitle {
   };
 }
 
-function buildAccessories(issue: JiraIssue): ListItemAccessories {
+function buildAccessories(issue: JiraBoardIssue): ListItemAccessories {
   const { fields } = issue;
   const status = fields.status?.name || "Unknown";
   const priority = fields.priority?.name || "Unknown";
@@ -90,7 +90,7 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
   const accessories: ListItemAccessories = [];
 
   if (priority) {
-    const priorityIcon = getPriorityIcon(priority);
+    const priorityIcon = getIssuePriorityIcon(priority);
 
     if (priorityIcon) {
       accessories.push({
@@ -145,7 +145,7 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
   return accessories;
 }
 
-function buildKeywords(issue: JiraIssue, boardConfiguration?: JiraBoardConfiguration): string[] {
+function buildKeywords(issue: JiraBoardIssue, boardConfiguration?: JiraBoardConfiguration): string[] {
   const { key: issueKey, fields } = issue;
   const keywords: string[] = [issueKey, ...issueKey.split("-")[1]];
 
@@ -177,7 +177,7 @@ function buildKeywords(issue: JiraIssue, boardConfiguration?: JiraBoardConfigura
 export function groupIssuesByColumn(
   issues: ProcessedJiraBoardIssueItem[],
   columns: JiraBoardColumn[],
-  originalIssues: JiraIssue[],
+  originalIssues: JiraBoardIssue[],
 ): Record<string, ProcessedJiraBoardIssueItem[]> {
   const grouped: Record<string, ProcessedJiraBoardIssueItem[]> = {};
 

@@ -14,8 +14,9 @@ import {
   buildQuery,
   copyToClipboardWithToast,
   replaceQueryCurrentUser,
+  isIssueKey,
+  isIssueNumber,
 } from "@/utils";
-import { isIssueKey, isIssueNumber } from "@/utils/jira";
 import type { ProcessedJiraIssueItem, SearchFilter } from "@/types";
 
 const EMPTY_INFINITE_DATA = { issues: [], hasMore: false, totalCount: 0 };

@@ -1,8 +1,7 @@
-import { JIRA_ISSUE_TYPE_NAME, JIRA_PRIORITY } from "@/constants";
-
+import { JIRA_ISSUE_TYPE_NAME, JIRA_ISSUE_PRIORITY_NAME } from "@/constants";
 import type { ValueOf } from "./common";
 
-export type JiraPriorityType = ValueOf<typeof JIRA_PRIORITY>;
+export type JiraIssuePriorityName = ValueOf<typeof JIRA_ISSUE_PRIORITY_NAME>;
 
 export type JiraIssueTypeName = ValueOf<typeof JIRA_ISSUE_TYPE_NAME>;
 
@@ -11,45 +10,6 @@ export interface JiraAvatarUrls {
   "24x24": string;
   "16x16": string;
   "32x32": string;
-}
-
-export interface JiraPreferences {
-  jiraBaseUrl: string;
-  jiraPersonalAccessToken: string;
-  paginationSize: number;
-}
-
-export interface JiraSearchIssueResponse {
-  expand: string;
-  issues: JiraIssue[];
-  maxResults: number;
-  startAt: number;
-  total: number;
-  names?: Record<string, string>;
-}
-
-export interface JiraIssue {
-  expand: string;
-  id: string;
-  self: string;
-  key: string;
-  fields: JiraIssueFields;
-}
-
-export interface JiraIssueFields {
-  summary: string;
-  issuetype: JiraIssueType;
-  duedate: string | null;
-  created: string;
-  reporter: JiraUser;
-  assignee: JiraUser;
-  priority: JiraPriority;
-  updated: string | null;
-  timetracking?: JiraTimeTracking;
-  status: JiraStatus;
-  // TODO:
-  epic?: JiraEpic;
-  [key: string]: unknown; // TODO: custom field
 }
 
 export interface JiraUser {
@@ -83,21 +43,6 @@ export interface JiraCurrentUser {
     items: unknown[];
   };
   expand: string;
-}
-
-export interface JiraProject {
-  self: string;
-  id: string;
-  key: string;
-  name: string;
-  projectTypeKey: string;
-  avatarUrls: JiraAvatarUrls;
-  projectCategory?: {
-    self: string;
-    id: string;
-    name: string;
-    description: string;
-  };
 }
 
 export interface JiraTimeTracking {
@@ -173,6 +118,41 @@ export interface JiraField {
   };
 }
 
+export interface JiraTransition {
+  /**
+   * Transition ID
+   */
+  id: string;
+  name: string;
+  to: JiraStatus;
+}
+
+export interface JiraTransitionResponse {
+  expand: string;
+  transitions: JiraTransition[];
+}
+
+export interface JiraIssueTransitionRequest {
+  transition: {
+    id: string;
+  };
+}
+
+export interface JiraProject {
+  self: string;
+  id: string;
+  key: string;
+  name: string;
+  projectTypeKey: string;
+  avatarUrls: JiraAvatarUrls;
+  projectCategory?: {
+    self: string;
+    id: string;
+    name: string;
+    description: string;
+  };
+}
+
 export interface JiraWorklog {
   billableSeconds: number;
   timeSpent: string;
@@ -212,99 +192,4 @@ export interface JiraWorklog {
   dateCreated: string;
   dateUpdated: string;
   originId: number;
-}
-
-export interface JiraTransition {
-  /**
-   * Transition ID
-   */
-  id: string;
-  name: string;
-  to: JiraStatus;
-}
-
-export interface JiraTransitionResponse {
-  expand: string;
-  transitions: JiraTransition[];
-}
-
-export interface JiraIssueTransitionRequest {
-  transition: {
-    id: string;
-  };
-}
-
-export interface JiraBoard {
-  id: number;
-  self: string;
-  name: string;
-  type: "scrum" | "kanban";
-}
-
-export interface JiraBoardResponse {
-  maxResults: number;
-  startAt: number;
-  total: number;
-  isLast: boolean;
-  values: JiraBoard[];
-}
-
-export interface JiraSprint {
-  id: number;
-  self: string;
-  state: "future" | "active" | "closed";
-  name: string;
-  startDate: string;
-  endDate: string;
-  activatedDate: string;
-  originBoardId: number;
-  goal: string;
-}
-
-export interface JiraSprintResponse {
-  maxResults: number;
-  startAt: number;
-  isLast: boolean;
-  values: JiraSprint[];
-}
-
-export interface JiraBoardConfiguration {
-  id: number;
-  name: string;
-  type: "scrum" | "kanban";
-  self: string;
-  filter: {
-    id: string;
-    self: string;
-  };
-  columnConfig: {
-    columns: JiraBoardColumn[];
-    constraintType: string;
-  };
-  estimation: {
-    type: string;
-    field: {
-      fieldId: string;
-      displayName: string;
-    };
-  };
-  ranking: {
-    rankCustomFieldId: number;
-  };
-}
-
-export interface JiraBoardColumn {
-  name: string;
-  statuses: {
-    id: string;
-    self: string;
-  }[];
-}
-
-export interface JiraBoardIssueResponse {
-  expand: string;
-  startAt: number;
-  maxResults: number;
-  total: number;
-  issues: JiraIssue[];
 }

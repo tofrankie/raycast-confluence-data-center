@@ -2,12 +2,12 @@ import {
   getIssueTypeIcon,
   getJiraIssueEditUrl,
   getJiraIssueUrl,
-  getPriorityIcon,
+  getIssuePriorityIcon,
   getSelectedCustomFields,
 } from "@/utils";
-import type { JiraIssue, JiraUser, ProcessedJiraIssueItem, ListItemAccessories, ListItemSubtitle } from "@/types";
+import type { JiraSearchIssue, JiraUser, ProcessedJiraIssueItem, ListItemAccessories, ListItemSubtitle } from "@/types";
 
-export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, string>): ProcessedJiraIssueItem {
+export function processJiraSearchIssue(issue: JiraSearchIssue, names?: Record<string, string>): ProcessedJiraIssueItem {
   const { fields, key, id } = issue;
 
   const summary = fields.summary;
@@ -53,7 +53,7 @@ export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, 
 }
 
 function buildSubtitle(
-  issue: JiraIssue,
+  issue: JiraSearchIssue,
   customFieldValue?: Record<string, JiraUser>,
   names?: Record<string, string>,
 ): ListItemSubtitle {
@@ -88,7 +88,7 @@ function buildSubtitle(
   };
 }
 
-function buildAccessories(issue: JiraIssue): ListItemAccessories {
+function buildAccessories(issue: JiraSearchIssue): ListItemAccessories {
   const { fields } = issue;
   const status = fields.status?.name || "Unknown";
   const priority = fields.priority?.name || "Unknown";
@@ -103,7 +103,7 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
   const accessories: ListItemAccessories = [];
 
   if (priority) {
-    const priorityIcon = getPriorityIcon(priority);
+    const priorityIcon = getIssuePriorityIcon(priority);
 
     if (priorityIcon) {
       accessories.push({

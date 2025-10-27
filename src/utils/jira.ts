@@ -1,32 +1,32 @@
-import { JIRA_BASE_URL, JIRA_ISSUE_TYPE_ICON, JIRA_PRIORITY_ICON } from "@/constants";
+import { JIRA_BASE_URL, JIRA_ISSUE_TYPE_ICON_MAP, JIRA_ISSUE_PRIORITY_ICON_MAP } from "@/constants";
 
-export function getPriorityIcon(priority: string): string | undefined {
+export function getIssuePriorityIcon(priority: string): string | undefined {
   const normalizedPriority = priority.toUpperCase();
 
-  if (isBuiltInPriority(normalizedPriority)) {
-    return JIRA_PRIORITY_ICON[normalizedPriority];
+  if (isBuiltinPriority(normalizedPriority)) {
+    return JIRA_ISSUE_PRIORITY_ICON_MAP[normalizedPriority];
   }
 
-  const similarPriority = Object.keys(JIRA_PRIORITY_ICON).find((key) => key.includes(normalizedPriority));
-  if (similarPriority && isBuiltInPriority(similarPriority)) {
-    return JIRA_PRIORITY_ICON[similarPriority];
+  const similarPriority = Object.keys(JIRA_ISSUE_PRIORITY_ICON_MAP).find((key) => key.includes(normalizedPriority));
+  if (similarPriority && isBuiltinPriority(similarPriority)) {
+    return JIRA_ISSUE_PRIORITY_ICON_MAP[similarPriority];
   }
 
   return undefined;
 }
 
-function isBuiltInPriority(priority: string): priority is keyof typeof JIRA_PRIORITY_ICON {
-  return priority in JIRA_PRIORITY_ICON;
+function isBuiltinPriority(priority: string): priority is keyof typeof JIRA_ISSUE_PRIORITY_ICON_MAP {
+  return priority in JIRA_ISSUE_PRIORITY_ICON_MAP;
 }
 
-export function getIssueTypeIcon(issueType: string): string | undefined {
-  if (isBuiltInIssueType(issueType, JIRA_ISSUE_TYPE_ICON)) {
-    return JIRA_ISSUE_TYPE_ICON[issueType];
+export function getIssueTypeIcon(issueTypeName: string): string | undefined {
+  if (isBuiltinIssueType(issueTypeName, JIRA_ISSUE_TYPE_ICON_MAP)) {
+    return JIRA_ISSUE_TYPE_ICON_MAP[issueTypeName];
   }
 
   const iconMap = {
-    // built-in issue type
-    ...JIRA_ISSUE_TYPE_ICON,
+    // builtin issue type
+    ...JIRA_ISSUE_TYPE_ICON_MAP,
 
     // custom issue type
     TEST: "icon-flask.svg",
@@ -35,15 +35,15 @@ export function getIssueTypeIcon(issueType: string): string | undefined {
     "NEW FEATURE": "icon-new-feature.svg",
   } as const;
 
-  const similarType = Object.keys(iconMap).find((key) => issueType.toLowerCase().includes(key.toLowerCase()));
-  if (similarType && isBuiltInIssueType(similarType, iconMap)) {
+  const similarType = Object.keys(iconMap).find((key) => issueTypeName.toLowerCase().includes(key.toLowerCase()));
+  if (similarType && isBuiltinIssueType(similarType, iconMap)) {
     return iconMap[similarType];
   }
 
   return undefined;
 }
 
-function isBuiltInIssueType<T extends Record<string, string>>(
+function isBuiltinIssueType<T extends Record<string, string>>(
   issueType: string,
   iconMap: T,
 ): issueType is keyof T & string {
@@ -59,14 +59,14 @@ export function getJiraIssueEditUrl(issueId: string): string {
 }
 
 /**
- * Check if input may be a Jira issue key (e.g., "DEV-123")
+ * Check if input may be a Jira issue key (e.g. "DEV-123")
  */
 export function isIssueKey(input: string): boolean {
   return /^[A-Z][A-Z0-9_]*-\d+$/.test(input);
 }
 
 /**
- * Check if input may be an issue number (e.g., "123" from "DEV-123")
+ * Check if input may be an issue number (e.g. "123" from "DEV-123")
  */
 export function isIssueNumber(input: string): boolean {
   return /^\d+$/.test(input);

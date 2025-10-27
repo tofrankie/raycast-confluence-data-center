@@ -6,7 +6,7 @@ import type {
   JiraProject,
   JiraCurrentUser,
   JiraWorklog,
-  JiraIssue,
+  JiraSearchIssue,
   JiraTransitionResponse,
   JiraBoardResponse,
   JiraSprintResponse,
@@ -86,19 +86,17 @@ export async function getJiraWorklog(params: JiraWorklogParams): Promise<JiraWor
   });
 }
 
-export async function getJiraIssue(issueKey: string): Promise<JiraIssue> {
-  const endpoint = JIRA_API.ISSUE.replace("{issueIdOrKey}", issueKey);
-  const data = await jiraRequest<JiraIssue>({ method: "GET", endpoint });
+export async function getJiraIssue(endpoint: string): Promise<JiraSearchIssue> {
+  const data = await jiraRequest<JiraSearchIssue>({ method: "GET", endpoint });
 
   return handleApiResponse({
     data,
     fileName: "jira-issue",
-    defaultValue: {} as JiraIssue,
+    defaultValue: {} as JiraSearchIssue,
   });
 }
 
-export async function getJiraIssueTransitions(issueKey: string): Promise<JiraTransitionResponse> {
-  const endpoint = JIRA_API.ISSUE_TRANSITIONS.replace("{issueIdOrKey}", issueKey);
+export async function getJiraIssueTransitions(endpoint: string): Promise<JiraTransitionResponse> {
   const data = await jiraRequest<JiraTransitionResponse>({ method: "GET", endpoint });
 
   return handleApiResponse({
@@ -110,16 +108,16 @@ export async function getJiraIssueTransitions(issueKey: string): Promise<JiraTra
     },
   });
 }
-
-export async function transitionJiraIssue(issueKey: string, transitionId: string): Promise<void> {
-  const params: Record<string, unknown> = {
-    transition: {
-      id: transitionId,
-    },
+/**
+ * See: https://developer.atlassian.com/server/jira/platform/rest/v11001/api-group-issue/#api-api-2-issue-issueidorkey-transitions-post
+ */
+type JiraIssueTransitionParams = {
+  transition: {
+    id: string;
   };
+};
 
-  const endpoint = JIRA_API.ISSUE_TRANSITIONS.replace("{issueIdOrKey}", issueKey);
-
+export async function transitionJiraIssue(endpoint: string, params: JiraIssueTransitionParams): Promise<void> {
   await jiraRequest<void>({
     method: "POST",
     endpoint,
@@ -143,9 +141,18 @@ export async function getJiraBoards(): Promise<JiraBoardResponse> {
   });
 }
 
-export async function getJiraBoardSprints(boardId: number): Promise<JiraSprintResponse> {
-  const endpoint = JIRA_API.BOARD_SPRINT.replace("{boardId}", boardId.toString());
-  const data = await jiraRequest<JiraSprintResponse>({ method: "GET", endpoint, params: { state: "active" } });
+type JiraBoardSprintParams = {
+  /**
+   * Filters results to sprints in specified states. Valid values: future, active, closed. You can define multiple states separated by commas, e.g. state=active,closed
+   */
+  state?: string;
+};
+
+export async function getJiraBoardSprints(
+  endpoint: string,
+  params: JiraBoardSprintParams,
+): Promise<JiraSprintResponse> {
+  const data = await jiraRequest<JiraSprintResponse>({ method: "GET", endpoint, params });
 
   return handleApiResponse({
     data,
@@ -159,15 +166,14 @@ export async function getJiraBoardSprints(boardId: number): Promise<JiraSprintRe
   });
 }
 
-export async function getJiraBoardConfiguration(boardId: number): Promise<JiraBoardConfiguration> {
-  const endpoint = JIRA_API.BOARD_CONFIGURATION.replace("{boardId}", boardId.toString());
+export async function getJiraBoardConfiguration(endpoint: string): Promise<JiraBoardConfiguration> {
   const data = await jiraRequest<JiraBoardConfiguration>({ method: "GET", endpoint });
 
   return handleApiResponse({
     data,
     fileName: "jira-board-configuration",
     defaultValue: {
-      id: boardId,
+      id: 0,
       name: "",
       type: "scrum",
       self: "",
@@ -179,15 +185,23 @@ export async function getJiraBoardConfiguration(boardId: number): Promise<JiraBo
   });
 }
 
-export async function getJiraBoardSprintIssues(boardId: number, sprintId: number): Promise<JiraBoardIssueResponse> {
-  const endpoint = JIRA_API.BOARD_SPRINT_ISSUE.replace("{boardId}", boardId.toString()).replace(
-    "{sprintId}",
-    sprintId.toString(),
-  );
+type JiraBoardSprintIssueParams = {
+  expand?: string;
+  jql?: string;
+  maxResults?: number;
+  validateQuery?: boolean;
+  fields?: string[];
+  startAt?: number;
+};
+
+export async function getJiraBoardSprintIssues(
+  endpoint: string,
+  params: JiraBoardSprintIssueParams,
+): Promise<JiraBoardIssueResponse> {
   const data = await jiraRequest<JiraBoardIssueResponse>({
     method: "GET",
     endpoint,
-    params: { jql: "order by priority DESC, updated DESC, created DESC" },
+    params,
   });
 
   return handleApiResponse({
