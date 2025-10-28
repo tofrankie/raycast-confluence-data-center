@@ -25,12 +25,12 @@ const DEFAULT_FILTER = JIRA_SEARCH_ISSUE_FILTERS.find((item) => item.value === "
 export default function JiraSearchIssueProvider() {
   return (
     <QueryProvider>
-      <JiraSearchIssueContent />
+      <JiraSearchIssue />
     </QueryProvider>
   );
 }
 
-function JiraSearchIssueContent() {
+function JiraSearchIssue() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 

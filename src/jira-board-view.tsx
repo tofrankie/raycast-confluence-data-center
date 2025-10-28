@@ -9,17 +9,17 @@ import { CACHE_KEY } from "@/constants";
 import { useJiraBoards, useJiraBoardActiveSprint, useJiraBoardConfiguration, useJiraBoardSprintIssues } from "@/hooks";
 import { clearAllCacheWithToast, processAndGroupIssues, copyToClipboardWithToast } from "@/utils";
 
-export default function JiraBoardProvider() {
+export default function JiraBoardViewProvider() {
   return (
     <QueryProvider>
-      <JiraBoardContent />
+      <JiraBoardView />
     </QueryProvider>
   );
 }
 
-function JiraBoardContent() {
-  const [cachedBoardId, setCachedBoardId] = useCachedState(CACHE_KEY.JIRA_BOARD_SELECTED_BOARD_ID, -1);
-  const [cachedSprintId, setCachedSprintId] = useCachedState(CACHE_KEY.JIRA_BOARD_ACTIVE_SPRINT_ID, -1);
+function JiraBoardView() {
+  const [cachedBoardId, setCachedBoardId] = useCachedState(CACHE_KEY.JIRA_SELECTED_BOARD_ID, -1);
+  const [cachedSprintId, setCachedSprintId] = useCachedState(CACHE_KEY.JIRA_SELECTED_BOARD_SPRINT_ID, -1);
 
   const [selectedBoardId, setSelectedBoardId] = useState("");
 

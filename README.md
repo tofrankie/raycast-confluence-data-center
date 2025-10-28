@@ -20,15 +20,18 @@ On first use, you'll need to provide:
 
 ### 📚 Confluence
 
-- **Content Search** - Search pages, blog posts, and attachments
-- **Space Search** - Discover spaces
-- **User Search** - Find users by name
+- **Search Content** - Search Confluence pages, blog posts, comments, and attachments
+- **Search Space** - Search Confluence spaces
+- **Search User** - Search Confluence users
 - **CQL Support** - Use [Confluence Query Language](https://developer.atlassian.com/server/confluence/rest/v1020/intro/#advanced-searching-using-cql) for advanced searches
 - **Common Filters** - Viewed Recently, Created by Me, Contributed by Me, Mentions Me, My Favourites, Watched by Me
 
 ### 🐛 Jira
 
-- **Issue Search** - Search issues
+- **Search Issue** - Search Jira issues
+- **Board View** - View active sprint issues on Jira board
+- **Worklog View** - View your Jira worklog
+- **Manage Field** - Manage custom fields for Jira issue search
 - **JQL Support** - Use [Jira Query Language](https://confluence.atlassian.com/jiracoreserver/advanced-searching-939937709.html) for complex searches
 - **Common Filters** - My Open Issues, Open Issues, Assigned to Me, Reported by Me, Created Recently, Updated Recently, Resolved Recently, Viewed Recently, Watched by Me
 

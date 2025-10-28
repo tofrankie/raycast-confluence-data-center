@@ -21,9 +21,9 @@ export const CACHE_DIRECTORY = {
 } as const;
 
 export const CACHE_KEY = {
-  JIRA_SELECTED_CUSTOM_FIELD: "jira_selected_custom_field",
-  JIRA_CURRENT_USER: "jira_current_user",
   CONFLUENCE_CURRENT_USER: "confluence_current_user",
-  JIRA_BOARD_SELECTED_BOARD_ID: "jira_board_selected_board_id",
-  JIRA_BOARD_ACTIVE_SPRINT_ID: "jira_board_active_sprint_id",
+  JIRA_CURRENT_USER: "jira_current_user",
+  JIRA_SELECTED_FIELDS: "jira_selected_fields",
+  JIRA_SELECTED_BOARD_ID: "jira_selected_board_id",
+  JIRA_SELECTED_BOARD_SPRINT_ID: "jira_selected_board_sprint_id",
 } as const;

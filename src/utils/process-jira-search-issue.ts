@@ -10,7 +10,7 @@ import type {
 
 export function processJiraSearchIssue(
   issue: JiraSearchIssue,
-  selectedCustomFields: JiraField[],
+  selectedFields: JiraField[],
   fieldsNameMap?: Record<string, string>,
 ): ProcessedJiraIssueItem {
   const { fields, key, id } = issue;
@@ -28,7 +28,7 @@ export function processJiraSearchIssue(
     tooltip: `Issue Type: ${issueType}`,
   };
 
-  const customFieldValue = selectedCustomFields.reduce(
+  const selectedFieldValue = selectedFields.reduce(
     (acc, field) => {
       const value = issue.fields[field.id];
       if (value !== undefined && value !== null) {
@@ -39,7 +39,7 @@ export function processJiraSearchIssue(
     {} as Record<string, JiraUser>,
   );
 
-  const subtitle = buildSubtitle(issue, customFieldValue, fieldsNameMap);
+  const subtitle = buildSubtitle(issue, selectedFieldValue, fieldsNameMap);
   const accessories = buildAccessories(issue);
 
   return {
@@ -57,7 +57,7 @@ export function processJiraSearchIssue(
 
 function buildSubtitle(
   issue: JiraSearchIssue,
-  customFieldValue?: Record<string, JiraUser>,
+  selectedFieldValue?: Record<string, JiraUser>,
   fieldsNameMap?: Record<string, string>,
 ): ListItemSubtitle {
   const { key: issueKey, fields } = issue;
@@ -78,8 +78,8 @@ function buildSubtitle(
   }
 
   // TODO: Support more types of custom fields
-  if (customFieldValue) {
-    Object.entries(customFieldValue).forEach(([fieldId, value]) => {
+  if (selectedFieldValue) {
+    Object.entries(selectedFieldValue).forEach(([fieldId, value]) => {
       const fieldName = fieldsNameMap?.[fieldId] ?? fieldId;
       tooltipParts.push(`${fieldName}: ${value.displayName}`);
     });

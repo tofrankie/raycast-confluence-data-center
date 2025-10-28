@@ -5,7 +5,7 @@ import { showFailureToast } from "@raycast/utils";
 import QueryProvider from "@/query-provider";
 import { DebugActions } from "@/components";
 import { useJiraFieldQuery } from "@/hooks";
-import { getSelectedCustomFields, addCustomField, removeCustomField, clearAllCacheWithToast } from "@/utils";
+import { getSelectedFields, addSelectedField, removeSelectedField, clearAllCacheWithToast } from "@/utils";
 import type { JiraField, ProcessedJiraFieldItem } from "@/types";
 
 const EMPTY_FIELDS: ProcessedJiraFieldItem[] = [];
@@ -25,7 +25,7 @@ function JiraManageFieldContent() {
   const { data = EMPTY_FIELDS, isLoading, isSuccess, error, refetch } = useJiraFieldQuery();
 
   useEffect(() => {
-    setAddedFields(getSelectedCustomFields());
+    setAddedFields(getSelectedFields());
   }, []);
 
   const { addedFieldsFiltered, systemFields, customFields } = useMemo(() => {
@@ -56,7 +56,7 @@ function JiraManageFieldContent() {
     const isAdded = addedFields.some((item) => item.id === field.id);
 
     if (isAdded) {
-      removeCustomField(field.id);
+      removeSelectedField(field.id);
       setAddedFields(addedFields.filter((item) => item.id !== field.id));
     } else {
       const jiraField: JiraField = {
@@ -69,7 +69,7 @@ function JiraManageFieldContent() {
         searchable: true,
         clauseNames: [field.id],
       };
-      addCustomField(jiraField);
+      addSelectedField(jiraField);
       setAddedFields([...addedFields, jiraField]);
     }
   };

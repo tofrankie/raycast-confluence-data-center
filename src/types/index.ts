@@ -3,7 +3,7 @@ export * from "./avatar";
 export * from "./common";
 export * from "./confluence";
 export * from "./jira-common";
-export * from "./jira-board";
+export * from "./jira-board-view";
 export * from "./jira-search-issue";
 export * from "./processed";
 export * from "./raycast";

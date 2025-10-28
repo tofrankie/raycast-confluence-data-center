@@ -36,7 +36,7 @@ function createKyInstance(baseURL: string, appType: AppType): KyInstance {
         },
       ],
       afterResponse: [
-        async (_request, _options, response) => {
+        async (request, _options, response) => {
           if (!response.ok) {
             let errorMessage = "";
             try {
@@ -50,20 +50,26 @@ function createKyInstance(baseURL: string, appType: AppType): KyInstance {
             }
 
             const statusMessages = {
-              400: `Invalid request to ${appType}. Please check your search query or request parameters`,
-              401: `Authentication failed. Please check your ${appType} Personal Access Token`,
-              403: `Access denied. Please check your ${appType} permissions`,
-              404: `${appType} endpoint not found. Please check your ${appType} Base URL`,
-              429: `Rate limit exceeded. Please wait a moment and try again`,
-              500: `${appType} server error. Please try again later`,
+              400: `Request failed (400): May contain invalid parameters. Please check your search and try again.`,
+              401: `Authentication failed (401): Invalid or expired PAT. Please check your ${appType} preferences.`,
+              403: `Access denied (403): Insufficient permissions. Contact your administrator.`,
+              404: `Service not found (404): Incorrect or unreachable URL. Please check your ${appType} preferences.`,
+              429: `Too many requests (429): Rate limit exceeded. Please wait and try again.`,
+              500: `Server error (500): Service temporarily unavailable. Please try again later.`,
             };
 
             const baseMessage =
               statusMessages[response.status as keyof typeof statusMessages] ||
-              `HTTP error ${response.status} from ${appType}`;
+              `Request failed (${response.status}): Unexpected error. Please try again later.`;
 
-            const fullMessage = errorMessage ? `${baseMessage}. Details: ${errorMessage}` : baseMessage;
-            throw new Error(fullMessage);
+            const fullMessage = errorMessage ? `${baseMessage} Details: ${errorMessage}` : baseMessage;
+            throw new Error(`${fullMessage} (${request.method} ${request.url})`);
+          }
+
+          if (response.status === 204 && request.method === "GET") {
+            throw new Error(
+              `No data received (204): Empty response, likely network issues. Please check your connection and try again. (${request.method} ${request.url})`,
+            );
           }
 
           return response;
@@ -89,7 +95,7 @@ export async function apiRequest<T>({ method, url, params }: RequestParams): Pro
     return null;
   }
 
-  return (await response.json()) as T;
+  return await response.json<T>();
 }
 
 type HandleApiResponseParams<T> = {
@@ -98,10 +104,10 @@ type HandleApiResponseParams<T> = {
   defaultValue: T;
 };
 
-export function handleApiResponse<T>({ data, fileName, defaultValue }: HandleApiResponseParams<T>): T {
+export function handleApiResponse<T>({ data, fileName: filename, defaultValue }: HandleApiResponseParams<T>): T {
   if (!data) return defaultValue;
 
-  writeResponseFile(JSON.stringify(data, null, 2), fileName);
+  writeResponseFile(JSON.stringify(data, null, 2), filename);
   return data;
 }
 

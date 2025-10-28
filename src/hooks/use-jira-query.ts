@@ -5,14 +5,14 @@ import { COMMAND_NAME, PAGINATION_SIZE, JIRA_SEARCH_ISSUE_FIELDS } from "@/const
 import {
   searchJiraIssue,
   processJiraSearchIssue,
-  getSelectedCustomFieldIds,
   processJiraFieldItem,
   getJiraField,
   getJiraProject,
   getJiraCurrentUser,
   getJiraWorklog,
   processJiraWorklog,
-  getSelectedCustomFields,
+  getSelectedFields,
+  getSelectedFieldIds,
 } from "@/utils";
 import type {
   JiraSearchIssueResponse,
@@ -31,14 +31,14 @@ export function useJiraSearchIssueInfiniteQuery<
   return useInfiniteQuery<JiraSearchIssueResponse, Error, TData>({
     queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUE, { jql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam = 0 }) => {
-      const customFieldIds = getSelectedCustomFieldIds();
+      const selectedFieldIds = getSelectedFieldIds();
 
       const params = {
         jql,
         startAt: pageParam as number,
         maxResults: PAGINATION_SIZE,
         validateQuery: false,
-        fields: [...JIRA_SEARCH_ISSUE_FIELDS, ...customFieldIds],
+        fields: [...JIRA_SEARCH_ISSUE_FIELDS, ...selectedFieldIds],
         expand: ["names"],
       };
 
@@ -49,9 +49,9 @@ export function useJiraSearchIssueInfiniteQuery<
       const allIssue = data.pages.flatMap((page) => page.issues);
       const fieldsNameMap = data.pages[0]?.names;
       const totalCount = data.pages[0]?.total;
-      const selectedCustomFields = getSelectedCustomFields();
+      const selectedFields = getSelectedFields();
       const processedIssues: ProcessedJiraIssueItem[] = allIssue.map((issue) =>
-        processJiraSearchIssue(issue, selectedCustomFields, fieldsNameMap),
+        processJiraSearchIssue(issue, selectedFields, fieldsNameMap),
       );
 
       const hasMore =

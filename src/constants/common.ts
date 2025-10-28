@@ -18,4 +18,3 @@ export const COMMAND_NAME = {
   JIRA_WORKLOG: "jira-worklog",
   JIRA_BOARD: "jira-board",
 } as const;
-
