@@ -18,12 +18,15 @@ interface JiraWorklogProps {
   onUpdate?: () => void;
 }
 
-const initialValues: JiraWorklogFormData = {
+const INITIAL_VALUES: JiraWorklogFormData = {
   date: new Date(),
   timeSpent: "",
   comment: "",
   remainingEstimate: "",
 };
+
+// Validate time format (e.g. "2h", "30m", "2h 30m")
+const TIME_REGEX = /^(\d+(?:\.\d+)?)\s*[hm](\s+(\d+(?:\.\d+)?)\s*[hm])?$/i;
 
 export function JiraWorklogProvider(props: JiraWorklogProps) {
   return (
@@ -46,7 +49,7 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
   } = useJiraWorklogQuery(worklogId || 0, { enabled: !!worklogId });
 
   const { handleSubmit, itemProps, setValue } = useForm<JiraWorklogFormData>({
-    initialValues,
+    initialValues: INITIAL_VALUES,
     validation: {
       date: FormValidation.Required,
       timeSpent: (value) => {
@@ -55,18 +58,13 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
         if (!trimmedValue) {
           return "The item is required";
         }
-        // Validate time format (e.g. "2h", "30m", "2h 30m")
-        const timeRegex = /^(\d+(?:\.\d+)?)\s*[hm]?\s*(\d+(?:\.\d+)?)\s*[hm]?$/i;
-        console.log("🚀 ~ JiraWorklogForm ~ timeRegex.test(trimmedValue):", trimmedValue, timeRegex.test(trimmedValue));
-        if (!timeRegex.test(trimmedValue)) {
+        if (!TIME_REGEX.test(trimmedValue)) {
           return "Invalid time format. Use formats like '2h', '30m', or '2h 30m'";
         }
       },
       remainingEstimate: (value) => {
         if (value && value.trim().length > 0) {
-          // Validate time format (e.g. "2h", "30m", "2h 30m")
-          const timeRegex = /^(\d+(?:\.\d+)?)\s*[hm]?\s*(\d+(?:\.\d+)?)\s*[hm]?$/i;
-          if (!timeRegex.test(value.trim())) {
+          if (!TIME_REGEX.test(value.trim())) {
             return "Invalid time format. Use formats like '2h', '30m', or '2h 30m'";
           }
         }
