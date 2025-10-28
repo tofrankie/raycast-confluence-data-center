@@ -168,8 +168,8 @@
         {
           "type": "textfield",
           "name": "jiraDailyWorkHours",
-          "title": "Daily Work Hours",
-          "description": "Daily work hours for worklog progress calculation (default: 8, max 2 decimal places)",
+          "title": "Work per day",
+          "description": "Daily work hours for worklog progress calculation (default: 8h, max 2 decimal places)",
           "required": true,
           "default": "8",
           "placeholder": "8"

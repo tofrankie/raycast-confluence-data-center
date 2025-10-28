@@ -9,7 +9,7 @@ import {
   getJiraField,
   getJiraProject,
   getJiraCurrentUser,
-  getJiraWorklog,
+  getJiraWorklogs,
   processJiraWorklog,
   getSelectedFields,
   getSelectedFieldIds,
@@ -117,15 +117,15 @@ export function useJiraCurrentUserQuery<TData = JiraCurrentUser | null>(
   });
 }
 
-export function useJiraWorklogQuery<TData = WorklogGroup[]>(
+export function useJiraWorklogsQuery<TData = WorklogGroup[]>(
   { userKey, from, to }: { userKey: string | undefined; from: string; to: string },
   queryOptions?: Partial<UseQueryOptions<JiraWorklog[], Error, TData>>,
 ) {
   return useQuery<JiraWorklog[], Error, TData>({
-    queryKey: [COMMAND_NAME.JIRA_WORKLOG, { userKey, from, to }],
+    queryKey: [COMMAND_NAME.JIRA_WORKLOG_VIEW, { userKey, from, to }],
     queryFn: async () => {
       if (!userKey) return [];
-      return await getJiraWorklog({ from, to, worker: [userKey] });
+      return await getJiraWorklogs({ from, to, worker: [userKey] });
     },
     enabled: !!userKey,
     select: (data) => processJiraWorklog(data) as TData,

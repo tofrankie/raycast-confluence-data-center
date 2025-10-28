@@ -4,9 +4,10 @@ import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { QueryWrapper, DebugActions } from "@/components";
+import { JiraWorklogProvider } from "@/pages";
 import { clearAllCacheWithToast, copyToClipboardWithToast } from "@/utils";
 import { QUERY_TYPE, JIRA_WORKLOG_RANGE } from "@/constants";
-import { useJiraWorklogQuery, useJiraCurrentUser } from "@/hooks";
+import { useJiraWorklogsQuery, useJiraCurrentUser } from "@/hooks";
 import { getDateRange } from "@/utils";
 
 interface WorklogFilter {
@@ -42,7 +43,7 @@ function JiraWorklogView() {
     isLoading,
     isSuccess,
     refetch,
-  } = useJiraWorklogQuery({ userKey: currentUser?.key, from, to });
+  } = useJiraWorklogsQuery({ userKey: currentUser?.key, from, to });
 
   useEffect(() => {
     if (currentUserError) {
@@ -118,6 +119,24 @@ function JiraWorklogView() {
                   actions={
                     <ActionPanel>
                       <Action.OpenInBrowser title="Open in Browser" url={item.url} />
+                      <Action.Push
+                        title="Create Worklog"
+                        target={<JiraWorklogProvider issueKey={item.issueKey} onUpdate={handleRefresh} />}
+                        icon={Icon.Plus}
+                        shortcut={{ modifiers: ["cmd"], key: "n" }}
+                      />
+                      <Action.Push
+                        title="Edit Worklog"
+                        target={
+                          <JiraWorklogProvider
+                            issueKey={item.issueKey}
+                            worklogId={item.worklogId}
+                            onUpdate={handleRefresh}
+                          />
+                        }
+                        icon={Icon.Pencil}
+                        shortcut={{ modifiers: ["cmd"], key: "e" }}
+                      />
                       <Action title="Copy JQL" icon={Icon.CopyClipboard} onAction={() => copyJQL()} />
                       <Action
                         title="Refresh"

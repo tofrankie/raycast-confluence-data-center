@@ -4,7 +4,7 @@ import { showFailureToast, useCachedState } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { DebugActions } from "@/components";
-import { JiraIssueTransition } from "@/pages";
+import { JiraIssueTransitionProvider } from "@/pages";
 import { CACHE_KEY } from "@/constants";
 import { useJiraBoards, useJiraBoardActiveSprint, useJiraBoardConfiguration, useJiraBoardSprintIssues } from "@/hooks";
 import { clearAllCacheWithToast, processAndGroupIssues, copyToClipboardWithToast } from "@/utils";
@@ -214,7 +214,7 @@ function JiraBoardView() {
                       />
                       <Action.Push
                         title="Transition Status"
-                        target={<JiraIssueTransition issueKey={item.key} onUpdate={handleRefresh} />}
+                        target={<JiraIssueTransitionProvider issueKey={item.key} onUpdate={handleRefresh} />}
                         icon={Icon.Switch}
                         shortcut={{ modifiers: ["cmd"], key: "t" }}
                       />

@@ -15,15 +15,15 @@ interface JiraIssueTransitionProps {
   onUpdate?: () => void;
 }
 
-export function JiraIssueTransition(props: JiraIssueTransitionProps) {
+export function JiraIssueTransitionProvider(props: JiraIssueTransitionProps) {
   return (
     <QueryProvider>
-      <JiraIssueTransitionContent {...props} />
+      <JiraIssueTransition {...props} />
     </QueryProvider>
   );
 }
 
-function JiraIssueTransitionContent({ issueKey, onUpdate }: JiraIssueTransitionProps) {
+function JiraIssueTransition({ issueKey, onUpdate }: JiraIssueTransitionProps) {
   const { pop } = useNavigation();
   const [selectedTransitionId, setSelectedTransitionId] = useState<string>("");
   const { currentUser } = useJiraCurrentUser();

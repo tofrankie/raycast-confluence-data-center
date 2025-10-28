@@ -91,6 +91,7 @@ export interface ProcessedWorklogItem extends BaseProcessedItem {
   comment: string;
   date: string;
   issueKey: string;
+  worklogId: number;
 }
 
 export interface WorklogGroup {

@@ -4,9 +4,9 @@ import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
-import { JiraIssueTransition } from "@/pages";
+import { JiraIssueTransitionProvider, JiraWorklogProvider } from "@/pages";
 import { COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, JIRA_SEARCH_ISSUE_FILTERS } from "@/constants";
-import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery, useJiraCurrentUser } from "@/hooks";
+import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery, useJiraCurrentUser, useApiTest } from "@/hooks";
 import {
   clearAllCacheWithToast,
   getSectionTitle,
@@ -33,6 +33,8 @@ export default function JiraSearchIssueProvider() {
 function JiraSearchIssue() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
+
+  useApiTest();
 
   const {
     data: projectKeys,
@@ -240,9 +242,14 @@ function JiraSearchIssue() {
                     />
                     <Action.Push
                       title="Transition Status"
-                      target={<JiraIssueTransition issueKey={item.key} onUpdate={handleRefresh} />}
+                      target={<JiraIssueTransitionProvider issueKey={item.key} onUpdate={handleRefresh} />}
                       icon={Icon.Switch}
                       shortcut={{ modifiers: ["cmd"], key: "t" }}
+                    />
+                    <Action.Push
+                      title="Create Worklog"
+                      target={<JiraWorklogProvider issueKey={item.key} onUpdate={handleRefresh} />}
+                      icon={Icon.Clock}
                     />
                     <Action.CopyToClipboard
                       title="Copy URL"

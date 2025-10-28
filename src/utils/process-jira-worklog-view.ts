@@ -77,6 +77,7 @@ function processWorklogItem(worklog: JiraWorklog): ProcessedWorklogItem {
     timeSpentSeconds,
     comment,
     date,
+    worklogId: worklog.originId,
   };
 }
 
