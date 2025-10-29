@@ -2,11 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
-import QueryProvider from "@/query-provider";
-import { avatarExtractors, clearAllCacheWithToast, processUserInputAndFilter, buildQuery, isJQL } from "@/utils";
+import { avatarExtractors, processUserInputAndFilter, buildQuery, isJQL } from "@/utils";
 import { QUERY_TYPE } from "@/constants";
 import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
-import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
+import { SearchBarAccessory, QueryProvider, QueryWrapper, DebugActions } from "@/components";
 import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "@/hooks";
 import type { SearchFilter } from "@/types";
 
@@ -159,7 +158,6 @@ function ConfluenceSearchSpace() {
                         onAction={handleRefresh}
                       />
                       <DebugActions />
-                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }
                 />

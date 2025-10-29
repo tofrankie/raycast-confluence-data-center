@@ -2,8 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
-import QueryProvider from "@/query-provider";
-import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
+import { SearchBarAccessory, QueryProvider, QueryWrapper, DebugActions } from "@/components";
 import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, CONFLUENCE_SEARCH_CONTENT_FILTERS } from "@/constants";
 import {
   useConfluenceSearchContentInfiniteQuery,
@@ -12,7 +11,6 @@ import {
   useConfluenceCurrentUser,
 } from "@/hooks";
 import {
-  clearAllCacheWithToast,
   avatarExtractors,
   getSectionTitle,
   processUserInputAndFilter,
@@ -236,7 +234,6 @@ function ConfluenceSearchContent() {
                         onAction={handleRefresh}
                       />
                       <DebugActions />
-                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }
                 />

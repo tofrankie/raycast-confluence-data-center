@@ -2,10 +2,9 @@ import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
-import QueryProvider from "@/query-provider";
-import { DebugActions } from "@/components";
+import { QueryProvider, DebugActions } from "@/components";
 import { useJiraFieldQuery } from "@/hooks";
-import { getSelectedFields, addSelectedField, removeSelectedField, clearAllCacheWithToast } from "@/utils";
+import { getSelectedFields, addSelectedField, removeSelectedField } from "@/utils";
 import type { JiraField, ProcessedJiraFieldItem } from "@/types";
 
 const EMPTY_FIELDS: ProcessedJiraFieldItem[] = [];
@@ -157,7 +156,6 @@ function JiraManageFieldContent() {
                           onAction={handleRefresh}
                         />
                         <DebugActions />
-                        <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                       </ActionPanel>
                     }
                   />
@@ -205,7 +203,6 @@ function JiraManageFieldContent() {
                           onAction={handleRefresh}
                         />
                         <DebugActions />
-                        <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                       </ActionPanel>
                     }
                   />
@@ -227,7 +224,6 @@ function JiraManageFieldContent() {
                     <ActionPanel>
                       <Action.CopyToClipboard title="Copy Field ID" content={item.id} />
                       <DebugActions />
-                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }
                 />

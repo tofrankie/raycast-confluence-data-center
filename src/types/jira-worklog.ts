@@ -1,24 +1,22 @@
-import type { JiraWorklog } from "./jira-common";
-
 export interface JiraWorklogCreateParams extends Record<string, unknown> {
   attributes?: Record<string, unknown>;
   billableSeconds?: string;
   worker: string;
   comment: string;
   started: string;
-  timeSpentSeconds: number;
   originTaskId: string;
-  remainingEstimate: string | null;
+  timeSpentSeconds: number;
+  remainingEstimate: number | null;
   endDate: string | null;
   includeNonWorkingDays: boolean;
 }
 
 export interface JiraWorklogUpdateParams extends Record<string, unknown> {
+  originTaskId: string;
   originId: number;
   started: string;
   timeSpentSeconds: number;
-  originTaskId: string;
-  remainingEstimate: string | null;
+  remainingEstimate: number | null;
   endDate: string | null;
   includeNonWorkingDays: boolean;
 }
@@ -29,5 +27,3 @@ export interface JiraWorklogFormData {
   comment: string;
   remainingEstimate: string;
 }
-
-export type { JiraWorklog };

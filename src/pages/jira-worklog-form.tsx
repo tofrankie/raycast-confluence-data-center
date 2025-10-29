@@ -1,8 +1,10 @@
+import dayjs from "dayjs";
 import { useEffect, useMemo } from "react";
 import { Form, ActionPanel, Action, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { showFailureToast, useForm, FormValidation } from "@raycast/utils";
 
-import QueryProvider from "@/query-provider";
+import { QueryProvider } from "@/components";
+import { formatSecondsToWorkedTime, normalizeWorkedTime, formatWorkedTimeToSeconds } from "@/utils";
 import {
   useJiraCurrentUser,
   useJiraIssueQuery,
@@ -18,17 +20,10 @@ interface JiraWorklogProps {
   onUpdate?: () => void;
 }
 
-const INITIAL_VALUES: JiraWorklogFormData = {
-  date: new Date(),
-  timeSpent: "",
-  comment: "",
-  remainingEstimate: "",
-};
+// Validate time format (e.g. "30m", "1h", "1h 30m", "1")
+const TIME_REGEX = /^(\d+(?:\.\d+)?)\s*[hm]?(\s+(\d+(?:\.\d+)?)\s*[hm])?$/i;
 
-// Validate time format (e.g. "2h", "30m", "2h 30m")
-const TIME_REGEX = /^(\d+(?:\.\d+)?)\s*[hm](\s+(\d+(?:\.\d+)?)\s*[hm])?$/i;
-
-export function JiraWorklogProvider(props: JiraWorklogProps) {
+export default function JiraWorklogFormProvider(props: JiraWorklogProps) {
   return (
     <QueryProvider>
       <JiraWorklogForm {...props} />
@@ -49,79 +44,69 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
   } = useJiraWorklogQuery(worklogId || 0, { enabled: !!worklogId });
 
   const { handleSubmit, itemProps, setValue } = useForm<JiraWorklogFormData>({
-    initialValues: INITIAL_VALUES,
     validation: {
       date: FormValidation.Required,
       timeSpent: (value) => {
-        console.log("🚀 ~ JiraWorklogForm ~ value:", value);
         const trimmedValue = value?.trim();
         if (!trimmedValue) {
           return "The item is required";
         }
         if (!TIME_REGEX.test(trimmedValue)) {
-          return "Invalid time format. Use formats like '2h', '30m', or '2h 30m'";
+          return "Invalid time. Use formats like '30m', '1h', or '1h 30m'";
+        }
+        const normalizedValue = normalizeWorkedTime(trimmedValue);
+        const seconds = formatWorkedTimeToSeconds(normalizedValue);
+        if (seconds <= 0) {
+          return "Must be larger than 0";
         }
       },
       remainingEstimate: (value) => {
-        if (value && value.trim().length > 0) {
+        if (value && value.trim().length) {
           if (!TIME_REGEX.test(value.trim())) {
-            return "Invalid time format. Use formats like '2h', '30m', or '2h 30m'";
+            return "Invalid time. Use formats like '30m', '1h', or '1h 30m'";
           }
         }
       },
     },
     onSubmit: async (values) => {
-      console.log("🚀 ~ JiraWorklogForm ~ values:", values);
-      if (!currentUser) {
-        showToast({
-          style: Toast.Style.Failure,
-          title: "User Not Found",
-          message: "Current user information is not available",
-        });
-        return;
+      const commonParams = {
+        originTaskId: issue!.id.toString(),
+        started: dayjs(values.date).format("YYYY-MM-DD"),
+        comment: values.comment, // default: Working on issue ${issueKey}
+        timeSpentSeconds: formatWorkedTimeToSeconds(values.timeSpent),
+        remainingEstimate: values.remainingEstimate === "" ? null : formatWorkedTimeToSeconds(values.remainingEstimate),
+
+        // No Period
+        endDate: null,
+        includeNonWorkingDays: false,
+      };
+
+      if (worklogId) {
+        // Update existing worklog
+        const updateParams: JiraWorklogUpdateParams = {
+          originId: worklogId,
+          ...commonParams,
+        };
+        await updateMutation.mutateAsync({ worklogId, params: updateParams });
+      } else {
+        // Create new worklog
+        const createParams: JiraWorklogCreateParams = {
+          worker: currentUser!.key,
+          ...commonParams,
+        };
+        await createMutation.mutateAsync(createParams);
       }
-      try {
-        const timeSpentSeconds = parseTimeToSeconds(values.timeSpent);
-        const startedDate = values.date?.toISOString().split("T")[0] || new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
-        if (worklogId) {
-          // Update existing worklog
-          const updateParams: JiraWorklogUpdateParams = {
-            originId: worklogId,
-            started: values.date?.toISOString() || new Date().toISOString(),
-            timeSpentSeconds,
-            originTaskId: issue?.id.toString() || "",
-            remainingEstimate: values.remainingEstimate ? `${values.remainingEstimate}h` : null,
-            endDate: null,
-            includeNonWorkingDays: false,
-          };
-          await updateMutation.mutateAsync({ worklogId, params: updateParams });
-        } else {
-          // Create new worklog
-          const createParams: JiraWorklogCreateParams = {
-            worker: currentUser.key,
-            comment: values.comment,
-            started: startedDate,
-            timeSpentSeconds,
-            originTaskId: issue?.id.toString() || "",
-            remainingEstimate: values.remainingEstimate ? `${values.remainingEstimate}h` : null,
-            endDate: null,
-            includeNonWorkingDays: false,
-          };
-          await createMutation.mutateAsync(createParams);
-        }
-        onUpdate?.();
-        pop();
-      } catch {
-        // Error handling is done by mutation onError
-      }
+      onUpdate?.();
+      pop();
     },
   });
 
   useEffect(() => {
     if (worklogId && worklog) {
       setValue("date", new Date(worklog.started));
-      setValue("timeSpent", worklog.timeSpent);
+      setValue("timeSpent", formatSecondsToWorkedTime(worklog.timeSpentSeconds));
       setValue("comment", worklog.comment);
+      // TODO:
       setValue(
         "remainingEstimate",
         worklog.issue.epicIssue?.estimatedRemainingSeconds
@@ -130,6 +115,14 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
       );
     }
   }, [worklog]);
+
+  useEffect(() => {
+    // TODO: 3w、4d
+    if (issue && !worklogId) {
+      setValue("date", new Date());
+      setValue("remainingEstimate", issue.fields.timetracking?.remainingEstimate || "");
+    }
+  }, [issue, worklogId]);
 
   const createMutation = useJiraWorklogCreateMutation({
     onSuccess: () => {
@@ -179,24 +172,26 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
     }
   }, [worklogError]);
 
-  const isLoading = isIssueLoading || isWorklogLoading || createMutation.isPending || updateMutation.isPending;
-
   const displayValues = useMemo(() => {
     if (!issue) {
-      return { issueKey: "-", summary: "-", assignee: "-" };
+      return { issueKey: "-", summary: "-", assignee: "-", originalEstimate: "", loggedTime: "" };
     }
 
     const assigneeName = issue.fields.assignee?.displayName;
     const isAssignee = currentUser?.key === issue.fields.assignee?.key;
-    const assigneeTips = !isAssignee ? " (not assigned to you)" : "";
+    const assigneeTips = isAssignee ? "" : " (not assigned to you)";
     return {
       issueKey: issue.key,
       summary: issue.fields.summary,
       assignee: assigneeName ? `${assigneeName}${assigneeTips}` : `Unassigned${assigneeTips}`,
+      originalEstimate: issue.fields.timetracking?.originalEstimate || "",
+      loggedTime: issue.fields.timetracking?.timeSpent || "",
     };
   }, [issue, currentUser]);
 
+  const isLoading = isIssueLoading || isWorklogLoading || createMutation.isPending || updateMutation.isPending;
   const navigationTitle = worklogId ? "Edit Worklog" : "Create Worklog";
+  const canSubmit = issue && (!worklogId || (worklogId && worklog));
 
   return (
     <Form
@@ -204,7 +199,7 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
       navigationTitle={navigationTitle}
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Submit" icon={Icon.Checkmark} onSubmit={handleSubmit} />
+          {canSubmit && <Action.SubmitForm title="Submit" icon={Icon.Checkmark} onSubmit={handleSubmit} />}
           <Action title="Go Back" icon={Icon.ArrowLeft} onAction={handleCancel} />
         </ActionPanel>
       }
@@ -212,43 +207,48 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
       <Form.Description title="Issue Key" text={displayValues.issueKey} />
       <Form.Description title="Summary" text={displayValues.summary} />
       <Form.Description title="Assignee" text={displayValues.assignee} />
-
+      {/* The amount of time you originally believe is required to resolve the issue. */}
+      {displayValues.originalEstimate && (
+        <Form.Description title="Original Estimate" text={displayValues.originalEstimate} />
+      )}
+      {displayValues.loggedTime && <Form.Description title="Σ Logged" text={displayValues.loggedTime} />}
+      <Form.Separator />
       <Form.DatePicker {...itemProps.date} title="Date*" type={Form.DatePicker.Type.Date} />
-
-      <Form.TextField {...itemProps.timeSpent} title="Worked*" placeholder="e.g. 2h 30m, 150m, 2.5h" />
-
-      <Form.TextArea {...itemProps.comment} title="Description" placeholder="Enter work description..." />
-
-      <Form.TextField {...itemProps.remainingEstimate} title="Remaining Estimate" placeholder="e.g. 4h, 240m" />
+      <Form.TextField
+        {...itemProps.timeSpent}
+        title="Worked*"
+        placeholder="e.g. 30m, 1h, 1h 30m"
+        onBlur={(event) => {
+          const value = event.target.value;
+          if (!value) return;
+          const formattedTime = normalizeWorkedTime(value);
+          if (formattedTime !== value) setValue("timeSpent", formattedTime);
+        }}
+      />
+      <Form.TextArea
+        {...itemProps.comment}
+        title="Description"
+        placeholder="description for worklog..."
+        onBlur={(event) => {
+          const value = event.target.value || "";
+          const trimmedValue = value.trim();
+          if (value && trimmedValue !== value) {
+            setValue("comment", trimmedValue);
+          }
+        }}
+      />
+      <Form.TextField
+        {...itemProps.remainingEstimate}
+        title="Remaining Estimate"
+        placeholder="e.g. 30m, 1h, 1h 30m"
+        info="The amount of time you believe is required to resolve the issue in its current state."
+        onBlur={(event) => {
+          const value = event.target.value;
+          if (!value) return;
+          const formattedTime = normalizeWorkedTime(value);
+          if (formattedTime !== value) setValue("remainingEstimate", formattedTime);
+        }}
+      />
     </Form>
   );
-}
-
-// Helper function to parse time string to seconds
-function parseTimeToSeconds(timeStr: string): number {
-  const timeStrLower = timeStr.toLowerCase().trim();
-
-  // Handle formats like "2h 30m", "2h", "30m", "2.5h", "150m"
-  const hourMatch = timeStrLower.match(/(\d+(?:\.\d+)?)\s*h/);
-  const minuteMatch = timeStrLower.match(/(\d+(?:\.\d+)?)\s*m/);
-
-  let totalSeconds = 0;
-
-  if (hourMatch) {
-    totalSeconds += parseFloat(hourMatch[1]) * 3600;
-  }
-
-  if (minuteMatch) {
-    totalSeconds += parseFloat(minuteMatch[1]) * 60;
-  }
-
-  // If no units specified, assume minutes
-  if (!hourMatch && !minuteMatch) {
-    const numberMatch = timeStrLower.match(/(\d+(?:\.\d+)?)/);
-    if (numberMatch) {
-      totalSeconds = parseFloat(numberMatch[1]) * 60;
-    }
-  }
-
-  return Math.round(totalSeconds);
 }

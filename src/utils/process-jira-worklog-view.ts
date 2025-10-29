@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { getIssueTypeIcon, getJiraIssueUrl } from "@/utils";
-import { DAILY_WORK_HOURS, JIRA_WORKLOG_RANGE } from "@/constants";
+import { WORKING_HOURS_PER_DAY, JIRA_WORKLOG_RANGE } from "@/constants";
 import type { JiraWorklog, ListItemAccessories, ProcessedWorklogItem, WorklogGroup } from "@/types";
 
 export function processJiraWorklog(worklogs: JiraWorklog[]): WorklogGroup[] {
@@ -35,7 +35,7 @@ export function processJiraWorklog(worklogs: JiraWorklog[]): WorklogGroup[] {
       totalTimeSpentSeconds: group.totalTimeSpentSeconds,
       items: group.items,
       title: dayjs(group.date).format("D/MMM/YYYY"),
-      subtitle: `${formatTimeSpent(group.totalTimeSpentSeconds)} of ${DAILY_WORK_HOURS}h`,
+      subtitle: `${formatTimeSpent(group.totalTimeSpentSeconds)} of ${WORKING_HOURS_PER_DAY}h`,
     }))
     .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf());
 }

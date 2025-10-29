@@ -89,15 +89,6 @@
       "placeholder": "Your Jira Personal Access Token"
     },
     {
-      "type": "textfield",
-      "name": "paginationSize",
-      "title": "Results Per Page",
-      "description": "Number of search results per page (default: 20)",
-      "required": true,
-      "default": "20",
-      "placeholder": "20"
-    },
-    {
       "type": "checkbox",
       "name": "replaceCurrentUser",
       "title": "Replace currentUser",
@@ -105,6 +96,33 @@
       "label": "Replace currentUser() with username when copying CQL/JQL",
       "required": true,
       "default": true
+    },
+    {
+      "type": "textfield",
+      "name": "paginationSize",
+      "title": "Results per Page",
+      "description": "Number of search results per page (default: 20)",
+      "required": true,
+      "default": "20",
+      "placeholder": "20"
+    },
+    {
+      "type": "textfield",
+      "name": "jiraWorkingHoursPerDay",
+      "title": "Working Hours per Day",
+      "description": "Working hours per day for worklog progress calculation (default: 8h, max 1 decimal place)",
+      "required": true,
+      "default": "8",
+      "placeholder": "8"
+    },
+    {
+      "type": "textfield",
+      "name": "jiraWorkingDaysPerWeek",
+      "title": "Working Days per Week",
+      "description": "Working days per week for worklog progress calculation (default: 5)",
+      "required": true,
+      "default": "5",
+      "placeholder": "5"
     },
     {
       "type": "checkbox",
@@ -163,18 +181,7 @@
       "subtitle": "Jira Data Center",
       "description": "View your Jira worklog",
       "mode": "view",
-      "icon": "logo-jira.png",
-      "preferences": [
-        {
-          "type": "textfield",
-          "name": "jiraDailyWorkHours",
-          "title": "Work per day",
-          "description": "Daily work hours for worklog progress calculation (default: 8h, max 2 decimal places)",
-          "required": true,
-          "default": "8",
-          "placeholder": "8"
-        }
-      ]
+      "icon": "logo-jira.png"
     },
     {
       "name": "jira-manage-field",

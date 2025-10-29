@@ -2,12 +2,11 @@ import { useState, useMemo, useEffect } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { showFailureToast, useCachedState } from "@raycast/utils";
 
-import QueryProvider from "@/query-provider";
-import { DebugActions } from "@/components";
-import { JiraIssueTransitionProvider } from "@/pages";
+import { QueryProvider, DebugActions } from "@/components";
+import { JiraIssueTransitionForm } from "@/pages";
 import { CACHE_KEY } from "@/constants";
 import { useJiraBoards, useJiraBoardActiveSprint, useJiraBoardConfiguration, useJiraBoardSprintIssues } from "@/hooks";
-import { clearAllCacheWithToast, processAndGroupIssues, copyToClipboardWithToast } from "@/utils";
+import { processAndGroupIssues, copyToClipboardWithToast } from "@/utils";
 
 export default function JiraBoardViewProvider() {
   return (
@@ -203,7 +202,7 @@ function JiraBoardView() {
                       />
                       <Action.Push
                         title="Transition Status"
-                        target={<JiraIssueTransitionProvider issueKey={item.key} onUpdate={handleRefresh} />}
+                        target={<JiraIssueTransitionForm issueKey={item.key} onUpdate={handleRefresh} />}
                         icon={Icon.Switch}
                         shortcut={{ modifiers: ["cmd"], key: "t" }}
                       />
@@ -230,7 +229,6 @@ function JiraBoardView() {
                         onAction={handleRefresh}
                       />
                       <DebugActions />
-                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }
                 />
