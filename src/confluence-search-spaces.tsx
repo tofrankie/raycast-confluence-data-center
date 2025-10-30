@@ -11,15 +11,15 @@ import type { SearchFilter } from "@/types";
 
 const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
 
-export default function ConfluenceSearchSpaceProvider() {
+export default function ConfluenceSearchSpacesProvider() {
   return (
     <QueryProvider>
-      <ConfluenceSearchSpace />
+      <ConfluenceSearchSpaces />
     </QueryProvider>
   );
 }
 
-function ConfluenceSearchSpace() {
+function ConfluenceSearchSpaces() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 

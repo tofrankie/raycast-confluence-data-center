@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { getIssueTypeIcon, getJiraIssueUrl } from "@/utils";
 import { WORKING_HOURS_PER_DAY, JIRA_WORKLOG_RANGE } from "@/constants";
-import type { JiraWorklog, ListItemAccessories, ProcessedWorklogItem, WorklogGroup } from "@/types";
+import type { JiraWorklog, ListItemAccessories, ProcessedWorklog, WorklogGroup } from "@/types";
 
 export function processJiraWorklog(worklogs: JiraWorklog[]): WorklogGroup[] {
   // Sort all worklogs by started time first
@@ -24,7 +24,7 @@ export function processJiraWorklog(worklogs: JiraWorklog[]): WorklogGroup[] {
 
       return groups;
     },
-    {} as Record<string, { date: string; totalTimeSpentSeconds: number; items: ProcessedWorklogItem[] }>,
+    {} as Record<string, { date: string; totalTimeSpentSeconds: number; items: ProcessedWorklog[] }>,
   );
 
   // Convert to final format and sort by date descending
@@ -40,7 +40,7 @@ export function processJiraWorklog(worklogs: JiraWorklog[]): WorklogGroup[] {
     .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf());
 }
 
-function processWorklogItem(worklog: JiraWorklog): ProcessedWorklogItem {
+function processWorklogItem(worklog: JiraWorklog): ProcessedWorklog {
   const { issue, timeSpent, timeSpentSeconds, comment, started } = worklog;
 
   const renderKey = `${worklog.tempoWorklogId}`;

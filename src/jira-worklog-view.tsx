@@ -121,7 +121,7 @@ function JiraWorklogView() {
                       title="Create Worklog"
                       target={<JiraWorklogForm issueKey={item.issueKey} onUpdate={handleRefresh} />}
                       icon={Icon.Plus}
-                      shortcut={{ modifiers: ["cmd"], key: "n" }}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
                     />
                     <Action.Push
                       title="Edit Worklog"
@@ -129,9 +129,14 @@ function JiraWorklogView() {
                         <JiraWorklogForm issueKey={item.issueKey} worklogId={item.worklogId} onUpdate={handleRefresh} />
                       }
                       icon={Icon.Pencil}
-                      shortcut={{ modifiers: ["cmd"], key: "e" }}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "e" }}
                     />
-                    <Action title="Copy JQL" icon={Icon.CopyClipboard} onAction={() => copyJQL()} />
+                    <Action
+                      title="Copy JQL"
+                      icon={Icon.CopyClipboard}
+                      onAction={() => copyJQL()}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                    />
                     <Action
                       title="Refresh"
                       icon={Icon.ArrowClockwise}
