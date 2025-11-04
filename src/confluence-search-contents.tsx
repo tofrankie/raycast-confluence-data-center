@@ -22,17 +22,17 @@ import {
 import type { SearchFilter } from "@/types";
 
 const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
-const DEFAULT_FILTER = CONFLUENCE_SEARCH_CONTENT_FILTERS.find((item) => item.value === "viewed_recently");
+const DEFAULT_FILTER = CONFLUENCE_SEARCH_CONTENT_FILTERS.find((item) => item.value === "updated_recently");
 
-export default function ConfluenceSearchContentProvider() {
+export default function ConfluenceSearchContentsProvider() {
   return (
     <QueryProvider>
-      <ConfluenceSearchContent />
+      <ConfluenceSearchContents />
     </QueryProvider>
   );
 }
 
-function ConfluenceSearchContent() {
+function ConfluenceSearchContents() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 

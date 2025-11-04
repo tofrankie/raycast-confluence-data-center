@@ -136,32 +136,32 @@
   ],
   "commands": [
     {
-      "name": "confluence-search-content",
-      "title": "Search Content",
+      "name": "confluence-search-contents",
+      "title": "Search Contents",
       "subtitle": "Confluence Data Center",
       "description": "Search Confluence pages, blog posts, comments, and attachments",
       "mode": "view",
       "icon": "logo-confluence.png"
     },
     {
-      "name": "confluence-search-user",
-      "title": "Search User",
+      "name": "confluence-search-users",
+      "title": "Search Users",
       "subtitle": "Confluence Data Center",
       "description": "Search Confluence users",
       "mode": "view",
       "icon": "logo-confluence.png"
     },
     {
-      "name": "confluence-search-space",
-      "title": "Search Space",
+      "name": "confluence-search-spaces",
+      "title": "Search Spaces",
       "subtitle": "Confluence Data Center",
       "description": "Search Confluence spaces",
       "mode": "view",
       "icon": "logo-confluence.png"
     },
     {
-      "name": "jira-search-issue",
-      "title": "Search Issue",
+      "name": "jira-search-issues",
+      "title": "Search Issues",
       "subtitle": "Jira Data Center",
       "description": "Search Jira issues",
       "mode": "view",
@@ -184,8 +184,8 @@
       "icon": "logo-jira.png"
     },
     {
-      "name": "jira-manage-field",
-      "title": "Manage Field",
+      "name": "jira-manage-fields",
+      "title": "Manage Fields",
       "subtitle": "Jira Data Center",
       "description": "Manage custom fields for Jira issue search",
       "mode": "view",

@@ -15,20 +15,20 @@ import {
   isIssueKey,
   isIssueNumber,
 } from "@/utils";
-import type { ProcessedJiraIssueItem, SearchFilter } from "@/types";
+import type { ProcessedJiraIssue, SearchFilter } from "@/types";
 
 const EMPTY_INFINITE_DATA = { issues: [], hasMore: false, totalCount: 0 };
-const DEFAULT_FILTER = JIRA_SEARCH_ISSUE_FILTERS.find((item) => item.value === "open_issues");
+const DEFAULT_FILTER = JIRA_SEARCH_ISSUE_FILTERS.find((item) => item.value === "updated_recently");
 
-export default function JiraSearchIssueProvider() {
+export default function JiraSearchIssuesProvider() {
   return (
     <QueryProvider>
-      <JiraSearchIssue />
+      <JiraSearchIssues />
     </QueryProvider>
   );
 }
 
-function JiraSearchIssue() {
+function JiraSearchIssues() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 
@@ -149,7 +149,7 @@ function JiraSearchIssue() {
   });
 
   const copyJQL = async () => {
-    const getFinalJQL = (issues: ProcessedJiraIssueItem[]) => {
+    const getFinalJQL = (issues: ProcessedJiraIssue[]) => {
       // 1. Find the string with "OR issuekey in (...)" and split it into three parts
       const orKeyInMatch = jql.match(/(.*?)\s+OR\s+issuekey\s+in\s*\(([^)]+)\)(.*)/i);
 
@@ -237,35 +237,43 @@ function JiraSearchIssue() {
                       shortcut={{ modifiers: ["cmd"], key: "e" }}
                     />
                     <Action.Push
-                      title="Transition Status"
-                      target={<JiraIssueTransitionForm issueKey={item.key} onUpdate={handleRefresh} />}
-                      icon={Icon.Switch}
-                      shortcut={{ modifiers: ["cmd"], key: "t" }}
-                    />
-                    <Action.Push
                       title="Create Worklog"
                       target={<JiraWorklogForm issueKey={item.key} onUpdate={handleRefresh} />}
                       icon={Icon.Clock}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
+                    />
+                    <Action.Push
+                      icon={Icon.Switch}
+                      title="Transition Status"
+                      target={<JiraIssueTransitionForm issueKey={item.key} onUpdate={handleRefresh} />}
+                      shortcut={{ modifiers: ["cmd"], key: "t" }}
                     />
                     <Action.CopyToClipboard
                       title="Copy URL"
-                      shortcut={{ modifiers: ["cmd"], key: "c" }}
                       content={item.url}
+                      shortcut={{ modifiers: ["cmd"], key: "c" }}
                     />
                     <Action.CopyToClipboard
                       title="Copy Key"
-                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
                       content={item.key}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
                     />
                     <Action.CopyToClipboard
                       title="Copy Summary"
-                      shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
                       content={item.summary}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
                     />
-                    {jql && <Action title="Copy JQL" icon={Icon.CopyClipboard} onAction={() => copyJQL()} />}
+                    {jql && (
+                      <Action
+                        title="Copy JQL"
+                        icon={Icon.CopyClipboard}
+                        onAction={() => copyJQL()}
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "," }}
+                      />
+                    )}
                     <Action
-                      title="Refresh"
                       icon={Icon.ArrowClockwise}
+                      title="Refresh"
                       shortcut={{ modifiers: ["cmd"], key: "r" }}
                       onAction={handleRefresh}
                     />

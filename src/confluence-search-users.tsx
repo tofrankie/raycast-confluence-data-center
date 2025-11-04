@@ -9,15 +9,15 @@ import { avatarExtractors, buildQuery, processUserInputAndFilter } from "@/utils
 
 const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
 
-export default function ConfluenceSearchUserProvider() {
+export default function ConfluenceSearchUsersProvider() {
   return (
     <QueryProvider>
-      <ConfluenceSearchUser />
+      <ConfluenceSearchUsers />
     </QueryProvider>
   );
 }
 
-function ConfluenceSearchUser() {
+function ConfluenceSearchUsers() {
   const [searchText, setSearchText] = useState("");
   useConfluenceCurrentUser();
 
