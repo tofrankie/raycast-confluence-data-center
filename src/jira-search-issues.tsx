@@ -1,11 +1,17 @@
 import { useState, useMemo, useEffect } from "react";
-import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
-import { showFailureToast } from "@raycast/utils";
+import { List, ActionPanel, Action, Icon, showToast, Toast, Color } from "@raycast/api";
+import { showFailureToast, useCachedState } from "@raycast/utils";
 
 import { SearchBarAccessory, QueryProvider, QueryWrapper, DebugActions } from "@/components";
 import { JiraIssueTransitionForm, JiraWorklogForm } from "@/pages";
-import { COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, JIRA_SEARCH_ISSUE_FILTERS } from "@/constants";
-import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery, useJiraCurrentUser } from "@/hooks";
+import { COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, JIRA_SEARCH_ISSUE_FILTERS, CACHE_KEY } from "@/constants";
+import JiraNotificationView from "@/jira-notification-view";
+import {
+  useJiraProjectQuery,
+  useJiraSearchIssueInfiniteQuery,
+  useJiraCurrentUser,
+  useJiraUnreadNotificationsQuery,
+} from "@/hooks";
 import {
   getSectionTitle,
   processUserInputAndFilter,
@@ -14,6 +20,7 @@ import {
   replaceQueryCurrentUser,
   isIssueKey,
   isIssueNumber,
+  clearJiraNotificationsCounter,
 } from "@/utils";
 import type { ProcessedJiraIssue, SearchFilter } from "@/types";
 
@@ -31,6 +38,7 @@ export default function JiraSearchIssuesProvider() {
 function JiraSearchIssues() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
+  const [supportedNotification, setSupportedNotification] = useCachedState(CACHE_KEY.JIRA_SUPPORTED_NOTIFICATION, true);
 
   const {
     data: projectKeys,
@@ -104,8 +112,26 @@ function JiraSearchIssues() {
 
   const { currentUser, error: currentUserError } = useJiraCurrentUser();
 
+  const {
+    data: unreadNotificationsCount = 0,
+    refetch: refetchUnreadNotifications,
+    error: unreadNotificationsError,
+  } = useJiraUnreadNotificationsQuery({
+    enabled: supportedNotification,
+  });
+
+  useEffect(() => {
+    if (unreadNotificationsError && unreadNotificationsError.message.includes("404")) {
+      setSupportedNotification(false);
+    }
+  }, [unreadNotificationsError]);
+
   const handleSearchTextChange = (text: string) => {
     setSearchText(text);
+  };
+
+  const handleViewMoreNotifications = () => {
+    clearJiraNotificationsCounter().catch(() => {});
   };
 
   const handleLoadMore = () => {
@@ -192,10 +218,10 @@ function JiraSearchIssues() {
       throttle
       isLoading={isLoading}
       onSearchTextChange={handleSearchTextChange}
-      searchBarPlaceholder="Search issues by summary, key..."
+      searchBarPlaceholder="Search by summary, key..."
       searchBarAccessory={
         <SearchBarAccessory
-          commandName={COMMAND_NAME.JIRA_SEARCH_ISSUE}
+          commandName={COMMAND_NAME.JIRA_SEARCH_ISSUES}
           value={filter?.value || ""}
           onChange={setFilter}
         />
@@ -219,70 +245,94 @@ function JiraSearchIssues() {
             }
           />
         ) : (
-          <List.Section title={sectionTitle}>
-            {data.issues.map((item) => (
-              <List.Item
-                key={item.renderKey}
-                title={item.title}
-                subtitle={item.subtitle}
-                icon={item.icon}
-                accessories={item.accessories}
-                actions={
-                  <ActionPanel>
-                    <Action.OpenInBrowser title="Open in Browser" url={item.url} />
-                    <Action.OpenInBrowser
-                      icon={Icon.Pencil}
-                      title="Edit in Browser"
-                      url={item.editUrl}
-                      shortcut={{ modifiers: ["cmd"], key: "e" }}
-                    />
-                    <Action.Push
-                      title="Create Worklog"
-                      target={<JiraWorklogForm issueKey={item.key} onUpdate={handleRefresh} />}
-                      icon={Icon.Clock}
-                      shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
-                    />
-                    <Action.Push
-                      icon={Icon.Switch}
-                      title="Transition Status"
-                      target={<JiraIssueTransitionForm issueKey={item.key} onUpdate={handleRefresh} />}
-                      shortcut={{ modifiers: ["cmd"], key: "t" }}
-                    />
-                    <Action.CopyToClipboard
-                      title="Copy URL"
-                      content={item.url}
-                      shortcut={{ modifiers: ["cmd"], key: "c" }}
-                    />
-                    <Action.CopyToClipboard
-                      title="Copy Key"
-                      content={item.key}
-                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                    />
-                    <Action.CopyToClipboard
-                      title="Copy Summary"
-                      content={item.summary}
-                      shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
-                    />
-                    {jql && (
-                      <Action
-                        title="Copy JQL"
-                        icon={Icon.CopyClipboard}
-                        onAction={() => copyJQL()}
-                        shortcut={{ modifiers: ["cmd", "shift"], key: "," }}
+          <>
+            {unreadNotificationsCount > 0 && (
+              <List.Section title="Notifications">
+                <List.Item
+                  icon={{ source: Icon.Bell, tintColor: Color.Red }}
+                  title={`You have ${unreadNotificationsCount} unread ${unreadNotificationsCount > 1 ? "notifications" : "notification"}`}
+                  accessories={[{ tag: { value: `${unreadNotificationsCount}`, color: "#f44336" } }]}
+                  actions={
+                    <ActionPanel>
+                      <Action.Push
+                        icon={Icon.Bell}
+                        title="View More"
+                        target={<JiraNotificationView />}
+                        onPush={handleViewMoreNotifications}
+                        onPop={() => {
+                          refetchUnreadNotifications();
+                        }}
                       />
-                    )}
-                    <Action
-                      icon={Icon.ArrowClockwise}
-                      title="Refresh"
-                      shortcut={{ modifiers: ["cmd"], key: "r" }}
-                      onAction={handleRefresh}
-                    />
-                    <DebugActions />
-                  </ActionPanel>
-                }
-              />
-            ))}
-          </List.Section>
+                    </ActionPanel>
+                  }
+                />
+              </List.Section>
+            )}
+            <List.Section title={sectionTitle}>
+              {data.issues.map((item) => (
+                <List.Item
+                  key={item.renderKey}
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  icon={item.icon}
+                  accessories={item.accessories}
+                  actions={
+                    <ActionPanel>
+                      <Action.OpenInBrowser title="Open in Browser" url={item.url} />
+                      <Action.OpenInBrowser
+                        icon={Icon.Pencil}
+                        title="Edit in Browser"
+                        url={item.editUrl}
+                        shortcut={{ modifiers: ["cmd"], key: "e" }}
+                      />
+                      <Action.Push
+                        title="Create Worklog"
+                        target={<JiraWorklogForm issueKey={item.key} onUpdate={handleRefresh} />}
+                        icon={Icon.Clock}
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
+                      />
+                      <Action.Push
+                        icon={Icon.Switch}
+                        title="Transition Status"
+                        target={<JiraIssueTransitionForm issueKey={item.key} onUpdate={handleRefresh} />}
+                        shortcut={{ modifiers: ["cmd"], key: "t" }}
+                      />
+                      <Action.CopyToClipboard
+                        title="Copy URL"
+                        content={item.url}
+                        shortcut={{ modifiers: ["cmd"], key: "c" }}
+                      />
+                      <Action.CopyToClipboard
+                        title="Copy Key"
+                        content={item.key}
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                      />
+                      <Action.CopyToClipboard
+                        title="Copy Summary"
+                        content={item.summary}
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
+                      />
+                      {jql && (
+                        <Action
+                          title="Copy JQL"
+                          icon={Icon.CopyClipboard}
+                          onAction={() => copyJQL()}
+                          shortcut={{ modifiers: ["cmd", "shift"], key: "," }}
+                        />
+                      )}
+                      <Action
+                        icon={Icon.ArrowClockwise}
+                        title="Refresh"
+                        shortcut={{ modifiers: ["cmd"], key: "r" }}
+                        onAction={handleRefresh}
+                      />
+                      <DebugActions />
+                    </ActionPanel>
+                  }
+                />
+              ))}
+            </List.Section>
+          </>
         )}
       </QueryWrapper>
     </List>

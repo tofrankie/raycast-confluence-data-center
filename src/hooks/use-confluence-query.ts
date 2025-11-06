@@ -30,7 +30,7 @@ export const useConfluenceSearchContentInfiniteQuery = <
 ) => {
   return useInfiniteQuery<ConfluenceSearchContentResponse, Error, TData>({
     enabled: !!cql,
-    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT, { cql, pageSize: PAGINATION_SIZE }],
+    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
       return await searchContent({ cql, limit: PAGINATION_SIZE, start });
@@ -71,14 +71,14 @@ export const useToggleFavorite = () => {
     },
     onMutate: async ({ contentId, isFavorited }) => {
       // Cancel all ongoing queries to avoid conflicts
-      await queryClient.cancelQueries({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] });
+      await queryClient.cancelQueries({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS] });
 
       // Get the current cached data of the query
-      const previousData = queryClient.getQueriesData({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] });
+      const previousData = queryClient.getQueriesData({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS] });
 
       // Optimistically update all related query caches
       queryClient.setQueriesData(
-        { queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] },
+        { queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS] },
         (old: InfiniteData<ConfluenceSearchContentResponse> | undefined) => {
           if (!old) return old;
 
@@ -121,7 +121,7 @@ export const useToggleFavorite = () => {
     },
     onSettled: () => {
       // Re-fetch data to ensure consistency regardless of success or failure
-      queryClient.invalidateQueries({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] });
+      queryClient.invalidateQueries({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS] });
     },
   });
 };
@@ -134,7 +134,7 @@ export const useConfluenceSearchUserInfiniteQuery = <
 ) => {
   return useInfiniteQuery<ConfluenceSearchResponse, Error, TData>({
     enabled: !!cql,
-    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_USER, { cql, pageSize: PAGINATION_SIZE }],
+    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_USERS, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
       return await searchUser({ cql, limit: PAGINATION_SIZE, start });
@@ -179,7 +179,7 @@ export const useConfluenceSearchSpaceInfiniteQuery = <
 ) => {
   return useInfiniteQuery<ConfluenceSearchResponse, Error, TData>({
     enabled: !!cql,
-    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_SPACE, { cql, pageSize: PAGINATION_SIZE }],
+    queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_SPACES, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
       return await searchSpace({ cql, limit: PAGINATION_SIZE, start });

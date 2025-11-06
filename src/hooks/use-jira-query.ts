@@ -29,7 +29,7 @@ export function useJiraSearchIssueInfiniteQuery<
   TData = { issues: ProcessedJiraIssue[]; hasMore: boolean; totalCount: number },
 >(jql: string, queryOptions?: Partial<UseInfiniteQueryOptions<JiraSearchIssueResponse, Error, TData>>) {
   return useInfiniteQuery<JiraSearchIssueResponse, Error, TData>({
-    queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUE, { jql, pageSize: PAGINATION_SIZE }],
+    queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUES, { jql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam = 0 }) => {
       const selectedFieldIds = getSelectedFieldIds();
 
@@ -84,7 +84,7 @@ export function useJiraFieldQuery<TData = ProcessedJiraField[]>(
   queryOptions?: Partial<UseQueryOptions<JiraField[], Error, TData>>,
 ) {
   return useQuery<JiraField[], Error, TData>({
-    queryKey: [COMMAND_NAME.JIRA_MANAGE_FIELD],
+    queryKey: [COMMAND_NAME.JIRA_MANAGE_FIELDS],
     queryFn: getJiraField,
     select: (data) => {
       return data.map((field) => processJiraFieldItem(field, false)) as TData;

@@ -8,11 +8,13 @@ export const DEFAULT_AVATAR = "avatar-default.svg";
 export const AVATAR_TYPE = {
   CONFLUENCE_USER: "confluence_user",
   CONFLUENCE_SPACE: "confluence_space",
+  JIRA_NOTIFICATION_USER: "jira_notification_user",
 } as const;
 
 export const AVATAR_DIR = {
   [AVATAR_TYPE.CONFLUENCE_USER]: `${environment.supportPath}/avatar/confluence-user`,
   [AVATAR_TYPE.CONFLUENCE_SPACE]: `${environment.supportPath}/avatar/confluence-space`,
+  [AVATAR_TYPE.JIRA_NOTIFICATION_USER]: `${environment.supportPath}/avatar/jira-notification-user`,
 } as const satisfies Record<AvatarType, string>;
 
 export const CACHE_DIRECTORY = {
@@ -26,4 +28,5 @@ export const CACHE_KEY = {
   JIRA_SELECTED_FIELDS: "jira_selected_fields",
   JIRA_SELECTED_BOARD_ID: "jira_selected_board_id",
   JIRA_SELECTED_BOARD_SPRINT_ID: "jira_selected_board_sprint_id",
+  JIRA_SUPPORTED_NOTIFICATION: "jira_supported_notification",
 } as const;

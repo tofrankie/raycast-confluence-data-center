@@ -154,10 +154,10 @@ function ConfluenceSearchContents() {
       throttle
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Search contents by title..."
+      searchBarPlaceholder="Search by title..."
       searchBarAccessory={
         <SearchBarAccessory
-          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT}
+          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS}
           value={filter?.value || ""}
           onChange={setFilter}
         />

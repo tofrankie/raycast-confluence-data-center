@@ -28,7 +28,7 @@ export async function searchContent({
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT,
+    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS,
     defaultValue: {
       results: [],
       start: 0,
@@ -90,7 +90,7 @@ export async function searchUser({
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_USER,
+    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_USERS,
     defaultValue: {
       results: [],
       start: 0,
@@ -134,7 +134,7 @@ export async function searchSpace({
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_SPACE,
+    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_SPACES,
     defaultValue: {
       results: [],
       start: 0,

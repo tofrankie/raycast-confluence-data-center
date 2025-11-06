@@ -100,10 +100,10 @@ function ConfluenceSearchSpaces() {
       throttle
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Search spaces by name..."
+      searchBarPlaceholder="Search by name..."
       searchBarAccessory={
         <SearchBarAccessory
-          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_SPACE}
+          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_SPACES}
           value={filter?.value || ""}
           onChange={setFilter}
         />

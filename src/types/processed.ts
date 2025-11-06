@@ -1,4 +1,4 @@
-import type { ListItemIcon, ListItemSubtitle, ListItemAccessories, ListItemTitle } from "@/types";
+import type { ListItemIcon, ListItemSubtitle, ListItemAccessories, ListItemTitle, ListItemKeywords } from "@/types";
 
 export interface ProcessedBase {
   renderKey: string;
@@ -53,7 +53,7 @@ export interface ProcessedJiraField extends ProcessedBase {
   accessories: ListItemAccessories;
   custom: boolean;
   isAdded: boolean;
-  keywords: string[];
+  keywords: ListItemKeywords;
   schema?: {
     type: string;
   };
@@ -77,11 +77,11 @@ export interface ProcessedJiraBoardIssue extends ProcessedBase {
   accessories: ListItemAccessories;
   url: string;
   editUrl: string;
-  keywords: string[];
+  keywords: ListItemKeywords;
 }
 
 export interface ProcessedWorklog extends ProcessedBase {
-  keywords: string[];
+  keywords: ListItemKeywords;
   subtitle: string;
   icon: string;
   accessories: ListItemAccessories;
@@ -94,11 +94,17 @@ export interface ProcessedWorklog extends ProcessedBase {
   worklogId: number;
 }
 
-export interface WorklogGroup {
-  date: string;
-  totalTimeSpent: string;
-  totalTimeSpentSeconds: number;
-  items: ProcessedWorklog[];
-  title: string;
-  subtitle: string;
+export interface ProcessedJiraNotification extends ProcessedBase {
+  notificationId: number;
+  issueKey: string;
+  content: string;
+  icon: ListItemIcon;
+  subtitle: ListItemSubtitle;
+  accessories: ListItemAccessories;
+  url: string;
+  state: 0 | 1;
+  actionTime: number;
+  actionMakerAvatarUrl: string;
+  actionMakerAvatarCacheKey?: string;
+  keywords: ListItemKeywords;
 }

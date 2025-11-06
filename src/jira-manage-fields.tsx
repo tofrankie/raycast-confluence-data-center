@@ -111,7 +111,7 @@ function JiraManageFields() {
       throttle
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Filter fields by name, id, type..."
+      searchBarPlaceholder="Filter by name, id, type..."
     >
       {noFieldsAvailable || noFilteredResults ? (
         <List.EmptyView

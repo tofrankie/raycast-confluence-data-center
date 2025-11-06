@@ -1,3 +1,5 @@
+import type { ProcessedWorklog } from "@/types";
+
 export interface JiraWorklogCreateParams extends Record<string, unknown> {
   attributes?: Record<string, unknown>;
   billableSeconds?: string;
@@ -26,4 +28,13 @@ export interface JiraWorklogFormData {
   timeSpent: string;
   comment: string;
   remainingEstimate: string;
+}
+
+export interface WorklogGroup {
+  date: string;
+  totalTimeSpent: string;
+  totalTimeSpentSeconds: number;
+  items: ProcessedWorklog[];
+  title: string;
+  subtitle: string;
 }

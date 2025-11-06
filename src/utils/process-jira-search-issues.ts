@@ -142,15 +142,15 @@ function buildAccessories(issue: JiraSearchIssue): ListItemAccessories {
   }
 
   if (timeTracking.originalEstimate) {
-    timeTooltipParts.push(`Estimate Time: ${timeTracking.originalEstimate}`);
+    timeTooltipParts.push(`Σ Estimated: ${timeTracking.originalEstimate}`);
   }
 
   if (timeTracking.remainingEstimate) {
-    timeTooltipParts.push(`Remaining Time: ${timeTracking.remainingEstimate}`);
+    timeTooltipParts.push(`Σ Remaining: ${timeTracking.remainingEstimate}`);
   }
 
   if (timeTracking.timeSpent) {
-    timeTooltipParts.push(`Logged Time: ${timeTracking.timeSpent}`);
+    timeTooltipParts.push(`Σ Logged: ${timeTracking.timeSpent}`);
   }
 
   accessories.unshift({

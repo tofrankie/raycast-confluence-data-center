@@ -14,6 +14,7 @@ import type {
   JiraBoardIssueResponse,
   JiraWorklogCreateParams,
   JiraWorklogUpdateParams,
+  JiraNotificationsResponse,
 } from "@/types";
 
 type JiraSearchIssueParams = {
@@ -30,7 +31,7 @@ export async function searchJiraIssue(params: JiraSearchIssueParams): Promise<Ji
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.JIRA_SEARCH_ISSUE,
+    fileName: COMMAND_NAME.JIRA_SEARCH_ISSUES,
     defaultValue: {
       expand: "schema,names",
       startAt: 0,
@@ -47,7 +48,7 @@ export async function getJiraField(): Promise<JiraField[]> {
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.JIRA_MANAGE_FIELD,
+    fileName: COMMAND_NAME.JIRA_MANAGE_FIELDS,
     defaultValue: [],
   });
 }
@@ -253,5 +254,79 @@ export async function updateJiraWorklog(worklogId: number, params: JiraWorklogUp
     data,
     fileName: "jira-worklog-update",
     defaultValue: {} as JiraWorklog,
+  });
+}
+
+type JiraNotificationParams = {
+  offSet?: number;
+  limit?: number;
+};
+
+export async function getJiraNotifications(params: JiraNotificationParams): Promise<JiraNotificationsResponse> {
+  const data = await jiraRequest<JiraNotificationsResponse>({
+    method: "GET",
+    url: JIRA_API.NFJ_NOTIFICATION,
+    params,
+  });
+
+  return handleApiResponse({
+    data,
+    fileName: COMMAND_NAME.JIRA_NOTIFICATION_VIEW,
+    defaultValue: {
+      notificationsList: [],
+      isLicenseValid: true,
+      total: 0,
+      userSettings: {},
+      isLoggedOut: false,
+      count: 0,
+      unreadNotificationsCount: 0,
+      username: "",
+    },
+  });
+}
+
+export async function markJiraNotificationAsRead(notificationId: number): Promise<void> {
+  await jiraRequest<void>({
+    method: "POST",
+    url: JIRA_API.NFJ_MARK_NOTIFICATIONS_AS_READ,
+    params: {
+      isRead: 1,
+      notificationId,
+    },
+    acceptHtml: true,
+  });
+}
+
+export async function markJiraAllNotificationsAsRead(): Promise<void> {
+  await jiraRequest<void>({
+    method: "POST",
+    url: JIRA_API.NFJ_MARK_NOTIFICATIONS_AS_READ,
+    params: {},
+    acceptHtml: true,
+  });
+}
+
+export async function setJiraNotificationState(notificationId: number): Promise<void> {
+  await jiraRequest<void>({
+    method: "POST",
+    url: JIRA_API.NFJ_NOTIFICATION_STATE,
+    params: {
+      state: true,
+      notificationId,
+    },
+    acceptHtml: true,
+  });
+}
+
+/**
+ * Clear the unread notification counter in the UI navigation bar.
+ * Note: This only clears the counter display, it does NOT mark any specific notification or all notifications as read.
+ */
+export async function clearJiraNotificationsCounter(): Promise<void> {
+  await jiraRequest<void>({
+    method: "POST",
+    url: JIRA_API.NFJ_NOTIFICATIONS_COUNTER,
+    params: {},
+    acceptHtml: true,
   });
 }

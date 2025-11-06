@@ -157,7 +157,7 @@ function JiraBoardView() {
     <List
       throttle
       isLoading={isLoading}
-      searchBarPlaceholder="Filter issues by summary, key, assignee, epic, status..."
+      searchBarPlaceholder="Filter by summary, key, assignee, epic, status..."
       searchBarAccessory={
         <List.Dropdown tooltip="Select Board" value={selectedBoardId} onChange={onBoardChange} storeValue>
           {boards?.map((board) => (
