@@ -1,6 +1,9 @@
-import type { JiraUser, JiraTimeTracking, JiraStatus, JiraIssueType, JiraPriority, JiraEpic } from "@/types";
+import { JIRA_BOARD_TYPE } from "@/constants";
+import type { JiraUser, JiraTimeTracking, JiraStatus, JiraIssueType, JiraPriority, JiraEpic, ValueOf } from "@/types";
 
-export interface JiraBoardIssueFields {
+export type JiraBoardType = ValueOf<typeof JIRA_BOARD_TYPE>;
+
+export interface JiraKanbanBoardIssueFields {
   summary: string;
   issuetype: JiraIssueType;
   duedate: string | null;
@@ -15,20 +18,21 @@ export interface JiraBoardIssueFields {
   [key: string]: unknown;
 }
 
-export interface JiraBoardIssue {
+export interface JiraKanbanBoardIssue {
   expand: string;
   id: string;
   self: string;
   key: string;
-  fields: JiraBoardIssueFields;
+  fields: JiraKanbanBoardIssueFields;
 }
 
-export interface JiraBoardIssueResponse {
+export interface JiraKanbanBoardIssueResponse {
   expand: string;
   startAt: number;
   maxResults: number;
   total: number;
-  issues: JiraBoardIssue[];
+  issues: JiraKanbanBoardIssue[];
+  names?: Record<string, string>;
 }
 
 export interface JiraBoard {

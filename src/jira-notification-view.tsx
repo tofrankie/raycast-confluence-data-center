@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
-import { showFailureToast, useCachedState } from "@raycast/utils";
+import { showFailureToast } from "@raycast/utils";
 import dayjs from "dayjs";
 
 import { QueryProvider, DebugActions } from "@/components";
-import { PAGINATION_SIZE, AVATAR_TYPE, CACHE_KEY } from "@/constants";
+import { PAGINATION_SIZE, AVATAR_TYPE } from "@/constants";
 import {
   useJiraNotificationsInfiniteQuery,
   useMarkJiraNotificationAsReadMutation,
   useMarkJiraAllNotificationsAsReadMutation,
   useSetJiraNotificationStateMutation,
   useAvatar,
+  useJiraNotificationAvailableCachedState,
 } from "@/hooks";
 import type { ProcessedJiraNotification } from "@/types";
 import { avatarExtractors } from "@/utils";
@@ -27,7 +28,11 @@ export default function JiraNotificationViewProvider() {
 
 function JiraNotificationView() {
   const [searchText, setSearchText] = useState("");
-  const [supportedNotification, setSupportedNotification] = useCachedState(CACHE_KEY.JIRA_SUPPORTED_NOTIFICATION, true);
+  const {
+    available: notificationAvailable,
+    setAvailable: setNotificationAvailable,
+    resetAvailable: resetNotificationAvailable,
+  } = useJiraNotificationAvailableCachedState();
 
   const {
     data = EMPTY_INFINITE_DATA,
@@ -39,7 +44,7 @@ function JiraNotificationView() {
     isFetchingNextPage,
     refetch,
   } = useJiraNotificationsInfiniteQuery({
-    enabled: supportedNotification,
+    enabled: notificationAvailable,
   });
 
   const markAsReadMutation = useMarkJiraNotificationAsReadMutation({
@@ -125,7 +130,7 @@ function JiraNotificationView() {
   useEffect(() => {
     if (error) {
       if (error.message.includes("404")) {
-        setSupportedNotification(false);
+        setNotificationAvailable(false);
       }
       showFailureToast(error, { title: "Failed to Load Notifications" });
     }
@@ -181,11 +186,11 @@ function JiraNotificationView() {
         pageSize: PAGINATION_SIZE,
       }}
     >
-      {!supportedNotification ? (
+      {!notificationAvailable ? (
         <List.EmptyView
           icon={Icon.Warning}
-          title="Notifications Not Supported"
-          description="This Jira instance does not support notifications"
+          title="Notifications Not Available"
+          description='This Jira instance does not have the "Notifications for Jira" plugin installed'
           actions={
             <ActionPanel>
               <Action.OpenInBrowser
@@ -193,7 +198,7 @@ function JiraNotificationView() {
                 title="View More"
                 url="https://marketplace.atlassian.com/apps/1217434/notifications-in-jira-desktop-and-icon-alerts"
               />
-              <Action icon={Icon.ArrowClockwise} title="Refresh" onAction={handleRefresh} />
+              <Action icon={Icon.Repeat} title="Check Again" onAction={resetNotificationAvailable} />
             </ActionPanel>
           }
         />

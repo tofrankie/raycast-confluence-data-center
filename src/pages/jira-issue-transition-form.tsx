@@ -27,13 +27,13 @@ function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProp
   const { pop } = useNavigation();
   const [selectedTransitionId, setSelectedTransitionId] = useState<string>("");
   const { currentUser } = useJiraCurrentUser();
-  const { data: issue, isLoading: isIssueLoading, error: issueError } = useJiraIssueQuery(issueKey);
+  const { data: issue, isLoading: issueLoading, error: issueError } = useJiraIssueQuery(issueKey);
 
   const {
     data: transitions,
-    isLoading: isTransitionsLoading,
     error: transitionsError,
-    isSuccess: isTransitionsSuccess,
+    isLoading: transitionsLoading,
+    isSuccess: transitionsSuccess,
   } = useJiraIssueTransitionsQuery(issueKey);
 
   const transitionMutation = useJiraIssueTransitionMutation({
@@ -89,7 +89,7 @@ function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProp
     }
   }, [transitionsError]);
 
-  const isLoading = isIssueLoading || isTransitionsLoading || transitionMutation.isPending;
+  const isLoading = issueLoading || transitionsLoading || transitionMutation.isPending;
 
   const availableStatusList = useMemo(() => {
     if (!issue || !transitions) return [];
@@ -115,8 +115,8 @@ function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProp
   }, [issue, currentUser]);
 
   const hasPermission = useMemo(() => {
-    return isTransitionsSuccess && !!transitions?.transitions.length;
-  }, [isTransitionsSuccess, transitions?.transitions.length]);
+    return transitionsSuccess && !!transitions?.transitions.length;
+  }, [transitionsSuccess, transitions?.transitions.length]);
 
   return (
     <Form
@@ -133,7 +133,7 @@ function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProp
       <Form.Description title="Summary" text={displayValues.summary} />
       <Form.Description title="Assignee" text={displayValues.assignee} />
       <Form.Description title="Status" text={displayValues.status} />
-      {isTransitionsSuccess && !hasPermission ? (
+      {transitionsSuccess && !hasPermission ? (
         <Form.Description title="Tips" text="⚠️ You don't have permission to transition this issue" />
       ) : (
         <Form.Dropdown

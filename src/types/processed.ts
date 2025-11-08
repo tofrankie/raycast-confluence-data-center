@@ -69,7 +69,7 @@ export interface ProcessedJiraIssue extends ProcessedBase {
   editUrl: string;
 }
 
-export interface ProcessedJiraBoardIssue extends ProcessedBase {
+export interface ProcessedJiraKanbanBoardIssue extends ProcessedBase {
   key: string;
   summary: string;
   icon: ListItemIcon;

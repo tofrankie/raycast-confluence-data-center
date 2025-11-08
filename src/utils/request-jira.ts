@@ -1,7 +1,7 @@
 import { jiraRequest, handleApiResponse } from "@/utils";
 import { JIRA_API, COMMAND_NAME } from "@/constants";
 import type {
-  JiraSearchIssueResponse,
+  JiraSearchIssuesResponse,
   JiraField,
   JiraProject,
   JiraCurrentUser,
@@ -11,7 +11,7 @@ import type {
   JiraBoardResponse,
   JiraSprintResponse,
   JiraBoardConfiguration,
-  JiraBoardIssueResponse,
+  JiraKanbanBoardIssueResponse,
   JiraWorklogCreateParams,
   JiraWorklogUpdateParams,
   JiraNotificationsResponse,
@@ -26,8 +26,8 @@ type JiraSearchIssueParams = {
   validateQuery?: boolean;
 };
 
-export async function searchJiraIssue(params: JiraSearchIssueParams): Promise<JiraSearchIssueResponse> {
-  const data = await jiraRequest<JiraSearchIssueResponse>({ method: "GET", url: JIRA_API.SEARCH, params });
+export async function searchJiraIssues(params: JiraSearchIssueParams): Promise<JiraSearchIssuesResponse> {
+  const data = await jiraRequest<JiraSearchIssuesResponse>({ method: "GET", url: JIRA_API.SEARCH, params });
 
   return handleApiResponse({
     data,
@@ -37,7 +37,7 @@ export async function searchJiraIssue(params: JiraSearchIssueParams): Promise<Ji
       startAt: 0,
       maxResults: 20,
       total: 0,
-      issues: [] as JiraSearchIssueResponse["issues"],
+      issues: [] as JiraSearchIssuesResponse["issues"],
       names: {},
     },
   });
@@ -129,7 +129,11 @@ export async function transitionJiraIssue(url: string, params: JiraIssueTransiti
 }
 
 export async function getJiraBoards(): Promise<JiraBoardResponse> {
-  const data = await jiraRequest<JiraBoardResponse>({ method: "GET", url: JIRA_API.BOARD });
+  const data = await jiraRequest<JiraBoardResponse>({
+    method: "GET",
+    url: JIRA_API.BOARD,
+    params: { maxResults: 100 },
+  });
 
   return handleApiResponse({
     data,
@@ -197,8 +201,8 @@ type JiraBoardSprintIssueParams = {
 export async function getJiraBoardSprintIssues(
   url: string,
   params: JiraBoardSprintIssueParams,
-): Promise<JiraBoardIssueResponse> {
-  const data = await jiraRequest<JiraBoardIssueResponse>({
+): Promise<JiraKanbanBoardIssueResponse> {
+  const data = await jiraRequest<JiraKanbanBoardIssueResponse>({
     method: "GET",
     url,
     params,
@@ -213,6 +217,39 @@ export async function getJiraBoardSprintIssues(
       maxResults: 50,
       total: 0,
       issues: [],
+    },
+  });
+}
+
+type JiraBoardIssueParams = {
+  expand?: string[];
+  jql?: string;
+  maxResults?: number;
+  validateQuery?: boolean;
+  fields?: string[];
+  startAt?: number;
+};
+
+export async function getJiraBoardIssues(
+  url: string,
+  params: JiraBoardIssueParams,
+): Promise<JiraKanbanBoardIssueResponse> {
+  const data = await jiraRequest<JiraKanbanBoardIssueResponse>({
+    method: "GET",
+    url,
+    params,
+  });
+
+  return handleApiResponse({
+    data,
+    fileName: "jira-board-issues",
+    defaultValue: {
+      expand: "schema,names",
+      startAt: 0,
+      maxResults: 50,
+      total: 0,
+      issues: [],
+      names: {},
     },
   });
 }

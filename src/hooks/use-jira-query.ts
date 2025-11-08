@@ -3,7 +3,7 @@ import type { UseQueryOptions, UseInfiniteQueryOptions } from "@tanstack/react-q
 
 import { COMMAND_NAME, PAGINATION_SIZE, JIRA_SEARCH_ISSUE_FIELDS } from "@/constants";
 import {
-  searchJiraIssue,
+  searchJiraIssues,
   processJiraSearchIssue,
   processJiraFieldItem,
   getJiraField,
@@ -15,7 +15,7 @@ import {
   getSelectedFieldIds,
 } from "@/utils";
 import type {
-  JiraSearchIssueResponse,
+  JiraSearchIssuesResponse,
   JiraField,
   JiraProject,
   JiraCurrentUser,
@@ -25,10 +25,10 @@ import type {
   WorklogGroup,
 } from "@/types";
 
-export function useJiraSearchIssueInfiniteQuery<
+export function useJiraSearchIssuesInfiniteQuery<
   TData = { issues: ProcessedJiraIssue[]; hasMore: boolean; totalCount: number },
->(jql: string, queryOptions?: Partial<UseInfiniteQueryOptions<JiraSearchIssueResponse, Error, TData>>) {
-  return useInfiniteQuery<JiraSearchIssueResponse, Error, TData>({
+>(jql: string, queryOptions?: Partial<UseInfiniteQueryOptions<JiraSearchIssuesResponse, Error, TData>>) {
+  return useInfiniteQuery<JiraSearchIssuesResponse, Error, TData>({
     queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUES, { jql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam = 0 }) => {
       const selectedFieldIds = getSelectedFieldIds();
@@ -42,8 +42,7 @@ export function useJiraSearchIssueInfiniteQuery<
         expand: ["names"],
       };
 
-      const response = await searchJiraIssue(params);
-      return response;
+      return await searchJiraIssues(params);
     },
     select: (data) => {
       const allIssue = data.pages.flatMap((page) => page.issues);

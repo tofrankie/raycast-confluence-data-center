@@ -27,6 +27,7 @@ export const CACHE_KEY = {
   JIRA_CURRENT_USER: "jira_current_user",
   JIRA_SELECTED_FIELDS: "jira_selected_fields",
   JIRA_SELECTED_BOARD_ID: "jira_selected_board_id",
+  JIRA_SELECTED_BOARD_TYPE: "jira_selected_board_type",
   JIRA_SELECTED_BOARD_SPRINT_ID: "jira_selected_board_sprint_id",
-  JIRA_SUPPORTED_NOTIFICATION: "jira_supported_notification",
+  JIRA_NOTIFICATION_AVAILABLE: "jira_notification_available",
 } as const;

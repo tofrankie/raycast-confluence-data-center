@@ -35,12 +35,12 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
   const { pop } = useNavigation();
   const { currentUser } = useJiraCurrentUser();
 
-  const { data: issue, isLoading: isIssueLoading, error: issueError } = useJiraIssueQuery(issueKey);
+  const { data: issue, error: issueError, isLoading: issueLoading } = useJiraIssueQuery(issueKey);
 
   const {
     data: worklog,
-    isLoading: isWorklogLoading,
     error: worklogError,
+    isLoading: worklogLoading,
   } = useJiraWorklogQuery(worklogId || 0, { enabled: !!worklogId });
 
   const { handleSubmit, itemProps, setValue } = useForm<JiraWorklogFormData>({
@@ -189,7 +189,7 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
     };
   }, [issue, currentUser]);
 
-  const isLoading = isIssueLoading || isWorklogLoading || createMutation.isPending || updateMutation.isPending;
+  const isLoading = issueLoading || worklogLoading || createMutation.isPending || updateMutation.isPending;
   const navigationTitle = worklogId ? "Edit Worklog" : "Create Worklog";
   const canSubmit = issue && (!worklogId || (worklogId && worklog));
 

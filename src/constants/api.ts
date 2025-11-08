@@ -13,6 +13,7 @@ export const JIRA_API = {
   ISSUE: "/rest/api/2/issue/{issueIdOrKey}",
   ISSUE_TRANSITIONS: "/rest/api/2/issue/{issueIdOrKey}/transitions",
   BOARD: "/rest/agile/1.0/board",
+  BOARD_ISSUE: "/rest/agile/1.0/board/{boardId}/issue",
   BOARD_SPRINT: "/rest/agile/1.0/board/{boardId}/sprint",
   BOARD_SPRINT_ISSUE: "/rest/agile/1.0/board/{boardId}/sprint/{sprintId}/issue",
   BOARD_CONFIGURATION: "/rest/agile/1.0/board/{boardId}/configuration",

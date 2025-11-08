@@ -1,6 +1,6 @@
 import type { JiraUser, JiraTimeTracking, JiraStatus, JiraIssueType, JiraPriority } from "@/types";
 
-export interface JiraSearchIssueResponse {
+export interface JiraSearchIssuesResponse {
   expand: string;
   issues: JiraSearchIssue[];
   maxResults: number;
@@ -14,13 +14,13 @@ export interface JiraSearchIssue {
   id: string;
   self: string;
   key: string;
-  fields: JiraSearchIssueFields;
+  fields: JiraSearchIssuesFields;
 }
 
 /**
  * Fields returned by `/rest/api/2/search` endpoint based on the `fields` parameter
  */
-export interface JiraSearchIssueFields {
+export interface JiraSearchIssuesFields {
   summary: string;
   issuetype: JiraIssueType;
   duedate: string | null;

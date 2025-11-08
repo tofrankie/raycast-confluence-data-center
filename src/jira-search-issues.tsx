@@ -1,16 +1,17 @@
 import { useState, useMemo, useEffect } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast, Color } from "@raycast/api";
-import { showFailureToast, useCachedState } from "@raycast/utils";
+import { showFailureToast } from "@raycast/utils";
 
 import { SearchBarAccessory, QueryProvider, QueryWrapper, DebugActions } from "@/components";
 import { JiraIssueTransitionForm, JiraWorklogForm } from "@/pages";
-import { COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, JIRA_SEARCH_ISSUE_FILTERS, CACHE_KEY } from "@/constants";
+import { COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, JIRA_SEARCH_ISSUE_FILTERS } from "@/constants";
 import JiraNotificationView from "@/jira-notification-view";
 import {
   useJiraProjectQuery,
-  useJiraSearchIssueInfiniteQuery,
+  useJiraSearchIssuesInfiniteQuery,
   useJiraCurrentUser,
   useJiraUnreadNotificationsQuery,
+  useJiraNotificationAvailableCachedState,
 } from "@/hooks";
 import {
   getSectionTitle,
@@ -38,7 +39,8 @@ export default function JiraSearchIssuesProvider() {
 function JiraSearchIssues() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
-  const [supportedNotification, setSupportedNotification] = useCachedState(CACHE_KEY.JIRA_SUPPORTED_NOTIFICATION, true);
+  const { available: notificationAvailable, setAvailable: setNotificationAvailable } =
+    useJiraNotificationAvailableCachedState();
 
   const {
     data: projectKeys,
@@ -106,7 +108,7 @@ function JiraSearchIssues() {
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useJiraSearchIssueInfiniteQuery(jql, {
+  } = useJiraSearchIssuesInfiniteQuery(jql, {
     enabled: jiraIssueEnabled,
   });
 
@@ -117,12 +119,12 @@ function JiraSearchIssues() {
     refetch: refetchUnreadNotifications,
     error: unreadNotificationsError,
   } = useJiraUnreadNotificationsQuery({
-    enabled: supportedNotification,
+    enabled: notificationAvailable,
   });
 
   useEffect(() => {
     if (unreadNotificationsError && unreadNotificationsError.message.includes("404")) {
-      setSupportedNotification(false);
+      setNotificationAvailable(false);
     }
   }, [unreadNotificationsError]);
 
