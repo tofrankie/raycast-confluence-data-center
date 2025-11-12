@@ -1,71 +1,78 @@
 import { useMemo, useEffect } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
-import { showFailureToast } from "@raycast/utils";
 
-import { QueryProvider, DebugActions } from "@/components";
+import { withQuery, CacheActions } from "@/components";
 import { JiraIssueTransitionForm } from "@/pages";
 import {
-  useJiraBoards,
-  useJiraBoardActiveSprint,
-  useJiraBoardConfiguration,
-  useJiraBoardSprintIssues,
-  useJiraKanbanBoardIssuesInfiniteQuery,
+  useJiraBoardsQuery,
+  useJiraBoardActiveSprintQuery,
+  useJiraBoardConfigurationQuery,
+  useJiraBoardSprintIssuesQuery,
+  useJiraBoardIssuesInfiniteQuery,
   useJiraBoardCachedState,
+  useFetchNextPageWithToast,
+  useRefetchWithToast,
 } from "@/hooks";
-import { processAndGroupSprintIssues } from "@/utils";
-import { JIRA_BOARD_TYPE, PAGINATION_SIZE } from "./constants";
+import { groupSprintIssuesByColumn } from "@/utils";
+import { JIRA_BOARD_TYPE, PAGINATION_SIZE } from "@/constants";
 import type { ProcessedJiraKanbanBoardIssue } from "@/types";
 
-export default function JiraBoardViewProvider() {
-  return (
-    <QueryProvider>
-      <JiraBoardView />
-    </QueryProvider>
-  );
-}
+export default withQuery(JiraBoardView);
 
 function JiraBoardView() {
   const { boardId, setBoardId, sprintId, setSprintId, boardType, setBoardType } = useJiraBoardCachedState();
 
-  const { data: boards, isLoading: boardsLoading, error: boardsError, isSuccess: boardsSuccess } = useJiraBoards();
-
   const {
-    data: boardConfiguration,
-    error: boardConfigurationError,
-    isLoading: boardConfigurationLoading,
-  } = useJiraBoardConfiguration(boardId, {
+    data: boards,
+    isLoading: boardsLoading,
+    isSuccess: boardsSuccess,
+    refetch: refetchBoards,
+  } = useJiraBoardsQuery({
+    meta: { errorMessage: "Failed to Load Boards" },
+  });
+
+  const { data: boardConfiguration, isLoading: boardConfigurationLoading } = useJiraBoardConfigurationQuery(boardId, {
     enabled: boardId > -1,
+    meta: { errorMessage: "Failed to Load Board Configuration" },
   });
 
   const {
     data: sprint,
-    error: sprintError,
     isLoading: sprintLoading,
     isSuccess: sprintSuccess,
-  } = useJiraBoardActiveSprint(boardId, {
+  } = useJiraBoardActiveSprintQuery(boardId, {
     enabled: boardId > -1 && boardType === JIRA_BOARD_TYPE.SCRUM,
+    meta: { errorMessage: "Failed to Load Sprint" },
   });
 
   const {
     data: sprintIssues,
     isLoading: sprintIssuesLoading,
-    error: sprintIssuesError,
     refetch: refetchSprintIssues,
-  } = useJiraBoardSprintIssues(boardId, sprintId, {
+  } = useJiraBoardSprintIssuesQuery(boardId, sprintId, {
     enabled: boardId > -1 && sprintId > -1 && boardType === JIRA_BOARD_TYPE.SCRUM,
+    meta: { errorMessage: "Failed to Load Sprint Issues" },
   });
 
   const {
     data: kanbanIssues,
-    error: kanbanIssuesError,
     isLoading: kanbanIssuesLoading,
     isFetchingNextPage: isFetchingNextKanbanIssues,
     hasNextPage: hasNextKanbanIssues,
     fetchNextPage: fetchNextKanbanIssues,
     refetch: refetchKanbanIssues,
-  } = useJiraKanbanBoardIssuesInfiniteQuery(boardId, {
+  } = useJiraBoardIssuesInfiniteQuery(boardId, {
     enabled: boardId > -1 && boardType === JIRA_BOARD_TYPE.KANBAN,
+    meta: { errorMessage: "Failed to Load Board Issues" },
   });
+
+  const fetchNextPageWithToast = useFetchNextPageWithToast({
+    hasNextPage: hasNextKanbanIssues,
+    isFetchingNextPage: isFetchingNextKanbanIssues,
+    fetchNextPage: fetchNextKanbanIssues,
+  });
+
+  const refetchBoardsWithToast = useRefetchWithToast({ refetch: refetchBoards });
 
   useEffect(() => {
     const hasBoards = boardsSuccess && boards;
@@ -90,42 +97,15 @@ function JiraBoardView() {
     }
   }, [sprint, sprintId]);
 
-  useEffect(() => {
-    if (boardsError) {
-      showFailureToast(boardsError, { title: "Failed to Load Boards" });
-    }
-  }, [boardsError]);
-
-  useEffect(() => {
-    if (sprintError) {
-      showFailureToast(sprintError, { title: "Failed to Load Sprint" });
-    }
-  }, [sprintError]);
-
-  useEffect(() => {
-    if (boardConfigurationError) {
-      showFailureToast(boardConfigurationError, { title: "Failed to Load Board Configuration" });
-    }
-  }, [boardConfigurationError]);
-
-  useEffect(() => {
-    if (sprintIssuesError) {
-      showFailureToast(sprintIssuesError, { title: "Failed to Load Sprint Issues" });
-    }
-  }, [sprintIssuesError]);
-
-  useEffect(() => {
-    if (kanbanIssuesError) {
-      showFailureToast(kanbanIssuesError, { title: "Failed to Load Board Issues" });
-    }
-  }, [kanbanIssuesError]);
-
   const groupedIssues = useMemo(() => {
-    if (!boardConfiguration?.columnConfig.columns || !sprintIssues?.issues) {
+    if (!boardConfiguration?.columnConfig.columns || !sprintIssues) {
       return {};
     }
-    return processAndGroupSprintIssues(sprintIssues.issues, boardConfiguration);
+    return groupSprintIssuesByColumn(sprintIssues, boardConfiguration);
   }, [sprintIssues, boardConfiguration]);
+
+  const isLoading =
+    boardsLoading || sprintLoading || boardConfigurationLoading || sprintIssuesLoading || kanbanIssuesLoading;
 
   const onBoardChange = (value: string) => {
     if (!boardsSuccess) return;
@@ -136,13 +116,7 @@ function JiraBoardView() {
     setBoardType(board?.type ?? JIRA_BOARD_TYPE.SCRUM);
   };
 
-  const handleLoadMore = () => {
-    if (hasNextKanbanIssues && !isFetchingNextKanbanIssues) {
-      fetchNextKanbanIssues();
-    }
-  };
-
-  const handleRefresh = async () => {
+  const fetchIssuesWithToast = async () => {
     try {
       if (boardType === JIRA_BOARD_TYPE.KANBAN) {
         await refetchKanbanIssues();
@@ -154,31 +128,6 @@ function JiraBoardView() {
       // Error handling is done by useEffect
     }
   };
-
-  const isLoading =
-    boardsLoading || sprintLoading || boardConfigurationLoading || sprintIssuesLoading || kanbanIssuesLoading;
-
-  if (!boardId && boards?.length) {
-    return (
-      <List
-        isLoading={boardsLoading}
-        searchBarPlaceholder="Select Board"
-        searchBarAccessory={
-          <List.Dropdown tooltip="Select Board" value={boardId.toString()} onChange={onBoardChange} storeValue>
-            {boards.map((board) => (
-              <List.Dropdown.Item key={board.id} title={board.name} value={board.id.toString()} />
-            ))}
-          </List.Dropdown>
-        }
-      >
-        <List.EmptyView
-          icon={Icon.List}
-          title="Select Board"
-          description="Choose a board from the dropdown to view its active sprint issues"
-        />
-      </List>
-    );
-  }
 
   return (
     <List
@@ -195,33 +144,25 @@ function JiraBoardView() {
       pagination={
         boardType === JIRA_BOARD_TYPE.KANBAN
           ? {
-              hasMore: kanbanIssues?.hasMore || false,
-              onLoadMore: handleLoadMore,
+              hasMore: hasNextKanbanIssues,
+              onLoadMore: fetchNextPageWithToast,
               pageSize: PAGINATION_SIZE,
             }
           : undefined
       }
     >
-      {boardType === JIRA_BOARD_TYPE.KANBAN ? (
+      {boardsSuccess && !boards.length ? (
+        <NoBoardsEmptyView onRefetch={refetchBoardsWithToast} />
+      ) : boardType === JIRA_BOARD_TYPE.KANBAN ? (
         <KanbanList
-          issues={kanbanIssues?.issues}
-          sectionTitle={`Results (${kanbanIssues?.issues.length || 0}/${kanbanIssues?.totalCount || 0})`}
-          onRefresh={handleRefresh}
+          issues={kanbanIssues?.list}
+          sectionTitle={`Results (${kanbanIssues?.list.length || 0}/${kanbanIssues?.total || 0})`}
+          onRefetch={fetchIssuesWithToast}
         />
       ) : sprintSuccess && !sprint ? (
-        <List.EmptyView
-          icon={Icon.MagnifyingGlass}
-          title="No Results"
-          description="This board doesn't have an active sprint"
-          actions={
-            <ActionPanel>
-              <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={handleRefresh} />
-              <DebugActions />
-            </ActionPanel>
-          }
-        />
+        <NoSprintEmptyView onRefetch={fetchIssuesWithToast} />
       ) : (
-        <ScrumList groupedIssues={groupedIssues} onRefresh={handleRefresh} />
+        <ScrumList groupedIssues={groupedIssues} onRefetch={fetchIssuesWithToast} />
       )}
     </List>
   );
@@ -230,30 +171,18 @@ function JiraBoardView() {
 interface KanbanListProps {
   issues?: ProcessedJiraKanbanBoardIssue[];
   sectionTitle: string;
-  onRefresh: () => void;
+  onRefetch: () => void;
 }
 
-function KanbanList({ issues, sectionTitle, onRefresh }: KanbanListProps) {
+function KanbanList({ issues, sectionTitle, onRefetch }: KanbanListProps) {
   if (!issues || issues.length === 0) {
-    return (
-      <List.EmptyView
-        icon={Icon.MagnifyingGlass}
-        title="No Results"
-        description="No issues found in this board"
-        actions={
-          <ActionPanel>
-            <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={onRefresh} />
-            <DebugActions />
-          </ActionPanel>
-        }
-      />
-    );
+    return <NoIssuesEmptyView onRefetch={onRefetch} />;
   }
 
   return (
     <List.Section title={sectionTitle}>
       {issues.map((item) => (
-        <BoardIssueItem key={item.renderKey} item={item} onRefresh={onRefresh} />
+        <BoardIssueItem key={item.renderKey} item={item} onRefetch={onRefetch} />
       ))}
     </List.Section>
   );
@@ -261,16 +190,16 @@ function KanbanList({ issues, sectionTitle, onRefresh }: KanbanListProps) {
 
 interface ScrumListProps {
   groupedIssues: Record<string, ProcessedJiraKanbanBoardIssue[]>;
-  onRefresh: () => void;
+  onRefetch: () => void;
 }
 
-function ScrumList({ groupedIssues, onRefresh }: ScrumListProps) {
+function ScrumList({ groupedIssues, onRefetch }: ScrumListProps) {
   return (
     <>
       {Object.entries(groupedIssues).map(([columnName, issues]) => (
         <List.Section key={columnName} title={`${columnName} (${issues.length})`}>
           {issues.map((item) => (
-            <BoardIssueItem key={item.renderKey} item={item} onRefresh={onRefresh} />
+            <BoardIssueItem key={item.renderKey} item={item} onRefetch={onRefetch} />
           ))}
         </List.Section>
       ))}
@@ -280,10 +209,10 @@ function ScrumList({ groupedIssues, onRefresh }: ScrumListProps) {
 
 interface BoardIssueItemProps {
   item: ProcessedJiraKanbanBoardIssue;
-  onRefresh: () => void;
+  onRefetch: () => void;
 }
 
-function BoardIssueItem({ item, onRefresh }: BoardIssueItemProps) {
+function BoardIssueItem({ item, onRefetch }: BoardIssueItemProps) {
   return (
     <List.Item
       key={item.renderKey}
@@ -295,15 +224,17 @@ function BoardIssueItem({ item, onRefresh }: BoardIssueItemProps) {
       actions={
         <ActionPanel>
           <Action.OpenInBrowser title="Open in Browser" url={item.url} />
-          <Action.OpenInBrowser
-            icon={Icon.Pencil}
-            title="Edit in Browser"
-            url={item.editUrl}
-            shortcut={{ modifiers: ["cmd"], key: "e" }}
-          />
+          {item.editUrl && (
+            <Action.OpenInBrowser
+              icon={Icon.Pencil}
+              title="Edit in Browser"
+              url={item.editUrl}
+              shortcut={{ modifiers: ["cmd"], key: "e" }}
+            />
+          )}
           <Action.Push
             title="Transition Status"
-            target={<JiraIssueTransitionForm issueKey={item.key} onUpdate={onRefresh} />}
+            target={<JiraIssueTransitionForm issueKey={item.key} onUpdate={onRefetch} />}
             icon={Icon.Switch}
             shortcut={{ modifiers: ["cmd"], key: "t" }}
           />
@@ -313,18 +244,73 @@ function BoardIssueItem({ item, onRefresh }: BoardIssueItemProps) {
             shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
             content={item.key}
           />
-          <Action.CopyToClipboard
-            title="Copy Summary"
-            shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
-            content={item.summary}
-          />
           <Action
             title="Refresh"
             icon={Icon.ArrowClockwise}
             shortcut={{ modifiers: ["cmd"], key: "r" }}
-            onAction={onRefresh}
+            onAction={onRefetch}
           />
-          <DebugActions />
+          <CacheActions />
+        </ActionPanel>
+      }
+    />
+  );
+}
+
+interface NoSprintEmptyViewProps {
+  onRefetch: () => void;
+}
+
+function NoSprintEmptyView({ onRefetch }: NoSprintEmptyViewProps) {
+  return (
+    <List.EmptyView
+      icon={Icon.MagnifyingGlass}
+      title="No Results"
+      description="This board doesn't have an active sprint"
+      actions={
+        <ActionPanel>
+          <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={onRefetch} />
+          <CacheActions />
+        </ActionPanel>
+      }
+    />
+  );
+}
+
+interface NoIssuesEmptyViewProps {
+  onRefetch: () => void;
+}
+
+function NoIssuesEmptyView({ onRefetch }: NoIssuesEmptyViewProps) {
+  return (
+    <List.EmptyView
+      icon={Icon.MagnifyingGlass}
+      title="No Results"
+      description="No issues found in this board"
+      actions={
+        <ActionPanel>
+          <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={onRefetch} />
+          <CacheActions />
+        </ActionPanel>
+      }
+    />
+  );
+}
+
+interface NoBoardsEmptyViewProps {
+  onRefetch: () => void;
+}
+
+function NoBoardsEmptyView({ onRefetch }: NoBoardsEmptyViewProps) {
+  return (
+    <List.EmptyView
+      icon={Icon.List}
+      title="No Boards"
+      description="No boards available in this Jira instance"
+      actions={
+        <ActionPanel>
+          <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={onRefetch} />
+          <CacheActions />
         </ActionPanel>
       }
     />

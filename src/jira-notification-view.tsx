@@ -3,7 +3,7 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 import dayjs from "dayjs";
 
-import { QueryProvider, DebugActions } from "@/components";
+import { withQuery, CacheActions } from "@/components";
 import { PAGINATION_SIZE, AVATAR_TYPE } from "@/constants";
 import {
   useJiraNotificationsInfiniteQuery,
@@ -12,22 +12,18 @@ import {
   useSetJiraNotificationStateMutation,
   useAvatar,
   useJiraNotificationAvailableCachedState,
+  useRefetchWithToast,
+  useFetchNextPageWithToast,
 } from "@/hooks";
 import type { ProcessedJiraNotification } from "@/types";
-import { avatarExtractors } from "@/utils";
 
-const EMPTY_INFINITE_DATA = { notifications: [], hasMore: false };
+const EMPTY_INFINITE_DATA = { list: [], total: 0 };
 
-export default function JiraNotificationViewProvider() {
-  return (
-    <QueryProvider>
-      <JiraNotificationView />
-    </QueryProvider>
-  );
-}
+export default withQuery(JiraNotificationView);
 
 function JiraNotificationView() {
   const [searchText, setSearchText] = useState("");
+
   const {
     available: notificationAvailable,
     setAvailable: setNotificationAvailable,
@@ -45,6 +41,7 @@ function JiraNotificationView() {
     refetch,
   } = useJiraNotificationsInfiniteQuery({
     enabled: notificationAvailable,
+    meta: { errorMessage: "Failed to Load Notifications" },
   });
 
   const markAsReadMutation = useMarkJiraNotificationAsReadMutation({
@@ -77,6 +74,29 @@ function JiraNotificationView() {
     },
   });
 
+  useAvatar<ProcessedJiraNotification>({
+    items: data.list,
+    avatarType: AVATAR_TYPE.JIRA_NOTIFICATION_USER,
+    collectAvatars: (items) =>
+      items
+        .filter((item) => item.actionMakerAvatarUrl && item.actionMakerAvatarCacheKey)
+        .map((item) => ({ url: item.actionMakerAvatarUrl, key: item.actionMakerAvatarCacheKey! })),
+  });
+
+  const fetchNextPageWithToast = useFetchNextPageWithToast({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
+
+  const refetchWithToast = useRefetchWithToast({ refetch });
+
+  useEffect(() => {
+    if (error && error.message.includes("404")) {
+      setNotificationAvailable(false);
+    }
+  }, [error, setNotificationAvailable]);
+
   const { todayNotifications, yesterdayNotifications, earlierNotifications } = useMemo(() => {
     const today: ProcessedJiraNotification[] = [];
     const yesterday: ProcessedJiraNotification[] = [];
@@ -87,7 +107,7 @@ function JiraNotificationView() {
 
     const trimmedSearchText = searchText.trim().toLowerCase();
 
-    data.notifications.forEach((item) => {
+    data.list.forEach((item) => {
       if (trimmedSearchText) {
         const titleValue = typeof item.title === "string" ? item.title : item.title.value;
         const titleMatched = titleValue.toLowerCase().includes(trimmedSearchText);
@@ -119,37 +139,9 @@ function JiraNotificationView() {
       yesterdayNotifications: yesterday,
       earlierNotifications: earlier,
     };
-  }, [data.notifications, searchText]);
+  }, [data.list, searchText]);
 
-  useAvatar({
-    items: data.notifications,
-    avatarType: AVATAR_TYPE.JIRA_NOTIFICATION_USER,
-    extractAvatarData: avatarExtractors.jiraNotificationUser,
-  });
-
-  useEffect(() => {
-    if (error) {
-      if (error.message.includes("404")) {
-        setNotificationAvailable(false);
-      }
-      showFailureToast(error, { title: "Failed to Load Notifications" });
-    }
-  }, [error]);
-
-  const handleLoadMore = () => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  };
-
-  const handleRefresh = async () => {
-    try {
-      await refetch();
-      showToast(Toast.Style.Success, "Refreshed");
-    } catch {
-      // Error handling is done by useEffect
-    }
-  };
+  const isEmpty = isSuccess && !data.list.length;
 
   const handleOpenInBrowser = (notification: ProcessedJiraNotification) => {
     // If unread, mark as read first
@@ -170,9 +162,6 @@ function JiraNotificationView() {
     markAllAsReadMutation.mutateAsync();
   };
 
-  const hasMore = data?.hasMore || false;
-  const isEmpty = isSuccess && !data.notifications.length;
-
   return (
     <List
       throttle
@@ -181,38 +170,15 @@ function JiraNotificationView() {
       searchBarPlaceholder="Filter by title, key, state"
       navigationTitle="Notification View"
       pagination={{
-        hasMore,
-        onLoadMore: handleLoadMore,
+        hasMore: hasNextPage,
+        onLoadMore: fetchNextPageWithToast,
         pageSize: PAGINATION_SIZE,
       }}
     >
       {!notificationAvailable ? (
-        <List.EmptyView
-          icon={Icon.Warning}
-          title="Notifications Not Available"
-          description='This Jira instance does not have the "Notifications for Jira" plugin installed'
-          actions={
-            <ActionPanel>
-              <Action.OpenInBrowser
-                icon={Icon.Globe}
-                title="View More"
-                url="https://marketplace.atlassian.com/apps/1217434/notifications-in-jira-desktop-and-icon-alerts"
-              />
-              <Action icon={Icon.Repeat} title="Check Again" onAction={resetNotificationAvailable} />
-            </ActionPanel>
-          }
-        />
+        <NotificationUnavailableEmptyView onCheckAgain={resetNotificationAvailable} />
       ) : isEmpty ? (
-        <List.EmptyView
-          icon={Icon.Bell}
-          title="No Results"
-          description="You have no notifications"
-          actions={
-            <ActionPanel>
-              <Action icon={Icon.ArrowClockwise} title="Refresh" onAction={handleRefresh} />
-            </ActionPanel>
-          }
-        />
+        <NoNotificationsEmptyView onRefetch={refetchWithToast} />
       ) : (
         <>
           {todayNotifications.length > 0 && (
@@ -225,7 +191,7 @@ function JiraNotificationView() {
                   onMarkAsRead={handleMarkAsRead}
                   onMarkAsUnread={handleMarkAsUnread}
                   onMarkAllAsRead={handleMarkAllAsRead}
-                  onRefresh={handleRefresh}
+                  onRefetch={refetchWithToast}
                 />
               ))}
             </List.Section>
@@ -240,7 +206,7 @@ function JiraNotificationView() {
                   onMarkAsRead={handleMarkAsRead}
                   onMarkAsUnread={handleMarkAsUnread}
                   onMarkAllAsRead={handleMarkAllAsRead}
-                  onRefresh={handleRefresh}
+                  onRefetch={refetchWithToast}
                 />
               ))}
             </List.Section>
@@ -255,7 +221,7 @@ function JiraNotificationView() {
                   onMarkAsRead={handleMarkAsRead}
                   onMarkAsUnread={handleMarkAsUnread}
                   onMarkAllAsRead={handleMarkAllAsRead}
-                  onRefresh={handleRefresh}
+                  onRefetch={refetchWithToast}
                 />
               ))}
             </List.Section>
@@ -272,14 +238,14 @@ function NotificationItem({
   onMarkAsRead,
   onMarkAsUnread,
   onMarkAllAsRead,
-  onRefresh,
+  onRefetch,
 }: {
   notification: ProcessedJiraNotification;
   onOpenInBrowser: (notification: ProcessedJiraNotification) => void;
   onMarkAsRead: (notification: ProcessedJiraNotification) => void;
   onMarkAsUnread: (notification: ProcessedJiraNotification) => void;
   onMarkAllAsRead: () => void;
-  onRefresh: () => Promise<void>;
+  onRefetch: () => Promise<void>;
 }) {
   return (
     <List.Item
@@ -307,10 +273,53 @@ function NotificationItem({
           <Action
             icon={Icon.ArrowClockwise}
             title="Refresh"
-            onAction={onRefresh}
+            onAction={onRefetch}
             shortcut={{ modifiers: ["cmd"], key: "r" }}
           />
-          <DebugActions />
+          <CacheActions />
+        </ActionPanel>
+      }
+    />
+  );
+}
+
+interface NotificationUnavailableEmptyViewProps {
+  onCheckAgain: () => void;
+}
+
+function NotificationUnavailableEmptyView({ onCheckAgain }: NotificationUnavailableEmptyViewProps) {
+  return (
+    <List.EmptyView
+      icon={Icon.Warning}
+      title="Notifications Not Available"
+      description='This Jira instance does not have the "Notifications for Jira" plugin installed'
+      actions={
+        <ActionPanel>
+          <Action.OpenInBrowser
+            icon={Icon.Globe}
+            title="View More"
+            url="https://marketplace.atlassian.com/apps/1217434/notifications-in-jira-desktop-and-icon-alerts"
+          />
+          <Action icon={Icon.Repeat} title="Check Again" onAction={onCheckAgain} />
+        </ActionPanel>
+      }
+    />
+  );
+}
+
+interface NoNotificationsEmptyViewProps {
+  onRefetch: () => void;
+}
+
+function NoNotificationsEmptyView({ onRefetch }: NoNotificationsEmptyViewProps) {
+  return (
+    <List.EmptyView
+      icon={Icon.Bell}
+      title="No Results"
+      description="You have no notifications"
+      actions={
+        <ActionPanel>
+          <Action icon={Icon.ArrowClockwise} title="Refresh" onAction={onRefetch} />
         </ActionPanel>
       }
     />

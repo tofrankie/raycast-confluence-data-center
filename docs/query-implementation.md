@@ -146,7 +146,7 @@ function handleUserInput(userInput: string, filter?: SearchFilter) {
 #### 4.2.1 SearchFilter 接口扩展
 
 ```typescript
-export interface SearchBarAccessoryItem {
+export interface SearchFilterItem {
   id: string;
   title: string;
   query: string;
@@ -379,7 +379,7 @@ export type ProcessUserInputResult =
 ### 5.2 扩展的 SearchFilter 接口
 
 ```typescript
-export interface SearchBarAccessoryItem {
+export interface SearchFilterItem {
   id: string;
   title: string;
   query: string;
@@ -387,7 +387,7 @@ export interface SearchBarAccessoryItem {
   orderBy?: string; // 新增：ORDER BY 子句
 }
 
-export type SearchFilter = SearchBarAccessoryItem;
+export type SearchFilter = SearchFilterItem;
 ```
 
 ## 6. 文件组织

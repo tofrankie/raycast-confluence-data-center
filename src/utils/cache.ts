@@ -1,57 +1,37 @@
 import path from "node:path";
 import fs from "node:fs/promises";
-import { Cache, popToRoot, showToast, Toast } from "@raycast/api";
+import { Cache } from "@raycast/api";
 
-import { CACHE_DIRECTORY, DEBUG_ENABLE } from "@/constants";
-import { pathExists, ensureDirExists, clearDirExistsCache } from "@/utils";
+import { CACHE_DIRECTORY, DEBUG_ENABLE, AVATAR_DIR } from "@/constants";
+import { pathExists, ensureDirExists } from "@/utils";
+import type { AvatarType } from "@/types";
 
-const cacheInstances = new Set<Cache>();
+export const avatarCache = new Cache();
 
-export const avatarCache = createCache();
+export async function clearAvatarCacheByType(avatarType: AvatarType) {
+  const avatarDir = AVATAR_DIR[avatarType];
 
-export const jiraSelectedFieldsCache = createCache();
+  try {
+    const exists = await pathExists(avatarDir);
+    if (!exists) {
+      console.log(`🚀 ~ Avatar directory does not exist: ${avatarDir}`);
+      return;
+    }
 
-export const jiraCurrentUserCache = createCache();
+    const files = await fs.readdir(avatarDir);
 
-export const confluenceCurrentUserCache = createCache();
+    for (const file of files) {
+      const key = path.parse(file).name;
+      avatarCache.remove(key);
+    }
 
-export async function clearAllCacheWithToast() {
-  await clearAllCache();
-  popToRoot();
-  showToast(Toast.Style.Success, "Cache Cleared");
+    await fs.rm(avatarDir, { recursive: true, force: true });
+    console.log(`🚀 ~ Cleared avatar cache for type: ${avatarType}`);
+  } catch (error) {
+    console.error(`🚀 ~ Failed to clear avatar cache for type ${avatarType}:`, error);
+  }
 }
 
-/**
- * Clear all caches, both Raycast Cache instances and cache directories.
- */
-export async function clearAllCache() {
-  clearAllRaycastCache();
-  await clearCacheDirectories();
-  console.log("🚀 ~ All cache cleared");
-}
-
-/**
- * Create a Raycast Cache instance and track it.
- */
-export function createCache(options?: { namespace?: string; capacity?: number }): Cache {
-  const cache = new Cache(options);
-  cacheInstances.add(cache);
-  return cache;
-}
-
-/**
- * Clear all tracked Raycast Cache instances.
- */
-export function clearAllRaycastCache() {
-  cacheInstances.forEach((cache) => {
-    cache.clear({ notifySubscribers: false });
-  });
-  // Do not clear cacheInstances to support multiple clears in one process lifecycle
-}
-
-/**
- * Clear all cache directories on disk.
- */
 export async function clearCacheDirectories() {
   const directories = Object.values(CACHE_DIRECTORY);
 
@@ -66,8 +46,6 @@ export async function clearCacheDirectories() {
       console.error(`🚀 ~ Failed to clear directory ${dir}:`, error);
     }
   }
-
-  clearDirExistsCache();
 }
 
 /**

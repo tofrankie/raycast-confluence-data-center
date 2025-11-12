@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Form, ActionPanel, Action, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
-import { QueryProvider } from "@/components";
+import { withQuery } from "@/components";
 import {
   useJiraCurrentUser,
   useJiraIssueQuery,
@@ -10,31 +10,30 @@ import {
   useJiraIssueTransitionMutation,
 } from "@/hooks";
 
+export default withQuery(JiraIssueTransitionForm);
+
 interface JiraIssueTransitionProps {
   issueKey: string;
   onUpdate?: () => void;
-}
-
-export default function JiraIssueTransitionFormProvider(props: JiraIssueTransitionProps) {
-  return (
-    <QueryProvider>
-      <JiraIssueTransitionForm {...props} />
-    </QueryProvider>
-  );
 }
 
 function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProps) {
   const { pop } = useNavigation();
   const [selectedTransitionId, setSelectedTransitionId] = useState<string>("");
   const { currentUser } = useJiraCurrentUser();
-  const { data: issue, isLoading: issueLoading, error: issueError } = useJiraIssueQuery(issueKey);
+  const { data: issue, isLoading: issueLoading } = useJiraIssueQuery(issueKey, {
+    enabled: !!issueKey,
+    meta: { errorMessage: "Failed to Load Issue" },
+  });
 
   const {
     data: transitions,
-    error: transitionsError,
     isLoading: transitionsLoading,
     isSuccess: transitionsSuccess,
-  } = useJiraIssueTransitionsQuery(issueKey);
+  } = useJiraIssueTransitionsQuery(issueKey, {
+    enabled: !!issueKey,
+    meta: { errorMessage: "Failed to Load Issue Transitions" },
+  });
 
   const transitionMutation = useJiraIssueTransitionMutation({
     onSuccess: () => {
@@ -76,18 +75,6 @@ function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProp
   const handleCancel = () => {
     pop();
   };
-
-  useEffect(() => {
-    if (issueError) {
-      showFailureToast(issueError, { title: "Failed to Load Issue" });
-    }
-  }, [issueError]);
-
-  useEffect(() => {
-    if (transitionsError) {
-      showFailureToast(transitionsError, { title: "Failed to Load Issue Transitions" });
-    }
-  }, [transitionsError]);
 
   const isLoading = issueLoading || transitionsLoading || transitionMutation.isPending;
 

@@ -1,25 +1,26 @@
 import { useEffect } from "react";
-import { showFailureToast, useCachedState } from "@raycast/utils";
+import { useCachedState } from "@raycast/utils";
+import { useQuery, skipToken } from "@tanstack/react-query";
 
-import { useJiraCurrentUserQuery } from "@/hooks";
+import { getJiraCurrentUser } from "@/utils/jira-request";
 import { CACHE_KEY } from "@/constants";
 import type { JiraCurrentUser } from "@/types";
 
 export function useJiraCurrentUser() {
   const [currentUser, setCurrentUser] = useCachedState<JiraCurrentUser | null>(CACHE_KEY.JIRA_CURRENT_USER, null);
 
-  const queryResult = useJiraCurrentUserQuery({ enabled: !currentUser });
+  const enabled = !currentUser;
+
+  const queryResult = useQuery({
+    queryKey: [{ scope: "jira", entity: "current-user" }],
+    queryFn: !enabled ? skipToken : getJiraCurrentUser,
+    enabled,
+    meta: { errorMessage: "Failed to Load User" },
+  });
 
   useEffect(() => {
     if (queryResult.data) {
       setCurrentUser(queryResult.data);
-      return;
-    }
-
-    if (queryResult.isSuccess) {
-      showFailureToast(new Error("Expected response body, but got 204"), {
-        title: "Failed to Load User",
-      });
     }
   }, [queryResult.data]);
 
